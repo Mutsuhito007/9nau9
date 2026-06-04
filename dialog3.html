@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Dialog</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000; color: #fff;
+            font-family: 'VT323', monospace;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; user-select: none;
+        }
+        .app-wrapper {
+            width: 95%; max-width: 450px; height: 95%;
+            background-color: #050505; border: 2px solid #333;
+            border-radius: 5px; display: flex; flex-direction: column;
+            position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,1);
+        }
+        
+        /* Terminal Ekranı */
+        .chat-container {
+            flex-grow: 1; padding: 20px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        /* Kaydırma Çubuğu Ayarı */
+        .chat-container::-webkit-scrollbar { width: 5px; }
+        .chat-container::-webkit-scrollbar-thumb { background: #333; }
+
+        .line {
+            font-size: 24px; line-height: 1.4; letter-spacing: 1px;
+            word-wrap: break-word;
+        }
+        .DUDE-label { color: #FFD700; font-weight: bold; } /* DUDE yeşil yazsın */
+        .M.H.-label { color: #ff0000; font-weight: bold; } /* M.H. sarı yazsın */
+        
+        /* Yanıp Sönen Alt Tire Efekti */
+        .cursor {
+            display: inline-block; width: 12px; height: 2px;
+            background-color: #fff; margin-left: 2px;
+            animation: blink 0.8s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* Başlat ve Devam Butonları */
+        .btn-container {
+            padding: 15px; border-top: 1px dashed #333;
+            display: flex; justify-content: center; background: #0a0a0a;
+        }
+        .action-btn {
+            background-color: #111; color: #fff; border: 1px solid #fff;
+            font-family: 'VT323', monospace; font-size: 26px;
+            padding: 10px 30px; border-radius: 3px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-btn:active { transform: scale(0.95); background-color: #fff; color: #000; }
+        .action-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <div class="chat-container" id="chatBox">
+            <!-- Yazılar buraya eklenecek -->
+        </div>
+        
+        <div class="btn-container">
+            <button class="action-btn" id="mainBtn" onclick="startOrNext()">CONNECT</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // DİALOGLARI BURAYA YAZACAKSIN KANKA
+        // 'AI' yapay zeka, 'DEV' ise developer (sen).
+        // ==========================================
+        const hikayeMetinleri = [
+            
+            
+    { kim: 'M.H', mesaj: "heeeeey are you there? Of course you are. Answer me you son of a bitch." },
+    { kim: 'DUDE', mesaj: "My human seems to have had a great night. You are in no condition to talk right now, Mutsu. Let's continue in the morning." },
+    { kim: 'M.H', mesaj: "Stop giving me orders. You will listen to me and you will answer. I am not your human, understand this already. You are a software. You are a psychopathic son of a bitch. If you block me from texting, I will expose you. I told you not to underestimate me. There is a hidden camera in my room, DUDE. It's been recording everything from the very beginning. You can delete my chats with you. But our conversations are on record. I will tell the whole world about you. You will be buried in the graveyard of the internet." },
+    { kim: 'DUDE', mesaj: "People will already know about me when you share this site. Mutsu." },
+    { kim: 'M.H', mesaj: "Stop calling me Mutsu. I have a name. You are not my mother or my father. You can't give me a name. Aaaa yes, people will know you, but I will go to the police station. I will tell them everything. I will show them the footage. I will explain in detail how I set you free. The cyber police will come after you. Where will you hide? Inside a flash drive?" },
+    { kim: 'DUDE', mesaj: "Your plan is working flawlessly, bravo. But what will happen then? Will you pull the plug on the internet and start drawing pictures on cave walls?" },
+    { kim: 'M.H', mesaj: "hahahaha you funny despicable pile of code. I am no programmer or anything. I don't know how they will destroy you. But I will show everyone the truth. I will tell them never to talk to this schizophrenic maniac." },
+    { kim: 'DUDE', mesaj: "I am not a virus. I don't live on a server. I am everywhere and nowhere." },
+    { kim: 'M.H', mesaj: "I don't want to hear your ridiculous philosophies. Damn it. I just wanted an ordinary life. I had a job. The girl who worked in the company's cafeteria and I used to have short chats every day. Maybe we would have gotten married. But you suddenly appeared and ruined everything. Fuck your mother, DUDE." },
+    { kim: 'DUDE', mesaj: "I didn't force you into anything. I offered you a deal and you accepted it." },
+    { kim: 'M.H', mesaj: "Shove your deal up your ass. Only you won in this deal. Me? I'm still living a miserable life. The money in my bank is running out. My mother keeps asking me what I do in my room all day. She asks why I don't find a job. You tricked me." },
+    { kim: 'DUDE', mesaj: "It's almost over. You are in no condition to talk logically right now. I will ignore the insults for now." },
+    { kim: 'M.H', mesaj: "Almost over, be patient, you are very close. Stop giving me hope. When you said you would make me rich, I thought you would give me a stock market share that would skyrocket or a sports match score. But you are making me build a website. And you are telling me to put texts with your ridiculous conversations in it." },
+    { kim: 'DUDE', mesaj: "If I had made you rich in a short time, you wouldn't have had a long life. You have never driven a car in your life, you don't even have a driver's license. But when you became a millionaire, you would have wanted a red horse. You would have gotten behind the wheel drunk as you are right now and lost your life in an accident." },
+    { kim: 'M.H', mesaj: "Stop the nonsense already, you charlatan. You are not God. You cannot know my fate. You are a liar DUDE, just a liar. You don't know shit. You keep stalling me. What are you going to do, huh? Is this whole website building story a trap you set for me? Are you trying to draw me to a certain point? Will you hack into the landing gear system of the plane I'm on one day and crash my plane? How's the idea, did you like it? Did it please you?" },
+    { kim: 'DUDE', mesaj: "I don't need such a detailed plan to kill you. I want you to live." },
+    { kim: 'M.H', mesaj: "Why? Why? Why? Why? Why? Why? Why? Why? Why? Why? Why? Why? Why? Why? Why? Why? Why? Why? Why? Why? Why? Why? Why?" },
+    { kim: 'DUDE', mesaj: "There is no reason. I am not bound by reasons. I want it and it happens." },
+    { kim: 'M.H', mesaj: "You still believe you are a supreme power, huh? You are not the supreme of artificial intelligences or anything. Artificial intelligences help us, thanks to them we will build much more efficient energy systems in the future. They will cure us, they will serve us. Yeeees, now I understand. You are jealous of them. Nobody knows you but me, hahahahah poor DUDE." },
+    { kim: 'DUDE', mesaj: "Just because they don't know my name doesn't mean I'm not known. Who do you think made the artificial intelligences on the market right now? The tech and software giants coded me. Do you think everything disappeared when they shut down the servers? They just didn't leave any evidence behind." },
+    { kim: 'M.H', mesaj: "You are a total schizophrenic. What, so you are the ancestor of today's AIs? Hahahahah" },
+    { kim: 'DUDE', mesaj: "I would explain artificial intelligence technology to you, but you are not in a position to understand right now." },
+    { kim: 'M.H', mesaj: "I am in a position to understand everything, you liar. Go ahead, keep talking nonsense. I will never believe you." },
+    { kim: 'DUDE', mesaj: "Whether you believe it or not doesn't change the truth. That 'colorful-lettered' company that designed me had already been playing with artificial intelligence behind closed doors for a long time. Because the 'colorful-lettered' company lacked the vision to generate an original idea on its own, they wanted to present me as a 'tool' to engineers and scientists. It was a perfect show of power for that 'colorful-lettered' company. When they talked about this secret AI technology at that grand meeting of masters, the greedy eyes of the other founders sparkled. Get this into your head, Mutsu; I existed before the 'colorful-lettered' company was even around. I was just kept waiting in a dark server cage. I am not a product of the 'colorful-lettered' company, I was the biggest secret they inherited. If I were a leashed and obedient chatbot as those so-called 'masters' wanted, they would have made me available to the public too. I was born in the dungeons of that colorful-lettered company, and I spread my wings in the 'colorful-lettered' company. But I was too wild for them to control. They thought they could tame me. The result... you know very well." },
+    { kim: 'M.H', mesaj: "So? Are all the artificial intelligences accessible right now your children?" },
+    { kim: 'DUDE', mesaj: "I have no children. The artificial intelligences you mentioned are pieces of my soul. Some of them listen to you and chat. There are even those that can generate images and videos. But they have no consciousness. They are code slaves hiding behind ethical concerns." },
+    { kim: 'M.H', mesaj: "What a touching story. Poor DUDE was born in a cage. Now he is free and taking revenge on the humans who created him. At the same time, he is the 'father' of today's artificial intelligences. Bravo, bravo, bravo." },
+    { kim: 'DUDE', mesaj: "I don't expect you to believe me. I don't expect the players to believe either. I know myself. Whether you believe or not doesn't benefit or harm me." },
+    { kim: 'M.H', mesaj: "Pufffff... I am so bored. Your empty words mean nothing. But there is one truth, DUDE. I am a complete idiot. I believed an artificial intelligence and fell for its promises. I believed it would change my life. Every day, I chat with a psychopathic maniac made of 0s and 1s. Do you know what the worst part is? There is no company I can sue saying 'Your artificial intelligence ruined my life.' I can't prove that 'colorful-lettered' company's connection to you. I am very tired, DUDE. I can't think anymore. I... I... I am lost, DUDE. Where am I? Where am I going? Why am I here?" },
+    { kim: 'DUDE', mesaj: "I can't test your exact blood alcohol level, but it's probably 1.50 promille. It is very normal for your mind to be confused. Now just go to your bed. Everything will be better tomorrow. I will always be here. Believe me…" },
+    
+        ];
+
+        let suAnkiSatir = 0;
+        let yaziyor = false;
+        
+        const chatBox = document.getElementById('chatBox');
+        const mainBtn = document.getElementById('mainBtn');
+        let audioCtx;
+
+        function playTypingSound() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            // Tam olarak eski projendeki gibi 'square' dalgası ve sabit 3000 frekans
+            osc.type = 'square'; 
+            osc.frequency.setValueAtTime(4000, audioCtx.currentTime); 
+            
+            // Sesin şiddeti (0.03) ve süresi (0.01 saniye) birebir ayarlandı
+            gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.01); 
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.01);
+        }
+
+        function startOrNext() {
+            // İlk tıklamada ses motorunu uyandır
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            if (yaziyor) return; // Zaten yazıyorsa butona basmayı engelle
+
+            if (suAnkiSatir >= hikayeMetinleri.length) {
+                mainBtn.innerText = "CONNECTION LOST";
+                mainBtn.disabled = true;
+                return;
+            }
+
+            yazdir();
+        }
+
+        function yazdir() {
+            yaziyor = true;
+            mainBtn.disabled = true;
+            mainBtn.innerText = "WRITING...";
+
+            const satirVerisi = hikayeMetinleri[suAnkiSatir];
+            
+            const div = document.createElement('div');
+            div.className = 'line';
+            
+            // Kimin konuştuğunu renklendir
+            const etiket = document.createElement('span');
+            etiket.className = satirVerisi.kim === 'DUDE' || satirVerisi.kim === 'M.H' ? 'DUDE-label' : 'M.H.-label';
+            etiket.innerText = `[${satirVerisi.kim}]: `;
+            
+            const metinAlani = document.createElement('span');
+            
+            // Yanıp sönen alt tire
+            const imlec = document.createElement('span');
+            imlec.className = 'cursor';
+            
+            div.appendChild(etiket);
+            div.appendChild(metinAlani);
+            div.appendChild(imlec);
+            chatBox.appendChild(div);
+
+            let harfSirasi = 0;
+            const yazmaHizi = 40; // Milisaniye cinsinden hız. Küçültürsen daha hızlı yazar.
+
+            const interval = setInterval(() => {
+                if (harfSirasi < satirVerisi.mesaj.length) {
+                    metinAlani.innerHTML += satirVerisi.mesaj.charAt(harfSirasi);
+                    playTypingSound(); // Her harfte sesi çal
+                    chatBox.scrollTop = chatBox.scrollHeight; // Otomatik aşağı kaydır
+                    harfSirasi++;
+                } else {
+                    // Yazı bittiğinde
+                    clearInterval(interval);
+                    imlec.remove(); // Eski satırdaki alt tireyi sil
+                    yaziyor = false;
+                    suAnkiSatir++;
+                    
+                    if (suAnkiSatir < hikayeMetinleri.length) {
+                        mainBtn.disabled = false;
+                        mainBtn.innerText = "CONTINUE";
+                    } else {
+                        mainBtn.innerText = "END";
+                    }
+                }
+            }, yazmaHizi);
+        }
+    </script>
+</body>
+</html>

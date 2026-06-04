@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saat Tutturma Oyunu</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #050505;
+      overflow: hidden;
+    }
+
+    #game-container {
+      width: 100%;
+      height: 100vh;
+      color: #00ff00;
+      font-family: 'VT323', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    }
+
+    #ui-layer {
+      display: flex;
+      justify-content: space-between;
+      width: 90%;
+      max-width: 350px;
+      margin-bottom: 30px;
+      font-size: 2rem;
+    }
+
+    #clock-container {
+      position: relative;
+      width: 250px;
+      height: 250px;
+      border: 4px solid #00ff00;
+      border-radius: 50%;
+      background-color: #111;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+    }
+
+    /* YENİ EKLENEN: Rakamların CSS Sınıfı */
+    .clock-number {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 30px;
+      height: 30px;
+      margin-top: -15px;
+      margin-left: -15px;
+      text-align: center;
+      line-height: 30px;
+      font-size: 1.5rem;
+      color: #00aa00; /* Kollardan bir tık daha koyu yeşil ki kollar net seçilsin */
+      z-index: 2;
+    }
+
+    .center-dot {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 14px;
+      height: 14px;
+      background-color: #00ff00;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+
+    .hand {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform-origin: bottom center;
+      background-color: #fffb00;
+      transform: translateX(-50%) rotate(0deg);
+      border-radius: 2px;
+    }
+
+    #hour-hand {
+      width: 6px;
+      height: 70px;
+      z-index: 5;
+    }
+
+    #minute-hand {
+      width: 3px;
+      height: 105px;
+      z-index: 6;
+    }
+
+    #message-area {
+      margin-top: 25px;
+      height: 30px;
+      font-size: 1.8rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    #action-btn {
+      margin-top: 40px;
+      padding: 10px 30px;
+      font-size: 2rem;
+      background-color: #e5ff00;
+      color: #050505;
+      border: none;
+      cursor: pointer;
+      font-family: 'VT323', monospace;
+      text-transform: uppercase;
+      transition: all 0.1s;
+    }
+
+    #action-btn:active {
+      background-color: #d8b724;
+      transform: scale(0.95);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="game-container">
+    <div id="ui-layer">
+      <div id="target-display">TARGET:<span id="target-time">00:00</span></div>
+      <div id="score-display">SCORE:<span id="score">0</span></div>
+    </div>
+    
+    <div id="clock-container">
+      <div class="center-dot"></div>
+      <div id="hour-hand" class="hand"></div>
+      <div id="minute-hand" class="hand"></div>
+    </div>
+    
+    <div id="message-area">CLICK TO START</div>
+    <button id="action-btn">START</button>
+  </div>
+
+  <script>
+    const clockContainer = document.getElementById('clock-container');
+    const hourHand = document.getElementById('hour-hand');
+    const minuteHand = document.getElementById('minute-hand');
+    const targetDisplay = document.getElementById('target-time');
+    const scoreDisplay = document.getElementById('score');
+    const actionBtn = document.getElementById('action-btn');
+    const messageArea = document.getElementById('message-area');
+
+    // YENİ EKLENEN: Rakamları kadrana dizen fonksiyon
+    function createNumbers() {
+        for (let i = 1; i <= 12; i++) {
+            let num = document.createElement('div');
+            num.className = 'clock-number';
+            num.innerText = i;
+            let angle = i * 30; // Her saat dilimi arası 30 derece
+            // translateY ile merkezden 105px uzağa itiyoruz, sonra rakam ters durmasın diye kendi etrafında geri döndürüyoruz
+            num.style.transform = `rotate(${angle}deg) translateY(-105px) rotate(-${angle}deg)`;
+            clockContainer.appendChild(num);
+        }
+    }
+    createNumbers(); // Rakamları sayfa açılır açılmaz çiz
+
+    let state = 0; // 0: Bekleme, 1: Akrep Dönüyor, 2: Yelkovan Dönüyor
+    let targetH, targetM, targetAngleH, targetAngleM;
+    let currentAngleH = 0, currentAngleM = 0;
+    let speed = 2.5; 
+    let score = 0;
+    let animationId;
+
+    function pad(num) {
+        return num.toString().padStart(2, '0');
+    }
+
+    function generateTarget() {
+        targetH = Math.floor(Math.random() * 24);
+        targetM = Math.floor(Math.random() * 60);
+        targetDisplay.innerText = `${pad(targetH)}:${pad(targetM)}`;
+        
+        targetAngleH = ((targetH % 12) * 30) + ((targetM / 60) * 30);
+        targetAngleM = targetM * 6;
+    }
+
+    function loop() {
+        if (state === 1) {
+            currentAngleH = (currentAngleH + speed) % 360;
+            hourHand.style.transform = `translateX(-50%) rotate(${currentAngleH}deg)`;
+            animationId = requestAnimationFrame(loop);
+        } else if (state === 2) {
+            currentAngleM = (currentAngleM + speed) % 360;
+            minuteHand.style.transform = `translateX(-50%) rotate(${currentAngleM}deg)`;
+            animationId = requestAnimationFrame(loop);
+        }
+    }
+
+    function getDifference(target, current) {
+        let diff = Math.abs(target - current);
+        return Math.min(diff, 360 - diff); 
+    }
+
+    function calculateResult() {
+        let diffH = getDifference(targetAngleH, currentAngleH);
+        let diffM = getDifference(targetAngleM, currentAngleM);
+        
+        let totalDiff = diffH + diffM;
+        let accuracy = 100 - ((totalDiff / 360) * 100);
+        
+        if (accuracy >= 90) {
+            score += 10;
+            speed += 0.8; 
+            scoreDisplay.innerText = score;
+            messageArea.innerText = `SUCCESS! ACCURACY:: %${accuracy.toFixed(1)}`;
+            messageArea.style.color = "#00ff00";
+            actionBtn.innerText = "NEXT";
+        } else {
+            messageArea.innerText = `BUSTED! ACCURACY:: %${accuracy.toFixed(1)}`;
+            messageArea.style.color = "#ff0000";
+            speed = 2.5; 
+            score = 0;
+            actionBtn.innerText = "TRY AGAIN";
+        }
+        state = 0;
+    }
+
+    actionBtn.addEventListener('click', () => {
+        if (state === 0) {
+            if (actionBtn.innerText === "TRY AGAIN") {
+                scoreDisplay.innerText = "0";
+            }
+            generateTarget();
+            messageArea.innerText = "HOUR HAND IS MOVING...";
+            messageArea.style.color = "#00ff00";
+            actionBtn.innerText = "PAUSE";
+            
+            currentAngleH = 0;
+            currentAngleM = 0;
+            hourHand.style.transform = `translateX(-50%) rotate(0deg)`;
+            minuteHand.style.transform = `translateX(-50%) rotate(0deg)`;
+            
+            state = 1;
+            loop();
+        } else if (state === 1) {
+            cancelAnimationFrame(animationId);
+            state = 2;
+            messageArea.innerText = "MINUTE HAND IS MOVING...";
+            loop();
+        } else if (state === 2) {
+            cancelAnimationFrame(animationId);
+            calculateResult();
+        }
+    });
+  </script>
+</body>
+</html>

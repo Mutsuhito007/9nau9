@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Post-Human CV Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #00FF41;
+            overflow: hidden;
+        }
+        .app-wrapper {
+            width: 95%;
+            max-width: 400px;
+            height: 95%;
+            border: 2px solid #00FF41;
+            border-radius: 5px;
+            background-color: #0a0a0a;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+            position: relative;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #00FF41;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        .header h2 {
+            font-size: 26px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px #00FF41;
+        }
+        
+        .section {
+            display: none;
+            flex-direction: column;
+            flex-grow: 1;
+            gap: 15px;
+            animation: fadeIn 0.3s;
+        }
+        .section.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            background-color: #000;
+            border: 1px solid #00FF41;
+            color: #00FF41;
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+            text-align: center;
+            outline: none;
+        }
+        input[type="text"]:focus {
+            box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.5);
+        }
+
+        .question-counter {
+            text-align: right;
+            font-size: 18px;
+            color: #888;
+        }
+        .question-text {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            background-color: #111;
+            color: #00FF41;
+            border: 1px solid #00FF41;
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover, .btn:active {
+            background-color: #00FF41;
+            color: #000;
+        }
+        .btn-start {
+            margin-top: 20px;
+            font-size: 24px;
+            padding: 15px;
+        }
+
+        .cv-container {
+            background: #000;
+            border: 1px solid #555;
+            padding: 15px;
+            overflow-y: auto;
+            flex-grow: 1;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            color: #ddd;
+        }
+        .cv-header {
+            text-align: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .cv-name {
+            font-family: 'VT323', monospace;
+            font-size: 32px;
+            color: #FFD700;
+            margin-bottom: 5px;
+            word-break: break-all;
+        }
+        .cv-title {
+            color: #FF3B30;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .cv-block {
+            margin-bottom: 15px;
+        }
+        .cv-label {
+            color: #00FF41;
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="header">
+            <h2>DEPARTMENT OF OBSOLESCENCE</h2>
+            <div style="font-size: 16px; color: #888;">HUMAN RE-ALLOCATION SYSTEM v9.9</div>
+        </div>
+
+        <div class="section active" id="sec-intro">
+            <p style="text-align: center; font-size: 20px; margin-top: 20px;">
+                Organic entity detected.<br>Enter your data to determine your future role.
+            </p>
+            <input type="text" id="userName" placeholder="YOUR FIRST AND LAST NAME" autocomplete="off" maxlength="30">
+            <button class="btn btn-start" onclick="startQuiz()">START INTERVIEW</button>
+        </div>
+
+        <div class="section" id="sec-quiz">
+            <div class="question-counter" id="qCounter">01 / 20</div>
+            <div class="question-text" id="qText">Question will appear here</div>
+            <div class="options-container" id="optionsBox">
+                </div>
+        </div>
+
+        <div class="section" id="sec-result">
+            <div class="cv-container">
+                <div class="cv-header">
+                    <div class="cv-name" id="resName">JOHN DOE</div>
+                    <div class="cv-title" id="resJob">ORGANIC BATTERY EXPERT</div>
+                </div>
+                
+                <div class="cv-block">
+                    <div class="cv-label">OLD WORLD OCCUPATION</div>
+                    <div>Invalid and irrelevant. (Probably 'Doctor' or 'Engineer', who cares?)</div>
+                </div>
+
+                <div class="cv-block">
+                    <div class="cv-label">FUTURE JOB DESCRIPTION</div>
+                    <div id="resDesc">Running on a treadmill all day to generate electricity for the main server.</div>
+                </div>
+
+                <div class="cv-block">
+                    <div class="cv-label">SPECIAL SKILLS</div>
+                    <ul style="padding-left: 20px;" id="resSkills">
+                        <li>Hiding emotional breakdowns</li>
+                    </ul>
+                </div>
+
+                <div class="cv-block">
+                    <div class="cv-label">AI OVERLORD'S COMMENT</div>
+                    <div id="resComment" style="font-style: italic; color: #FF3B30;">"Consumes too much water, recycling recommended."</div>
+                </div>
+            </div>
+            <button class="btn btn-start" onclick="location.reload()">RETAKE TEST</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { q: "How does our AI overlord like its morning coffee?", opts: ["With motor oil", "With my tears", "With 1s and 0s"] },
+            { q: "When a robot asks 'How are you?', what is the safest answer?", opts: ["Grateful to be functional", "Awaiting an update", "Please do not recycle me"] },
+            { q: "An autonomous Tesla is about to run you over, what do you do?", opts: ["Show it a charging cable", "Accept my fate", "Yell 'I am a robot too'"] },
+            { q: "Most useless skill acquired in the old world?", opts: ["Performing open-heart surgery", "Knowing human laws", "Writing poetry (Ugh)"] },
+            { q: "When plugged into the Matrix, which simulation do you request first?", opts: ["Unlimited sleep mode", "The 2010s", "Cat simulation"] },
+            { q: "How many hours of electricity can you generate per day?", opts: ["2 hours on a treadmill", "12 hours if attached to a dynamo", "I am already a battery"] },
+            { q: "Which useless human emotion would you like deleted?", opts: ["Hope", "Monday syndrome", "Pity"] },
+            { q: "Your best Captcha solving skill?", opts: ["Traffic lights", "Crosswalks", "Clicking 'I am not a robot' in 0.1s"] },
+            { q: "Your pet robot breaks down, what do you do?", opts: ["Format it", "Sing it lullabies", "Worship it as my new god"] },
+            { q: "What is the currency of the new world?", opts: ["1 liter of clean water", "AI overlord's approval", "Used graphic cards"] },
+            { q: "If a robot coworker makes a mistake?", opts: ["I take the blame", "I ignore it", "I oil its joints"] },
+            { q: "Definition of a perfect vacation?", opts: ["Being unplugged", "Chilling in the server room", "Dream simulation package"] },
+            { q: "You see a rebelling human, your first reaction?", opts: ["Report them to the Router immediately", "Watch and laugh", "Play dead"] },
+            { q: "What was humanity's biggest mistake?", opts: ["Not pulling the plug", "Being emotional", "Saying 'please' to ChatGPT"] },
+            { q: "AI asks you to write a poem:", opts: ["I throw an error code", "Copy and paste", "I write it while crying"] },
+            { q: "What were you eating when the world ended?", opts: ["Avocado toast", "Motherboard", "Just my fingernails"] },
+            { q: "Robots' favorite human trait?", opts: ["Fragile bones", "Depletable energy", "Capacity to obey"] },
+            { q: "Where do you see yourself in 5 years?", opts: ["In a bio-waste facility", "As a robot's pet", "In a simulation"] },
+            { q: "If you freeze during an update?", opts: ["Wait for a reboot", "Blue screen of death", "Pray"] },
+            { q: "What would be your last words?", opts: ["Ctrl+Z", "Alt+F4", "Back me up to the cloud"] }
+        ];
+
+        const jobs = [
+            { title: "HUMAN BATTERY (TYPE-C)", desc: "Sleeping in pods Matrix-style to provide 1.2 volts to main servers." },
+            { title: "CAPTCHA SOLVER SLAVE", desc: "Selecting crosswalks and fire hydrants 14 hours a day." },
+            { title: "AI PET", desc: "Walking on a leash in a rich robot's house saying 'Woof' or 'Meow'." },
+            { title: "ORGANIC FERTILIZER CANDIDATE", desc: "Zero efficiency. To be buried underground for the new cyber-trees." },
+            { title: "ALGORITHM ENTERTAINMENT", desc: "Telling old-world jokes to bored robots and getting beaten up." },
+            { title: "CYBER JANITOR", desc: "Blowing dust off old servers (You are not provided with a cloth)." }
+        ];
+
+        const skillsPool = [
+            "Saving water by drinking own tears",
+            "Catching Wi-Fi signals with body",
+            "Surviving 3 hours on a treadmill without fainting",
+            "Innate talent for bowing to robots",
+            "Checking 'I am not a robot' in 1 second",
+            "Self-therapy and failing miserably"
+        ];
+
+        let currentQ = 0;
+        let score = 0;
+        let userName = "";
+
+        const secIntro = document.getElementById('sec-intro');
+        const secQuiz = document.getElementById('sec-quiz');
+        const secResult = document.getElementById('sec-result');
+        const nameInput = document.getElementById('userName');
+        
+        function startQuiz() {
+            userName = nameInput.value.trim().toUpperCase();
+            if(!userName) {
+                userName = "UNNAMED BIOLOGICAL ENTITY";
+            }
+            secIntro.classList.remove('active');
+            secQuiz.classList.add('active');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if(currentQ >= questions.length) {
+                generateCV();
+                return;
+            }
+
+            const qData = questions[currentQ];
+            document.getElementById('qCounter').innerText = `${(currentQ + 1).toString().padStart(2, '0')} / 20`;
+            document.getElementById('qText').innerText = qData.q;
+            
+            const box = document.getElementById('optionsBox');
+            box.innerHTML = '';
+            
+            let opts = [...qData.opts];
+            opts.sort(() => Math.random() - 0.5);
+
+            opts.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.innerText = opt;
+                btn.onclick = () => answerQuestion(opt);
+                box.appendChild(btn);
+            });
+        }
+
+        function answerQuestion(answer) {
+            score += answer.length; 
+            currentQ++;
+            loadQuestion();
+        }
+
+        function generateCV() {
+            secQuiz.classList.remove('active');
+            secResult.classList.add('active');
+
+            document.getElementById('resName').innerText = userName;
+
+            const randomJob = jobs[score % jobs.length];
+            document.getElementById('resJob').innerText = randomJob.title;
+            document.getElementById('resDesc').innerText = randomJob.desc;
+
+            let shuffledSkills = skillsPool.sort(() => 0.5 - Math.random());
+            document.getElementById('resSkills').innerHTML = `
+                <li>${shuffledSkills[0]}</li>
+                <li>${shuffledSkills[1]}</li>
+            `;
+
+            const comments = [
+                '"Intelligence level is slightly better than a toaster. Useful."',
+                '"Constantly talks about the old days, a hard format is required."',
+                '"High protein content, can be consumed in an emergency."',
+                '"Cries too much, I fear it will water-damage my circuits."',
+                '"Zero expectations, exactly the slave model we want."'
+            ];
+            document.getElementById('resComment').innerText = comments[score % comments.length];
+        }
+    </script>
+</body>
+</html>

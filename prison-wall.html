@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Prison Wall</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'VT323', monospace;
+            user-select: none;
+        }
+
+        .app-wrapper {
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff; 
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.1); /* Sadece hafif iç gölgeyi bıraktık */
+        }
+
+        /* Üst Bilgi Yazısı */
+        .header-text {
+            position: absolute;
+            top: 15px;
+            width: 100%;
+            text-align: center;
+            font-size: 24px;
+            color: #555;
+            letter-spacing: 2px;
+            z-index: 10;
+            pointer-events: none; /* Çizimi engellememesi için */
+        }
+
+        /* Hücre Penceresi */
+        .window-container {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 120px;
+            border: 6px solid #222;
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF); /* Gökyüzü Gradient */
+            border-radius: 5px;
+            z-index: 5;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.3), 0 5px 15px rgba(0,0,0,0.2);
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        /* Güneş ve Bulut (Saf CSS) */
+        .sun {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background-color: #FFD700;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #FFD700;
+        }
+
+        .cloud {
+            position: absolute;
+            top: 40px;
+            left: -10px;
+            width: 50px;
+            height: 15px;
+            background-color: #fff;
+            border-radius: 10px;
+            opacity: 0.8;
+            animation: floatCloud 20s linear infinite;
+        }
+        .cloud::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            width: 20px;
+            height: 20px;
+            background-color: #fff;
+            border-radius: 50%;
+        }
+
+        @keyframes floatCloud {
+            0% { transform: translateX(-20px); }
+            100% { transform: translateX(130px); }
+        }
+
+        /* Demir Parmaklıklar */
+        .bars {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 25px,
+                #111 25px,
+                #111 32px
+            );
+        }
+        .cross-bar {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background-color: #111;
+            transform: translateY(-50%);
+        }
+
+        /* Çizim Tuvali */
+        canvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            touch-action: none; /* Mobilde sayfayı kaydırmayı engeller */
+        }
+
+        /* Araç Kutusu (Toolbar) */
+        .toolbar {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 15px;
+            border-radius: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 10;
+            border: 2px solid #555;
+        }
+
+        .tool-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .tool-btn:active {
+            transform: scale(0.8);
+        }
+        .tool-btn.active {
+            border: 3px solid #FFD700;
+            transform: scale(1.1);
+        }
+
+        /* Araç Renkleri */
+        .color-black { background-color: #1a1a1a; }
+        .color-red { background-color: #8a0303; } /* Kurumuş kan rengi */
+        .color-blue { background-color: #003399; }
+        .color-yellow { background-color: #fde405; } /* Tükenmez kalem */
+        .color-eraser { 
+            background-color: #ffffff; 
+            border: 2px dashed #888;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: #555;
+            font-size: 10px;
+        }
+        .color-clear {
+            background-color: transparent;
+            border: none;
+            color: #FF3B30;
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            border-left: 1px solid #555;
+            border-radius: 0;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+       
+
+        <div class="window-container">
+            <div class="sun"></div>
+            <div class="cloud"></div>
+            <div class="bars"></div>
+            <div class="cross-bar"></div>
+        </div>
+
+        <canvas id="wallCanvas"></canvas>
+
+        <div class="toolbar">
+            <button class="tool-btn color-black active" data-color="#1a1a1a" onclick="selectColor(this)"></button>
+            <button class="tool-btn color-red" data-color="#8a0303" onclick="selectColor(this)"></button>
+            <button class="tool-btn color-blue" data-color="#003399" onclick="selectColor(this)"></button>
+            <button class="tool-btn color-yellow" data-color="#fde405" onclick="selectColor(this)"></button>
+            <button class="tool-btn color-eraser" data-color="#ffffff" onclick="selectColor(this)">ERZ</button>
+            <button class="tool-btn color-clear" onclick="clearWall()">WASH</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('wallCanvas');
+        const ctx = canvas.getContext('2d');
+        const appWrapper = document.querySelector('.app-wrapper');
+
+        // Çizim Değişkenleri
+        let isDrawing = false;
+        let currentColor = '#1a1a1a';
+        let currentLineWidth = 3; // Çizgi kalınlığı
+
+        // Tuval boyutunu konteynera göre ayarla
+        function resizeCanvas() {
+            canvas.width = appWrapper.clientWidth;
+            canvas.height = appWrapper.clientHeight;
+            // Yeniden boyutlandırma sonrası ayarları koru
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Araç Seçimi (Renk / Silgi)
+        function selectColor(btn) {
+            // Aktif sınıfını güncelle
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            currentColor = btn.getAttribute('data-color');
+            
+            // Eğer silgi seçildiyse kalınlığı artır ki kolay silsin
+            if (currentColor === '#ffffff') {
+                currentLineWidth = 15;
+            } else {
+                currentLineWidth = 3;
+            }
+        }
+
+        // Duvarı Tamamen Temizle
+        function clearWall() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Koordinatları Hesapla (Fare veya Dokunmatik için ortak)
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            // Eğer touch event ise ilk parmağın konumunu al
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        // Çizime Başla
+        function startPosition(e) {
+            isDrawing = true;
+            draw(e);
+        }
+
+        // Çizimi Bitir
+        function endPosition() {
+            isDrawing = false;
+            ctx.beginPath(); // Bir sonraki çizgi bir öncekine bağlanmasın
+        }
+
+        // Çizim İşlemi
+        function draw(e) {
+            if (!isDrawing) return;
+            // Mobilde kaydırmayı durdur (sadece çizim yapsın)
+            e.preventDefault(); 
+
+            const pos = getPos(e);
+
+            ctx.lineWidth = currentLineWidth;
+            ctx.strokeStyle = currentColor;
+
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+
+        // Event Listeners (Fare)
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseleave', endPosition); // Fare canvas'tan çıkarsa çizimi kes
+
+        // Event Listeners (Dokunmatik - Telefon/Tablet)
+        canvas.addEventListener('touchstart', startPosition, {passive: false});
+        canvas.addEventListener('touchend', endPosition);
+        canvas.addEventListener('touchmove', draw, {passive: false});
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Diary</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .app-wrapper {
+            width: 90%;
+            max-width: 360px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 2px dashed #333;
+            padding-bottom: 8px;
+        }
+        .header h2 {
+            font-size: 30px;
+            letter-spacing: 2px;
+        }
+
+        /* Ekran Geçiş Sınıfları */
+        .screen {
+            display: none;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        .screen.active {
+            display: flex;
+        }
+
+        /* --- 1. ANA EKRAN (HOME) --- */
+        .entry-list {
+            flex-grow: 1;
+            background-color: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 5px;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        /* Kaydırma Çubuğu Stili */
+        .entry-list::-webkit-scrollbar { width: 4px; }
+        .entry-list::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 2px; }
+
+        .log-item {
+            background-color: #222;
+            border-left: 3px solid #FFD700;
+            padding: 10px;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .log-date {
+            font-size: 16px;
+            color: #888;
+            border-bottom: 1px dashed #444;
+            padding-bottom: 3px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .delete-btn {
+            color: #FF3B30;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .log-content {
+            font-family: 'Roboto', sans-serif;
+            font-size: 24px; /* Emojiler büyük görünsün */
+            letter-spacing: 2px;
+            word-wrap: break-word;
+        }
+
+        .empty-msg {
+            color: #555;
+            text-align: center;
+            margin-top: 50px;
+            font-size: 18px;
+        }
+
+        /* --- 2. TARİH EKRANI --- */
+        .date-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            gap: 20px;
+        }
+
+        .date-container label {
+            font-size: 22px;
+            color: #ccc;
+        }
+
+        input[type="date"] {
+            background-color: #222;
+            border: 2px solid #555;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            padding: 10px;
+            border-radius: 5px;
+            outline: none;
+            text-align: center;
+            width: 100%;
+        }
+
+        input[type="date"]:focus {
+            border-color: #FFD700;
+        }
+
+        /* --- 3. EDİTÖR EKRANI --- */
+        .editor-header {
+            text-align: center;
+            color: #888;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .emoji-display {
+            background-color: #000;
+            border: 2px solid #FFD700;
+            border-radius: 5px;
+            height: 80px;
+            padding: 10px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 28px;
+            color: #fff;
+            overflow-y: auto;
+            word-wrap: break-word;
+            margin-bottom: 10px;
+        }
+
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding-right: 2px;
+        }
+
+        .keyboard::-webkit-scrollbar { width: 3px; }
+        .keyboard::-webkit-scrollbar-thumb { background: #555; }
+
+        .key {
+            background-color: #222;
+            border: 1px solid #444;
+            border-radius: 5px;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 45px;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+
+        .key:active {
+            transform: scale(0.9);
+            background-color: #444;
+        }
+
+        .editor-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* --- ORTAK BUTONLAR --- */
+        .action-button {
+            background-color: #FFD700;
+            color: #000;
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            width: 100%;
+            transition: transform 0.1s;
+        }
+        .action-button:active { transform: scale(0.95); }
+        
+        .btn-cancel {
+            background-color: #222;
+            color: #FF3B30;
+            border: 2px solid #FF3B30;
+            margin-top: 10px;
+        }
+        
+        .btn-small {
+            flex: 1;
+            background-color: #333;
+            color: #fff;
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            border: none;
+            padding: 8px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-small:active { background-color: #555; }
+        .btn-clear { color: #FF3B30; }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        
+
+        <div id="homeScreen" class="screen active">
+            <div class="entry-list" id="entryList">
+                </div>
+            <button class="action-button" onclick="showDateScreen()">+ ADD ENTRY</button>
+        </div>
+
+        <div id="dateScreen" class="screen">
+            <div class="date-container">
+                <label>SELECT LOG DATE</label>
+                <input type="date" id="entryDate">
+                <div style="width: 100%;">
+                    <button class="action-button" onclick="openEditor()">PROCEED</button>
+                    <button class="action-button btn-cancel" onclick="showHome()">CANCEL</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="editorScreen" class="screen">
+            <div class="editor-header" id="editorDateDisplay">YYYY-MM-DD</div>
+            
+            <div class="emoji-display" id="emojiDisplay"></div>
+            
+            <div class="editor-controls">
+                <button class="btn-small btn-clear" onclick="clearDisplay()">CLEAR</button>
+                <button class="btn-small" onclick="backspace()">⌫ DEL</button>
+            </div>
+
+            <div class="keyboard" id="keyboard">
+                </div>
+
+            <button class="action-button" onclick="saveEntry()" style="margin-top: auto;">SAVE LOG</button>
+            <button class="action-button btn-cancel" onclick="showHome()">DISCARD</button>
+        </div>
+
+    </div>
+
+    <script>
+        // DOM Elementleri
+        const homeScreen = document.getElementById('homeScreen');
+        const dateScreen = document.getElementById('dateScreen');
+        const editorScreen = document.getElementById('editorScreen');
+        const entryList = document.getElementById('entryList');
+        const entryDateInput = document.getElementById('entryDate');
+        const editorDateDisplay = document.getElementById('editorDateDisplay');
+        const emojiDisplay = document.getElementById('emojiDisplay');
+        const keyboard = document.getElementById('keyboard');
+
+        // Sabit Emoji Seti (Troll, gizemli ve duygusal emojiler karışık)
+        const emojiSet = [
+            "😀","😂","🥲","😎","🤔","😡","😭","💀","💩","🤡",
+            "👽","👻","🤖","👁️","🧠","🩸","💔","❤️","🔥","💧",
+            "🍔","🍕","💊","💉","🚬","🍺","💰","🔪","💣","🔫",
+            "🚗","✈️","🎮","📱","⏳","⌛","⚠️","☢️","🛑","✔️"
+        ];
+
+        let currentEntryContent = "";
+        let selectedDate = "";
+
+        // Uygulama Başlarken Emojileri Klavye Grid'ine Diz ve Kayıtları Yükle
+        window.onload = () => {
+            emojiSet.forEach(emoji => {
+                const key = document.createElement('div');
+                key.className = 'key';
+                key.innerText = emoji;
+                key.onclick = () => {
+                    currentEntryContent += emoji;
+                    updateDisplay();
+                };
+                keyboard.appendChild(key);
+            });
+            loadEntries();
+        };
+
+        // --- EKRAN YÖNETİMİ ---
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showHome() {
+            switchScreen('homeScreen');
+            loadEntries();
+        }
+
+        function showDateScreen() {
+            // Bugünü varsayılan olarak ayarla
+            const today = new Date().toISOString().split('T')[0];
+            entryDateInput.value = today;
+            switchScreen('dateScreen');
+        }
+
+        function openEditor() {
+            selectedDate = entryDateInput.value;
+            if (!selectedDate) {
+                alert("Date cannot be empty.");
+                return;
+            }
+            editorDateDisplay.innerText = "LOG DATE: " + selectedDate;
+            currentEntryContent = ""; // Ekranı temizle
+            updateDisplay();
+            switchScreen('editorScreen');
+        }
+
+        // --- EDİTÖR İŞLEMLERİ ---
+        function updateDisplay() {
+            emojiDisplay.innerText = currentEntryContent;
+        }
+
+        function backspace() {
+            // Emojiler karakter olarak 2 birim yer kaplayabildiği için güvenli silme
+            currentEntryContent = Array.from(currentEntryContent).slice(0, -1).join('');
+            updateDisplay();
+        }
+
+        function clearDisplay() {
+            currentEntryContent = "";
+            updateDisplay();
+        }
+
+        // --- VERİTABANI (LocalStorage) İŞLEMLERİ ---
+        function saveEntry() {
+            if (currentEntryContent.trim() === "") {
+                alert("Log cannot be empty.");
+                return;
+            }
+
+            let entries = JSON.parse(localStorage.getItem('silent_logs')) || [];
+            
+            // Aynı tarihe ait kayıt varsa üstüne yaz
+            const existingIndex = entries.findIndex(e => e.date === selectedDate);
+            if (existingIndex > -1) {
+                entries[existingIndex].content = currentEntryContent;
+            } else {
+                entries.push({ date: selectedDate, content: currentEntryContent });
+            }
+
+            // Tarihe göre yeniden eskiye sırala
+            entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            localStorage.setItem('silent_logs', JSON.stringify(entries));
+            showHome();
+        }
+
+        function deleteEntry(date) {
+            let entries = JSON.parse(localStorage.getItem('silent_logs')) || [];
+            entries = entries.filter(e => e.date !== date);
+            localStorage.setItem('silent_logs', JSON.stringify(entries));
+            loadEntries();
+        }
+
+        function loadEntries() {
+            entryList.innerHTML = "";
+            const entries = JSON.parse(localStorage.getItem('silent_logs')) || [];
+
+            if (entries.length === 0) {
+                entryList.innerHTML = `<div class="empty-msg">NO LOGS FOUND.</div>`;
+                return;
+            }
+
+            entries.forEach(entry => {
+                const item = document.createElement('div');
+                item.className = 'log-item';
+                
+                item.innerHTML = `
+                    <div class="log-date">
+                        <span>${entry.date}</span>
+                        <span class="delete-btn" onclick="deleteEntry('${entry.date}')">X</span>
+                    </div>
+                    <div class="log-content">${entry.content}</div>
+                `;
+                entryList.appendChild(item);
+            });
+        }
+    </script>
+</body>
+</html>

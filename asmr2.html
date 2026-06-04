@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Numerical ASMR</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+        }
+        .app-wrapper {
+            width: 95%;
+            max-width: 400px;
+            height: 95%;
+            border: 1px solid #333;
+            border-radius: 10px;
+            background: radial-gradient(circle at center, #111 0%, #050505 100%);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 0 30px rgba(0,0,0,0.9);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            border-bottom: 1px dashed #333;
+            padding-bottom: 15px;
+        }
+        .header h2 {
+            font-size: 28px;
+            color: #4CD964;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(76, 217, 100, 0.2);
+        }
+        .header p {
+            font-family: 'Roboto', sans-serif;
+            font-size: 13px;
+            color: #777;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+
+        /* Giriş Alanı */
+        .input-area {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .number-input {
+            width: 100%;
+            background-color: #000;
+            border: 2px solid #333;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            padding: 15px;
+            border-radius: 5px;
+            outline: none;
+            text-align: center;
+            resize: none;
+            height: 80px;
+            transition: border-color 0.3s;
+        }
+        .number-input:focus {
+            border-color: #FFD700;
+        }
+        .number-input::placeholder {
+            color: #444;
+        }
+
+        /* Butonlar */
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+        .btn {
+            flex: 1;
+            background-color: #1a1a1a;
+            color: #888;
+            border: 1px solid #444;
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-play { color: #FFD700; border-color: #FFD700; }
+        .btn-play:active { background-color: #FFD700; color: #000; }
+        .btn-stop { color: #FF3B30; border-color: #FF3B30; display: none; }
+        .btn-stop:active { background-color: #FF3B30; color: #000; }
+
+        /* Görselleştirici (Visualizer) Alanı */
+        .visualizer {
+            flex: 1;
+            width: 100%;
+            margin-top: 20px;
+            background-color: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 5px;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 5px;
+            line-height: 1;
+        }
+        
+        .visualizer::-webkit-scrollbar { width: 4px; }
+        .visualizer::-webkit-scrollbar-track { background: #000; }
+        .visualizer::-webkit-scrollbar-thumb { background: #333; }
+
+        /* Rakam Animasyonları */
+        .digit {
+            font-size: 26px;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+        .digit.active {
+            color: #fff;
+            text-shadow: 0 0 15px #FFD700, 0 0 30px #FFD700;
+            transform: scale(1.4) translateY(-3px);
+            z-index: 10;
+        }
+        .digit.played {
+            color: #666; /* Çalındıktan sonra hafif parlak kalır */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <div class="header">
+            <h2>SONIC ALCHEMY</h2>
+            <p>Extracting the hidden ambient frequencies from your numerical data. Input any sequence of numbers.</p>
+        </div>
+
+        <div class="input-area">
+            <textarea class="number-input" id="numberInput" placeholder="Enter random numbers (e.g. 84729103)..."></textarea>
+            
+            <div class="btn-row">
+                <button class="btn btn-play" id="playBtn" onclick="startSequence()">SYNTHESIZE</button>
+                <button class="btn btn-stop" id="stopBtn" onclick="stopSequence()">HALT</button>
+            </div>
+        </div>
+
+        <div class="visualizer" id="visualizer">
+            </div>
+    </div>
+
+    <script>
+        const numberInput = document.getElementById('numberInput');
+        const visualizer = document.getElementById('visualizer');
+        const playBtn = document.getElementById('playBtn');
+        const stopBtn = document.getElementById('stopBtn');
+
+        let audioCtx;
+        let isPlaying = false;
+
+        // ASMR için Pentatonik Skala (C Majör Pentatonik: C, D, E, G, A)
+        // Kulağa her zaman uyumlu ve rahatlatıcı gelir. 0'dan 9'a kadar 2 oktav.
+        const frequencies = {
+            '0': 261.63, // C4
+            '1': 293.66, // D4
+            '2': 329.63, // E4
+            '3': 392.00, // G4
+            '4': 440.00, // A4
+            '5': 523.25, // C5
+            '6': 587.33, // D5
+            '7': 659.25, // E5
+            '8': 783.99, // G5
+            '9': 880.00  // A5
+        };
+
+        // Delay (Yankı) Efekti Kurulumu
+        let delayNode, feedbackNode;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // ASMR rüya efekti için Delay Node oluşturuyoruz
+                delayNode = audioCtx.createDelay();
+                delayNode.delayTime.value = 0.4; // 0.4 saniye yankı gecikmesi
+                
+                feedbackNode = audioCtx.createGain();
+                feedbackNode.gain.value = 0.3; // Yankının uzama miktarı (Düşük tutuyoruz ki çorbaya dönmesin)
+                
+                delayNode.connect(feedbackNode);
+                feedbackNode.connect(delayNode);
+                delayNode.connect(audioCtx.destination);
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // Tek bir notayı çalan fonksiyon
+        function playNote(freq) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            // 'sine' (sinüs) dalgası en yumuşak ve ASMR'a en uygun ses tipidir
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+            // Sesin yavaşça girip yavaşça çıkması (Zarf/Envelope)
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1); // Yavaşça yüksel (Attack)
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8); // Uzayarak sön (Release)
+
+            // Sesi hem ana çıkışa hem de yankı efektine gönder
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            gain.connect(delayNode);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 1); // 1 saniye sonra osilatörü temizle
+        }
+
+        // Bekleme fonksiyonu
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        async function startSequence() {
+            const rawText = numberInput.value;
+            // Sadece rakamları al
+            const sequence = rawText.replace(/[^0-9]/g, '');
+
+            if (sequence.length === 0) {
+                alert("Please enter at least one number.");
+                return;
+            }
+
+            initAudio();
+            isPlaying = true;
+            
+            // Arayüzü güncelle
+            numberInput.disabled = true;
+            playBtn.style.display = 'none';
+            stopBtn.style.display = 'block';
+            visualizer.innerHTML = '';
+
+            // Rakamları ekrana span olarak bas
+            const digitElements = [];
+            for (let i = 0; i < sequence.length; i++) {
+                const span = document.createElement('span');
+                span.className = 'digit';
+                span.innerText = sequence[i];
+                visualizer.appendChild(span);
+                digitElements.push(span);
+            }
+
+            // Müzik Döngüsü
+            for (let i = 0; i < sequence.length; i++) {
+                if (!isPlaying) break; // Eğer kullanıcı HALT tuşuna bastıysa döngüyü kır
+
+                const digit = sequence[i];
+                const freq = frequencies[digit];
+
+                // Görsel Parlama Efekti
+                digitElements[i].classList.add('active');
+                
+                // Sesi Çal
+                playNote(freq);
+
+                // Diğer notaya geçmeden önce bekle (Hız ayarı - 400ms ideal)
+                await sleep(400);
+
+                // Parlamayı kapat, "çalındı" rengine geçir
+                digitElements[i].classList.remove('active');
+                digitElements[i].classList.add('played');
+            }
+
+            // Bittiğinde arayüzü sıfırla
+            resetUI();
+        }
+
+        function stopSequence() {
+            isPlaying = false;
+        }
+
+        function resetUI() {
+            isPlaying = false;
+            numberInput.disabled = false;
+            playBtn.style.display = 'block';
+            stopBtn.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

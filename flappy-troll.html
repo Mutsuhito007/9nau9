@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flappy Troll</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            touch-action: none; /* Mobilde çift tıklama zoom'unu engeller */
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .app-wrapper {
+            width: 95%;
+            max-width: 400px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+        }
+
+        /* Oyun Tuvali */
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Baş belası zıplama butonu */
+        #jumpBtn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #FF3B30;
+            color: #fff;
+            border: 2px solid #fff;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 4px 0 #8a0303;
+            transition: transform 0.05s;
+            display: none; /* Oyun başlayınca görünür */
+        }
+
+        #jumpBtn:active {
+            box-shadow: 0 0 0 #8a0303;
+        }
+
+        /* UI Ekranları */
+        .ui-screen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .title {
+            font-size: 42px;
+            color: #FFD700;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .score-text {
+            font-size: 28px;
+            color: #4CD964;
+            margin-bottom: 30px;
+        }
+
+        .action-button {
+            background-color: #FFD700;
+            color: #000;
+            border: none;
+            font-family: 'VT323', monospace;
+            font-size: 28px;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 5px 0 #b39700;
+        }
+
+        .action-button:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 #b39700;
+        }
+
+        /* Skor Göstergesi */
+        #hudScore {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 48px;
+            color: #fff;
+            z-index: 5;
+            pointer-events: none;
+            text-shadow: 2px 2px 0 #000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper" id="gameWrapper">
+        <canvas id="gameCanvas"></canvas>
+        <div id="hudScore">0</div>
+        
+        <!-- Hareket Eden Buton -->
+        <button id="jumpBtn">JUMP!</button>
+
+        <!-- Başlangıç Ekranı -->
+        <div class="ui-screen" id="startScreen">
+            
+            <div style="font-family: 'Roboto', sans-serif; font-size: 14px; color: #ccc; margin-bottom: 30px; line-height: 1.5;">
+                Keep the bird flying.<br>
+                BUT... your only button SHIFTS around just to mess with your head. Good luck focusing.
+            </div>
+            <button class="action-button" onclick="startGame()">START SUFFERING</button>
+        </div>
+
+        <!-- Game Over Ekranı -->
+        <div class="ui-screen" id="gameOverScreen" style="display: none;">
+            <div class="title" style="color: #FF3B30;">WASTED</div>
+            <div class="score-text" id="finalScore">SCORE: 0</div>
+            <button class="action-button" onclick="startGame()">TRY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const wrapper = document.getElementById('gameWrapper');
+        const jumpBtn = document.getElementById('jumpBtn');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const hudScore = document.getElementById('hudScore');
+        const finalScore = document.getElementById('finalScore');
+// --- SES MOTORU (8-BIT RETRO SESLER) ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function playSound(type) {
+            // Ses motorunu başlat (tarayıcı kuralları gereği kullanıcı etkileşimiyle başlar)
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'jump') {
+                // İnce ve hızlı bir zıplama sesi
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'crash') {
+                // Kalın, boğuk ve aşağı doğru inen bir çarpma/yanma sesi
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+        // Boyutlandırma
+        function resize() {
+            canvas.width = wrapper.clientWidth;
+            canvas.height = wrapper.clientHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Oyun Değişkenleri
+        let frames = 0;
+        let score = 0;
+        let gameLoop;
+        let isGameOver = false;
+        let jumpCount = 0; // YENİ EKLENEN SAYAÇ
+
+        const bird = {
+            x: 50,
+            y: 150,
+            width: 24,
+            height: 24,
+            gravity: 0.4,
+            jump: -7.5,
+            velocity: 0,
+            draw: function() {
+                ctx.fillStyle = '#FFD700';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                // Göz
+                ctx.fillStyle = '#000';
+                ctx.fillRect(this.x + 14, this.y + 4, 4, 4);
+            },
+            update: function() {
+                this.velocity += this.gravity;
+                this.y += this.velocity;
+
+                // Yere veya tavana çarpma
+                if (this.y + this.height >= canvas.height || this.y <= 0) {
+                    endGame();
+                }
+            },
+            flap: function() {
+                this.velocity = this.jump;
+            }
+        };
+
+        const pipes = {
+            array: [],
+            width: 50,
+            gap: 130, // Borular arası boşluk (zorluğa göre kısabilirsin)
+            dx: 3.5,  // Boru hızı
+            draw: function() {
+                for (let i = 0; i < this.array.length; i++) {
+                    let p = this.array[i];
+                    ctx.fillStyle = '#4CD964'; // Retro yeşil
+                    
+                    // Üst Boru
+                    ctx.fillRect(p.x, 0, this.width, p.top);
+                    // Alt Boru
+                    ctx.fillRect(p.x, canvas.height - p.bottom, this.width, p.bottom);
+                }
+            },
+            update: function() {
+                // Her 90 frame'de bir boru ekle
+                if (frames % 90 === 0) {
+                    let topHeight = Math.random() * (canvas.height - this.gap - 40) + 20;
+                    let bottomHeight = canvas.height - this.gap - topHeight;
+                    this.array.push({
+                        x: canvas.width,
+                        top: topHeight,
+                        bottom: bottomHeight,
+                        passed: false
+                    });
+                }
+
+                for (let i = 0; i < this.array.length; i++) {
+                    let p = this.array[i];
+                    p.x -= this.dx;
+
+                    // Çarpışma Kontrolü
+                    if (bird.x + bird.width > p.x && bird.x < p.x + this.width &&
+                        (bird.y < p.top || bird.y + bird.height > canvas.height - p.bottom)) {
+                        endGame();
+                    }
+
+                    // Skor Kontrolü
+                    if (p.x + this.width < bird.x && !p.passed) {
+                        score++;
+                        hudScore.innerText = score;
+                        p.passed = true;
+                    }
+
+                    // Ekrandan çıkanları sil
+                    if (p.x + this.width < 0) {
+                        this.array.shift();
+                        i--;
+                    }
+                }
+            },
+            reset: function() {
+                this.array = [];
+            }
+        };
+
+        function drawBackground() {
+            ctx.fillStyle = '#111'; // Koyu arka plan
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Matrix stili piksel ızgara efekti (retro hava için)
+            ctx.fillStyle = '#1a1a1a';
+            for(let i=0; i<canvas.width; i+=20) {
+                ctx.fillRect(i, 0, 1, canvas.height);
+            }
+            for(let i=0; i<canvas.height; i+=20) {
+                ctx.fillRect(0, i, canvas.width, 1);
+            }
+        }
+
+        function loop() {
+            if (isGameOver) return;
+
+            drawBackground();
+            pipes.draw();
+            pipes.update();
+            bird.draw();
+            bird.update();
+
+            frames++;
+            gameLoop = requestAnimationFrame(loop);
+        }
+
+        // TROLL MEKANİĞİ: Butonun yerini değiştirme
+        function moveButtonRandomly() {
+            // Butonun dışarı taşmaması için güvenli alan hesaplaması
+            const btnWidth = jumpBtn.offsetWidth || 100;
+            const btnHeight = jumpBtn.offsetHeight || 50;
+            
+            // X ve Y sınırları
+            const maxX = wrapper.clientWidth - btnWidth - 10;
+            const maxY = wrapper.clientHeight - btnHeight - 10;
+            
+            const randomX = Math.max(10, Math.random() * maxX);
+            const randomY = Math.max(10, Math.random() * maxY);
+
+            jumpBtn.style.transform = `translate(0, 0)`; // Merkezlemeyi iptal et
+            jumpBtn.style.left = `${randomX}px`;
+            jumpBtn.style.top = `${randomY}px`;
+        }
+
+        // Butona basılma olayı (Hızlı tepki için pointerdown)
+jumpBtn.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); // Tıklama gecikmesini önle
+    if (isGameOver) return;
+    playSound('jump'); // ZIPLAMA SESİNİ ÇAL
+            
+            bird.flap();
+            jumpCount++; // Zıplama sayısını bir artır
+    bird.flap();
+    jumpCount++; // Zıplama sayısını bir artır
+    
+    // Eğer zıplama sayısı 5'e veya 5'in katlarına ulaştıysa butonu kaçır
+    if (jumpCount % 10 === 0) {
+        moveButtonRandomly();
+    }
+});
+
+        function startGame() {
+    bird.y = 150;
+    bird.velocity = 0;
+    pipes.reset();
+    score = 0;
+    frames = 0;
+    isGameOver = false;
+    jumpCount = 0; // HER YENİ OYUNDA SAYAÇ SIFIRLANIYOR
+
+    hudScore.innerText = score;
+    // ... kodun geri kalanı aynı kalacak
+
+            hudScore.innerText = score;
+            hudScore.style.display = 'block';
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            jumpBtn.style.display = 'block';
+
+            // Butonu rastgele bir yerden başlat
+            moveButtonRandomly();
+
+            loop();
+        }
+
+        function endGame() {
+            isGameOver = true;
+            cancelAnimationFrame(gameLoop);
+            playSound('crash'); // ÇARPMA/YANMA SESİNİ ÇAL
+            jumpBtn.style.display = 'none';
+            hudScore.style.display = 'none';
+            gameOverScreen.style.display = 'flex';
+            finalScore.innerText = `SCORE: ${score}`;
+        }
+    </script>
+</body>
+</html>

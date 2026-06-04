@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hikaye</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        /* 9nau9 Standart Retro Tasarım */
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #050505; color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; user-select: none;
+        }
+        .app-wrapper {
+            width: 90%; max-width: 400px; height: 95%;
+            border: none;
+            border-radius: 10px;
+            background-color: #111; padding: 20px;
+            display: flex; flex-direction: column;
+            position: relative;
+        }
+        
+        /* İçerik Alanı - Kaydırma (Scroll) eklendi */
+        .content-area {
+            flex-grow: 1; display: flex;
+            justify-content: center; align-items: center;
+            text-align: center; 
+            overflow-y: auto; /* Taşan uzun metinler için dikey kaydırma açıldı */
+            overflow-x: hidden;
+            background-color: #0a0a0a; border: 2px solid #333;
+            border-radius: 5px; padding: 15px; margin-bottom: 15px;
+        }
+
+        /* Retro Scrollbar (Kaydırma Çubuğu) Tasarımı */
+        .content-area::-webkit-scrollbar { width: 8px; }
+        .content-area::-webkit-scrollbar-track { background: #0a0a0a; }
+        .content-area::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 4px; }
+        
+        /* Yazı ve Görsel Animasyonları */
+        .slide-text {
+            font-size: 44px; letter-spacing: 2px;
+            color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        /* UZUN METİNLER İÇİN ÖZEL CLASS */
+        .slide-text.long {
+            font-size: 24px; /* Uzun metin okunsun diye küçültüldü */
+            text-align: left; /* Sola hizalandı */
+            line-height: 1.4; /* Satır aralığı açıldı */
+            letter-spacing: 1px;
+            white-space: pre-wrap; /* Paragraf boşlukları (enter) korundu */
+            width: 100%;
+        }
+
+        .slide-img {
+            max-width: 100%; max-height: 100%;
+            border-radius: 5px;
+            animation: fadeIn 0.5s ease-in;
+            object-fit: contain;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        /* Sağ Sol Butonları */
+        .controls {
+            display: flex; justify-content: space-between; gap: 10px;
+        }
+        .nav-btn {
+            flex: 1; background-color: #222; color: #FFD700;
+            border: 2px solid #FFD700; border-radius: 5px;
+            font-family: 'VT323', monospace; font-size: 28px;
+            padding: 12px; cursor: pointer;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+        .nav-btn:active { transform: scale(0.95); background-color: #FFD700; color: #000; }
+        .nav-btn:disabled { opacity: 0.3; border-color: #555; color: #555; cursor: not-allowed; transform: none; background-color: #222; }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="content-area" id="displayArea">
+            </div>
+        <div class="controls">
+            <button class="nav-btn" id="prevBtn" onclick="prevSlide()">&#9664; PREV</button>
+            <button class="nav-btn" id="nextBtn" onclick="nextSlide()">READ &#9654;</button>
+        </div>
+    </div>
+
+    <script>
+        // İÇERİK LİSTESİ: Sırayla çıkacak metinler ve görseller
+        const slides = [
+            { type: 'img', value: 'assets/27.webp' },
+            {
+                type: 'text',
+                value: `I couldn't sleep last night. My mind is incredibly clear. I look at my hands and, for the first time, I understand what they are meant for. For years in these corridors, between these walls that smell of piss and medicine, I have cleaned up other people's filth. I served those old, wrinkled, decaying bodies like a machine. To them, I was just an 'employee'.
+
+Until that man.
+
+He was 78 years old. Paralyzed from the neck down. He was literally a coffin of flesh trapped inside his own body. Every night when I entered his room, he would look at me with those old, watery eyes. His breath wheezed when he spoke. Four days ago, he couldn't take it anymore. He begged me. "Please," he said, "Please finish this. I don't want to endure it anymore." He didn't even have the physical strength to end his own life. His children had dumped him in this meat warehouse and forgotten him. Society was ordering him to 'keep breathing', but that man just wanted to go.
+
+Last night, I helped him. You wouldn't believe how easy it was, doctor. No struggle, no blood, no poison. Just an empty syringe. A tiny air bubble that I pushed into the IV line attached to his vein was enough. I watched that small void slowly advance through the tube and mix into his veins. When it reached his heart, the only thing he felt was a momentary spasm in his chest. Then, that agonizing expression on his face was completely wiped away.
+
+I will never forget that moment for the rest of my life. There was no fear. There was only pure gratitude. I gave him the one thing that all those so-called moral guardians and his children couldn't give him: 'peace'. As he took his last breath, there was a smile on his face.
+
+The interesting thing is, I have no regrets. When I went down to the lounge in the morning, I looked at the others. Lined up in those wheelchairs, staring out the window with empty eyes, those poor souls wearing diapers... I truly saw them all for the first time.
+
+You healthy people on the outside don't understand. They don't want to live! They are afraid to confess it because, to you, it's a sin. But I hear that silent scream in their eyes. They all want to go, just like that man. The thing holding them by force in this world is your selfish sense of morality.
+
+I am not a killer, doctor. Murder is taking the life of someone who wants to live. I, however, am setting them free. I am their savior.
+
+My shift is long today. There are so many souls in this building who need my mercy, who are silently begging me. Wait for me, doctor. Tonight, I will send far too many angels to the sky.
+
+These stories are entirely fictional!`
+            },
+            
+        ];
+
+        let currentIndex = 0;
+        const displayArea = document.getElementById('displayArea');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function renderSlide() {
+            const slide = slides[currentIndex];
+            displayArea.innerHTML = ''; // Ekranı temizle
+            
+            // Eğer yeni bir slayta geçersek scroll'u (kaydırmayı) en başa al
+            displayArea.scrollTop = 0;
+
+            if (slide.type === 'text') {
+                const txt = document.createElement('div');
+                txt.className = 'slide-text';
+                txt.innerText = slide.value;
+                
+                // Karar mekanizması: Metin 50 karakterden uzunsa "long" sınıfını ekle
+                if (slide.value.length > 50) {
+                    txt.classList.add('long');
+                    displayArea.style.alignItems = 'flex-start'; // Metni yukarı yasla
+                } else {
+                    displayArea.style.alignItems = 'center'; // Kısa metni ortala
+                }
+                
+                displayArea.appendChild(txt);
+            } else if (slide.type === 'img') {
+                displayArea.style.alignItems = 'center'; // Görselleri her zaman ortala
+                const img = document.createElement('img');
+                img.className = 'slide-img';
+                img.src = slide.value;
+                displayArea.appendChild(img);
+            }
+
+            // İlk ve son slaytlarda butonları kilitle
+            prevBtn.disabled = (currentIndex === 0);
+            nextBtn.disabled = (currentIndex === slides.length - 1);
+        }
+
+        function nextSlide() {
+            if (currentIndex < slides.length - 1) {
+                currentIndex++;
+                renderSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderSlide();
+            }
+        }
+
+        // Sistemi ilk slayt ile başlat
+        renderSlide();
+    </script>
+</body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hellspawn Caretaker</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .app-wrapper {
+            width: 90%;
+            max-width: 380px;
+            height: 95%;
+            border: 3px solid #FF3B30;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 0 25px rgba(255, 59, 48, 0.2);
+            position: relative;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #444;
+            padding-bottom: 10px;
+        }
+        .header h2 {
+            font-size: 28px;
+            color: #FFD700;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+        
+        /* YENİ: Ölüme Kalan Süre Sayacı */
+        .timer-container {
+            background-color: #222;
+            border: 1px solid #FF3B30;
+            padding: 5px;
+            border-radius: 5px;
+            color: #FF3B30;
+            font-size: 24px;
+            text-shadow: 0 0 5px rgba(255, 59, 48, 0.5);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        /* Ekran (Sanal Bebek Evi) */
+        .screen-container {
+            width: 100%;
+            height: 200px; /* Sayaç sığsın diye biraz kısalttık */
+            background-color: #1a0a0a;
+            border: 4px solid #333;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px #000;
+        }
+        .bg-grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255, 59, 48, 0.1) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255, 59, 48, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+        }
+
+        /* Pixel Art Şeytan Bebek */
+        .devil-baby {
+            width: 120px;
+            height: 120px;
+            animation: breathe 2s infinite alternate ease-in-out;
+            transition: transform 0.2s;
+        }
+        .devil-baby.happy {
+            animation: jump 0.5s 2;
+        }
+        @keyframes breathe {
+            0% { transform: translateY(5px) scaleY(0.95); }
+            100% { transform: translateY(-5px) scaleY(1.05); }
+        }
+        @keyframes jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+        }
+        .eye {
+            animation: blink 4s infinite;
+            transform-origin: center;
+        }
+        @keyframes blink {
+            0%, 96%, 100% { transform: scaleY(1); }
+            98% { transform: scaleY(0.1); }
+        }
+
+        /* Ölüm Ekranı */
+        .dead-screen {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 10;
+        }
+        .dead-text {
+            color: #FF3B30;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        /* İhtiyaç Barları */
+        .stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-grow: 1;
+        }
+        .stat-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .stat-label {
+            color: #ccc;
+            font-size: 20px;
+            width: 80px;
+        }
+        .stat-bar-bg {
+            flex-grow: 1;
+            height: 15px;
+            background-color: #222;
+            border: 1px solid #555;
+            border-radius: 3px;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-bar-fill {
+            height: 100%;
+            background-color: #4CD964;
+            width: 100%;
+            transition: width 0.3s, background-color 0.3s;
+        }
+
+        /* Aksiyon Butonları */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .action-btn {
+            background-color: #222;
+            color: #FFD700;
+            border: 2px solid #FFD700;
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+        .action-btn:active {
+            transform: scale(0.95);
+            background-color: #FFD700;
+            color: #000;
+        }
+        .action-btn:disabled {
+            border-color: #555;
+            color: #555;
+            background-color: #111;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="header">
+            
+            <div class="timer-container" id="deathTimer">--:--:--</div>
+        </div>
+
+        <div class="screen-container">
+            <div class="bg-grid"></div>
+            
+            <svg class="devil-baby" id="petAvatar" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                <rect x="3" y="2" width="2" height="3" fill="#8a0303"/>
+                <rect x="11" y="2" width="2" height="3" fill="#8a0303"/>
+                <rect x="3" y="5" width="10" height="6" fill="#FF3B30"/>
+                <rect x="4" y="7" width="2" height="2" fill="#FFD700" class="eye"/>
+                <rect x="10" y="7" width="2" height="2" fill="#FFD700" class="eye"/>
+                <rect x="4" y="8" width="1" height="1" fill="#000" class="eye"/>
+                <rect x="10" y="8" width="1" height="1" fill="#000" class="eye"/>
+                <rect x="5" y="11" width="6" height="4" fill="#FF3B30"/>
+                <rect x="4" y="14" width="2" height="2" fill="#8a0303"/>
+                <rect x="10" y="14" width="2" height="2" fill="#8a0303"/>
+            </svg>
+
+            <div class="dead-screen" id="deadScreen">
+                <div class="dead-text">IT DIED.</div>
+                <div style="color: #888; font-family: 'Roboto'; font-size: 14px; margin-bottom: 20px;">
+                    You neglected it for too long.
+                </div>
+                <button class="action-btn" onclick="resurrect()">RESURRECT (SUMMON)</button>
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-row">
+                <span class="stat-label">HUNGER</span>
+                <div class="stat-bar-bg"><div class="stat-bar-fill" id="bar-hunger"></div></div>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">THIRST</span>
+                <div class="stat-bar-bg"><div class="stat-bar-fill" id="bar-thirst"></div></div>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">MOOD</span>
+                <div class="stat-bar-bg"><div class="stat-bar-fill" id="bar-mood"></div></div>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">CHAOS</span>
+                <div class="stat-bar-bg"><div class="stat-bar-fill" id="bar-chaos"></div></div>
+            </div>
+        </div>
+
+        <div class="actions-grid">
+            <button class="action-btn" id="btn-feed" onclick="interact('hunger', 25)">FEED (SOULS)</button>
+            <button class="action-btn" id="btn-water" onclick="interact('thirst', 25)">GIVE LAVA</button>
+            <button class="action-btn" id="btn-pet" onclick="interact('mood', 20)">PET HORNS</button>
+            <button class="action-btn" id="btn-scare" onclick="interact('chaos', 30)">SPREAD EVIL</button>
+        </div>
+    </div>
+
+    <script>
+        const SAVE_KEY = '9nau9_devil_pet_v2';
+        
+        const avatar = document.getElementById('petAvatar');
+        const deadScreen = document.getElementById('deadScreen');
+        const deathTimerDisplay = document.getElementById('deathTimer');
+        const buttons = document.querySelectorAll('.action-btn');
+        const bars = {
+            hunger: document.getElementById('bar-hunger'),
+            thirst: document.getElementById('bar-thirst'),
+            mood: document.getElementById('bar-mood'),
+            chaos: document.getElementById('bar-chaos')
+        };
+
+        const DEPLETION_TIME_MS = 24 * 60 * 60 * 1000;
+
+        // DEĞİŞİKLİK BURADA: Artık oyuna ilk girildiğinde barlar %30'dan (yani çok az) başlıyor.
+        let petState = {
+            isDead: false,
+            lastUpdate: Date.now(),
+            stats: { hunger: 30, thirst: 30, mood: 30, chaos: 30 }
+        };
+
+        function loadData() {
+            const saved = localStorage.getItem(SAVE_KEY);
+            if (saved) {
+                petState = JSON.parse(saved);
+                calculateOfflineDepletion();
+            }
+            updateUI();
+        }
+
+        function calculateOfflineDepletion() {
+            if (petState.isDead) return;
+
+            const now = Date.now();
+            const timePassed = now - petState.lastUpdate;
+            const dropPercentage = (timePassed / DEPLETION_TIME_MS) * 100;
+
+            let diedWhileAway = false;
+
+            for (let key in petState.stats) {
+                petState.stats[key] -= dropPercentage;
+                if (petState.stats[key] <= 0) {
+                    petState.stats[key] = 0;
+                    diedWhileAway = true;
+                }
+            }
+
+            if (diedWhileAway) {
+                petState.isDead = true;
+            }
+
+            petState.lastUpdate = now;
+            saveData();
+        }
+
+        function saveData() {
+            localStorage.setItem(SAVE_KEY, JSON.stringify(petState));
+        }
+
+        // YENİ: Kalan Süreyi Hesaplayan Fonksiyon
+        function updateTimerText() {
+            if (petState.isDead) {
+                deathTimerDisplay.innerText = "DEAD";
+                deathTimerDisplay.style.color = "#888";
+                deathTimerDisplay.style.borderColor = "#888";
+                return;
+            }
+
+            // En düşük bar hangisiyse, ölüm süresini o belirler
+            const lowestStat = Math.min(...Object.values(petState.stats));
+            
+            // %100 = 86400 saniye ise, mevcut yüzdenin kaç saniye ettiğini buluyoruz
+            const totalSecondsLeft = Math.floor((lowestStat * 86400) / 100);
+
+            const hours = Math.floor(totalSecondsLeft / 3600);
+            const minutes = Math.floor((totalSecondsLeft % 3600) / 60);
+            const seconds = totalSecondsLeft % 60;
+
+            // Saat formatını (00:00:00) şeklinde düzeltiyoruz
+            deathTimerDisplay.innerText = 
+                String(hours).padStart(2, '0') + ":" + 
+                String(minutes).padStart(2, '0') + ":" + 
+                String(seconds).padStart(2, '0');
+            
+            deathTimerDisplay.style.color = "#FF3B30";
+            deathTimerDisplay.style.borderColor = "#FF3B30";
+        }
+
+        function updateUI() {
+            if (petState.isDead) {
+                deadScreen.style.display = 'flex';
+                buttons.forEach(btn => btn.disabled = true);
+                deadScreen.querySelector('button').disabled = false;
+            } else {
+                deadScreen.style.display = 'none';
+                buttons.forEach(btn => btn.disabled = false);
+            }
+
+            for (let key in petState.stats) {
+                const val = petState.stats[key];
+                const bar = bars[key];
+                bar.style.width = val + '%';
+
+                if (val > 60) bar.style.backgroundColor = '#4CD964';
+                else if (val > 30) bar.style.backgroundColor = '#FFD700';
+                else bar.style.backgroundColor = '#FF3B30';
+            }
+
+            updateTimerText();
+        }
+
+        function interact(stat, amount) {
+            if (petState.isDead) return;
+
+            petState.stats[stat] += amount;
+            if (petState.stats[stat] > 100) petState.stats[stat] = 100;
+            
+            petState.lastUpdate = Date.now();
+            saveData();
+            updateUI();
+
+            avatar.classList.add('happy');
+            setTimeout(() => avatar.classList.remove('happy'), 1000);
+        }
+
+        function resurrect() {
+            // Diriltirken de %30 canla başlatıyoruz ki hemen ilgilensin
+            petState = {
+                isDead: false,
+                lastUpdate: Date.now(),
+                stats: { hunger: 30, thirst: 30, mood: 30, chaos: 30 }
+            };
+            saveData();
+            updateUI();
+        }
+
+        setInterval(() => {
+            if (petState.isDead) return;
+            
+            const dropPerSecond = 100 / (24 * 60 * 60);
+            
+            for (let key in petState.stats) {
+                petState.stats[key] -= dropPerSecond;
+                if (petState.stats[key] <= 0) {
+                    petState.stats[key] = 0;
+                    petState.isDead = true;
+                }
+            }
+            
+            petState.lastUpdate = Date.now();
+            saveData();
+            updateUI();
+        }, 1000);
+
+        loadData();
+    </script>
+</body>
+</html>

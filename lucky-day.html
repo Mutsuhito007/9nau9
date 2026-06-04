@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lucky Day</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+        }
+        .app-wrapper {
+            width: 90%;
+            max-width: 380px;
+            height: 90%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.2);
+            transition: all 0.2s;
+        }
+
+        /* 1. Yem Ekranı (Lure Screen) */
+        .lure-screen {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .lure-title {
+            font-size: 34px;
+            color: #4CD964;
+            text-shadow: 0 0 10px rgba(76, 217, 100, 0.5);
+            letter-spacing: 1px;
+            animation: pulse 1.5s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        .lure-desc {
+            font-family: 'Roboto', sans-serif;
+            font-size: 15px;
+            color: #ddd;
+            line-height: 1.5;
+        }
+
+        .fomo-box {
+            background-color: #222;
+            border: 1px dashed #FF3B30;
+            padding: 10px;
+            border-radius: 5px;
+            color: #FF3B30;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .email-input {
+            width: 100%;
+            background-color: #000;
+            border: 2px solid #555;
+            color: #fff;
+            font-family: 'Roboto', sans-serif;
+            font-size: 18px;
+            padding: 15px;
+            border-radius: 5px;
+            outline: none;
+            text-align: center;
+            transition: border-color 0.2s;
+            cursor: text;
+        }
+        .email-input::placeholder {
+            color: #666;
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+        }
+
+        .fake-btn {
+            background-color: #4CD964;
+            color: #000;
+            border: none;
+            font-family: 'VT323', monospace;
+            font-size: 26px;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        /* 2. Troll Ekranı (Reality Check) */
+        .troll-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            width: 100%;
+        }
+
+        .troll-title {
+            font-size: 36px;
+            color: #FF3B30;
+            border-bottom: 2px solid #FF3B30;
+            padding-bottom: 10px;
+            width: 100%;
+        }
+
+        .troll-msg {
+            font-family: 'Roboto', sans-serif;
+            font-size: 18px;
+            color: #fff;
+            line-height: 1.6;
+            text-align: left;
+            background: #1a0000;
+            border-left: 4px solid #FF3B30;
+            padding: 15px;
+            border-radius: 4px;
+        }
+
+        .highlight {
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper" id="mainWrapper">
+        
+        <div class="lure-screen" id="lureScreen">
+            <h2 class="lure-title">EXCLUSIVE REWARD</h2>
+            <p class="lure-desc">
+                Congratulations! You are one of the <strong>9,999</strong> specially selected users to view this hidden page.<br><br>
+                Our company has decided to give away a <strong>$999 Digital Gift Card</strong> to our exclusive visitors. Please enter your email address below so we can contact you.
+            </p>
+            
+            <div class="fomo-box">
+                Remaining Cards: <span id="remainingCards">14</span>/9999
+            </div>
+
+            <input type="email" class="email-input" id="emailBox" placeholder="Enter Email Address..." autocomplete="off">
+            
+            <button class="fake-btn" id="fakeBtn">CLAIM $999</button>
+        </div>
+
+        <div class="troll-screen" id="trollScreen">
+            <h2 class="troll-title">REALITY CHECK</h2>
+            <div class="troll-msg">
+                Have you ever thought about this?<br><br>
+                Why would anyone give you something for free? Buddy, <span class="highlight">nothing in this world is free.</span><br><br>
+                Accept this reality already. Never give your contact information to platforms you don't know.<br><br>
+                <strong>Go get a real job.</strong>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const lureScreen = document.getElementById('lureScreen');
+        const trollScreen = document.getElementById('trollScreen');
+        const mainWrapper = document.getElementById('mainWrapper');
+        const emailBox = document.getElementById('emailBox');
+        const fakeBtn = document.getElementById('fakeBtn');
+        const remainingCards = document.getElementById('remainingCards');
+
+        let isTriggered = false;
+        let audioCtx;
+
+        // Sahte sayaç efekti (Kullanıcıyı panikletmek için)
+        let cards = 14;
+        const countdown = setInterval(() => {
+            if (cards > 3 && !isTriggered) {
+                cards -= Math.floor(Math.random() * 2) + 1;
+                remainingCards.innerText = cards;
+            }
+        }, 3000);
+
+        // Tokat gibi çarpan hata sesi
+        function playSlapSound() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'square'; 
+            osc.frequency.setValueAtTime(100, audioCtx.currentTime); 
+            osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.3);
+
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // Tuzak Fonksiyonu
+        function triggerTrap() {
+            if (isTriggered) return;
+            isTriggered = true;
+            clearInterval(countdown);
+
+            // Sesi çal
+            playSlapSound();
+
+            // Kutunun tasarımını kırmızı alarma çevir
+            mainWrapper.style.borderColor = "#FF3B30";
+            mainWrapper.style.boxShadow = "0 0 30px rgba(255, 59, 48, 0.4)";
+
+            // Ekranları değiştir
+            lureScreen.style.display = 'none';
+            trollScreen.style.display = 'flex';
+        }
+
+        // Kutuya tıklandığı an (focus) veya klavye ile seçildiği an tuzağı tetikle
+        emailBox.addEventListener('focus', triggerTrap);
+        emailBox.addEventListener('click', triggerTrap);
+        
+        // Kullanıcı uyanıklık yapıp kutuya tıklamadan direkt butona basarsa yine tetikle
+        fakeBtn.addEventListener('click', triggerTrap);
+
+    </script>
+</body>
+</html>

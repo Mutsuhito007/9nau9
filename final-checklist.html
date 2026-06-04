@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pre-Departure Checklist</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .app-wrapper {
+            width: 95%;
+            max-width: 400px;
+            height: 95%;
+            border: 3px solid #333;
+            border-radius: 10px;
+            background-color: #111;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.9);
+        }
+        .header {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px dashed #444;
+            background: #1a1a1a;
+            border-radius: 10px 10px 0 0;
+            flex-shrink: 0;
+        }
+        .header h2 {
+            font-size: 26px;
+            color: #FF3B30;
+            letter-spacing: 1px;
+        }
+        .header p {
+            font-family: 'Roboto', sans-serif;
+            font-size: 13px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* The List Area */
+        .checklist-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        /* Custom Scrollbar */
+        .checklist-container::-webkit-scrollbar { width: 6px; }
+        .checklist-container::-webkit-scrollbar-track { background: #111; }
+        .checklist-container::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 3px; }
+
+        /* Custom Checkbox Design */
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            padding: 8px;
+            background-color: #1a1a1a;
+            border: 1px solid #222;
+            border-radius: 5px;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .check-item:hover {
+            background-color: #222;
+            border-color: #444;
+        }
+        .check-item input[type="checkbox"] {
+            display: none;
+        }
+        .custom-box {
+            min-width: 22px;
+            height: 22px;
+            border: 2px solid #555;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 2px;
+            transition: all 0.2s;
+            background-color: #000;
+        }
+        .check-item input[type="checkbox"]:checked + .custom-box {
+            border-color: #FF3B30;
+            background-color: #FF3B30;
+        }
+        .check-item input[type="checkbox"]:checked + .custom-box::after {
+            content: 'X';
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .check-text {
+            font-size: 18px;
+            line-height: 1.3;
+            color: #ccc;
+            font-family: 'Roboto', sans-serif;
+        }
+        .check-item input[type="checkbox"]:checked ~ .check-text {
+            color: #555;
+            text-decoration: line-through;
+        }
+
+        /* Footer / Button */
+        .footer {
+            padding: 15px;
+            border-top: 2px dashed #444;
+            background: #1a1a1a;
+            border-radius: 0 0 10px 10px;
+            flex-shrink: 0;
+        }
+        .action-button {
+            width: 100%;
+            background-color: #FF3B30;
+            color: #fff;
+            border: 2px solid #FF3B30;
+            font-family: 'VT323', monospace;
+            font-size: 26px;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.1s;
+            text-transform: uppercase;
+        }
+        .action-button:active {
+            transform: scale(0.98);
+            background-color: #fff;
+            color: #FF3B30;
+        }
+
+        /* Death Screen */
+        .void-screen {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            animation: fadeToBlack 2s forwards;
+            padding: 20px;
+            text-align: center;
+        }
+        .void-text {
+            color: #fff;
+            font-size: 24px;
+            opacity: 0;
+            animation: showText 3s 1s forwards;
+        }
+
+        @keyframes fadeToBlack {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        @keyframes showText {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <div id="mainContent" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="header">
+                <h2>PRE-DEPARTURE PROTOCOL</h2>
+                <p>Ensure these are completed before flatlining.</p>
+            </div>
+            
+            <div class="checklist-container" id="checklist">
+                <!-- 40 items will be injected here via JavaScript -->
+            </div>
+
+            <div class="footer">
+                <button class="action-button" onclick="embraceTheVoid()">EMBRACE THE VOID</button>
+            </div>
+        </div>
+
+        <div class="void-screen" id="voidScreen">
+            <div class="void-text">
+                YOUR SECRETS ARE SAFE.<br><br>
+                <span style="color: #FF3B30; font-size: 32px;">SYSTEM SHUTDOWN.</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const deathTasks = [
+            "Permanently deleted my browser history.",
+            "Physically destroyed my hard drive with a hammer.",
+            "Cleared my search history for 'How to fake my own death'.",
+            "Unsubscribed from that one spam email list.",
+            "Sent a cryptic text saying 'It is done. Hide the body.' to a random number.",
+            "Left my Netflix password in my official will.",
+            "Confessed to a crime I didn't commit just to confuse the police.",
+            "Hid a fake treasure map inside my mattress.",
+            "Burned my incognito mode secondary device.",
+            "Placed a voodoo doll of my boss in my desk drawer.",
+            "Swallowed a USB drive containing encrypted memes.",
+            "Paid someone to stand in the distance at my funeral holding a black umbrella.",
+            "Canceled my Adobe subscription so they don't charge my ghost.",
+            "Formatted my smartwatch to hide my embarrassing heart rate spikes.",
+            "Apologized to my houseplant for overwatering it.",
+            "Set up an automated email to insult my enemy one year from now.",
+            "Left my crypto wallet password in a riddle nobody can solve.",
+            "Cleared my 'Watch Later' playlist on YouTube.",
+            "Told my dog where the good treats are hidden.",
+            "Replaced my diary with a fictional sci-fi novel presented as my real life.",
+            "Swallowed a strong magnet to mess with the autopsy.",
+            "Unfriended everyone who didn't like my profile picture in 2014.",
+            "Wrote 'I know what you did' on a sticky note and left it on my desk.",
+            "Donated my browser cookies to charity.",
+            "Ensured my tombstone will have a 'Press F to pay respects' button.",
+            "Practiced my final dramatic gasp in the mirror.",
+            "Paid a stranger to cry hysterically at my funeral.",
+            "Deleted all the selfies where I look bad.",
+            "Cursed my enemies using Google Translate Latin.",
+            "Fed the neighborhood pigeons one last time (they are government drones).",
+            "Left a half-eaten sandwich in the fridge with a sticky note saying 'DO NOT EAT'.",
+            "Swapped the labels on the salt and sugar shakers.",
+            "Set my Out of Office reply to 'Dead. Be back never.'",
+            "Confessed my love for a fictional AI character.",
+            "Destroyed the group chat evidence.",
+            "Left a single shoe in a mysterious location.",
+            "Ignored my overdue library fines for eternity.",
+            "Recorded a video saying 'If you are watching this, I have been murdered.'",
+            "Flushed my Tamagotchi down the toilet to set it free.",
+            "Accepted all Terms and Conditions one last time."
+        ];
+
+        const checklistContainer = document.getElementById('checklist');
+
+        // Dinamik olarak 40 soruyu ekrana basıyoruz
+        deathTasks.forEach((task, index) => {
+            const label = document.createElement('label');
+            label.className = 'check-item';
+            
+            label.innerHTML = `
+                <input type="checkbox" id="task_${index}">
+                <div class="custom-box"></div>
+                <div class="check-text">${task}</div>
+            `;
+            
+            checklistContainer.appendChild(label);
+        });
+
+        // Butona basıldığında çalışacak fonksiyon
+        function embraceTheVoid() {
+            document.getElementById('mainContent').style.display = 'none';
+            const voidScreen = document.getElementById('voidScreen');
+            voidScreen.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

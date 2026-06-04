@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IQ Yağmuru - Troll Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'VT323', monospace;
+        }
+        canvas {
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+<script>
+    const config = {
+        type: Phaser.AUTO,
+        width: 400,
+        height: 600,
+        backgroundColor: '#111111',
+        scale: {
+            mode: Phaser.Scale.FIT,
+            autoCenter: Phaser.Scale.CENTER_BOTH
+        },
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 150 }, 
+                debug: false
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    const game = new Phaser.Game(config);
+
+    let player;
+    let items;
+    let cursors;
+    let iqScore = 100; 
+    const targetIQ = 200; 
+    let iqText;
+    let targetText;
+    let isGameOver = false;
+    let spawnTimer;
+
+    // Nesne Havuzları (Senin belirlediğin emojiler)
+    const goodItems = ['🐟', '🥦', '📚', '🧩']; 
+    const badItems = ['📺', '📱', '🍔', '🍟'];   
+
+    function preload() {}
+
+    function create() {
+        isGameOver = false;
+        iqScore = 100;
+
+        // Kahraman: Beyin 
+        player = this.add.text(200, 550, '🧠', { fontSize: '46px' }).setOrigin(0.5);
+        this.physics.add.existing(player);
+        player.body.setCollideWorldBounds(true);
+        player.body.setSize(40, 40); // Emojinin çarpışma alanını tam kare yapıyoruz
+
+        // Düşen Nesneler Grubu
+        items = this.add.group();
+
+        // Çarpışma Kontrolü
+        this.physics.add.overlap(player, items, collectItem, null, this);
+
+        // Arayüz Metinleri
+        iqText = this.add.text(10, 10, 'IQ: 100', { fontFamily: 'VT323', fontSize: '32px', fill: '#FFD700' });
+        targetText = this.add.text(10, 40, 'TARGET: 200', { fontFamily: 'VT323', fontSize: '20px', fill: '#888888' });
+
+        // Kontroller
+        cursors = this.input.keyboard.createCursorKeys();
+
+        // Nesne Yağdırma Döngüsü (Başlangıç hızı: 800ms)
+        spawnTimer = this.time.addEvent({
+            delay: 800, 
+            callback: spawnItem,
+            callbackScope: this,
+            loop: true
+        });
+    }
+
+    function update() {
+        if (isGameOver) return;
+
+        // Hareket Mekaniği
+        if (cursors.left.isDown) {
+            player.body.setVelocityX(-350);
+        } else if (cursors.right.isDown) {
+            player.body.setVelocityX(350);
+        } else {
+            player.body.setVelocityX(0);
+        }
+
+        // Dokunmatik Kontrol
+        if (this.input.activePointer.isDown) {
+            if (this.input.activePointer.x < player.x - 15) {
+                player.body.setVelocityX(-350);
+            } else if (this.input.activePointer.x > player.x + 15) {
+                player.body.setVelocityX(350);
+            }
+        }
+    }
+
+    function spawnItem() {
+        if (isGameOver) return;
+
+        const x = Phaser.Math.Between(30, 370);
+        const isGood = Math.random() > 0.5;
+        const char = isGood ? Phaser.Utils.Array.GetRandom(goodItems) : Phaser.Utils.Array.GetRandom(badItems);
+
+        // Nesneyi oluştur ve çarpışma alanını ayarla
+        let item = this.add.text(x, 0, char, { fontSize: '36px' }).setOrigin(0.5);
+        this.physics.add.existing(item);
+        item.body.setSize(32, 32); 
+        
+        // Gizli değerler
+        item.iqValue = isGood ? Phaser.Math.Between(10, 20) : Phaser.Math.Between(-15, -30);
+        
+        item.body.setBounceY(Phaser.Math.FloatBetween(0.3, 0.6));
+        items.add(item);
+    }
+
+    function collectItem(player, item) {
+        if (isGameOver) return;
+
+        // Nesnenin gizli değerini IQ'ya yansıt
+        iqScore += item.iqValue;
+        item.destroy();
+
+        // Skora göre yağmur hızını artır (Zorluk eğrisi)
+        let currentDelay = 800 - ((iqScore - 100) * 4); 
+        if (currentDelay < 250) currentDelay = 250; // Max hız sınırı
+        spawnTimer.delay = currentDelay;
+
+        // Görsel Geri Bildirim
+        iqText.setText('IQ: ' + iqScore);
+        if(item.iqValue > 0) {
+            iqText.setFill('#4CD964'); 
+        } else {
+            iqText.setFill('#FF3B30'); 
+        }
+        
+        // Retro flash efekti
+        this.time.delayedCall(150, () => { if(!isGameOver) iqText.setFill('#FFD700'); });
+
+        // Kazanma veya Kaybetme
+        if (iqScore >= targetIQ) {
+            gameOver(this, 'ENLIGHTENED!\nYOU REACHED 200 IQ', '#4CD964');
+        } else if (iqScore <= 0) {
+            iqScore = 0;
+            iqText.setText('IQ: 0');
+            gameOver(this, 'BRAIN FRIED.\nIQ DROPPED TO 0', '#FF3B30');
+        }
+    }
+
+    function gameOver(scene, message, color) {
+        isGameOver = true;
+        player.body.setVelocityX(0);
+        player.setAlpha(0.5); 
+        spawnTimer.remove();
+
+        const bg = scene.add.rectangle(200, 300, 400, 600, 0x000000, 0.85);
+        
+        scene.add.text(200, 250, message, { 
+            fontFamily: 'VT323', 
+            fontSize: '40px', 
+            fill: color,
+            align: 'center' 
+        }).setOrigin(0.5);
+
+        const restartBtn = scene.add.text(200, 350, '[ TAP TO RETRY ]', { 
+            fontFamily: 'VT323', 
+            fontSize: '28px', 
+            fill: '#FFFFFF' 
+        }).setOrigin(0.5).setInteractive();
+
+        restartBtn.on('pointerover', () => restartBtn.setFill('#FFD700'));
+        restartBtn.on('pointerout', () => restartBtn.setFill('#FFFFFF'));
+        
+        restartBtn.on('pointerdown', () => {
+            scene.scene.restart();
+        });
+    }
+</script>
+
+</body>
+</html>

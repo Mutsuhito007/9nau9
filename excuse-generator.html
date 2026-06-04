@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Excuse Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .app-wrapper {
+            width: 90%;
+            max-width: 380px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #444;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+        .header h2 {
+            font-size: 28px;
+            color: #FF3B30;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 59, 48, 0.4);
+        }
+        .header p {
+            font-family: 'Roboto', sans-serif;
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* Kategori Ekranı */
+        .category-screen {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .category-screen::-webkit-scrollbar { width: 4px; }
+        .category-screen::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 2px; }
+
+        .cat-btn {
+            background-color: #1a1a1a;
+            color: #ccc;
+            border: 1px solid #444;
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.1s;
+        }
+        .cat-btn:active {
+            transform: scale(0.98);
+            background-color: #444;
+        }
+
+        /* Jeneratör Ekranı */
+        .generator-screen {
+            display: none;
+            flex-direction: column;
+            flex-grow: 1;
+            gap: 15px;
+        }
+        .selected-cat-title {
+            font-size: 22px;
+            color: #4CD964;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        .result-box {
+            flex-grow: 1;
+            background-color: #0a0a0a;
+            border: 2px solid #333;
+            border-radius: 5px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+        }
+        .excuse-text {
+            font-family: 'Roboto', sans-serif;
+            font-size: 18px;
+            color: #fff;
+            line-height: 1.5;
+            text-align: center;
+            word-wrap: break-word;
+        }
+
+        /* Aksiyon Butonları */
+        .action-btn {
+            background-color: #FFD700;
+            color: #000;
+            border: none;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #b39700;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .action-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #b39700;
+        }
+        .back-btn {
+            background-color: #222;
+            color: #FF3B30;
+            border: 2px solid #FF3B30;
+            box-shadow: none;
+            margin-top: 5px;
+        }
+        .back-btn:active {
+            background-color: #FF3B30;
+            color: #000;
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="header">
+            
+            <p>Select your crisis. We will provide the lie.</p>
+        </div>
+
+        <!-- 1. Kategori Ekranı -->
+        <div class="category-screen" id="categoryScreen">
+            <button class="cat-btn" onclick="openCategory('rel', 'TERMINATE RELATIONSHIP')">1. TERMINATE RELATIONSHIP</button>
+            <button class="cat-btn" onclick="openCategory('job', 'RESIGN FROM JOB')">2. RESIGN FROM JOB</button>
+            <button class="cat-btn" onclick="openCategory('school', 'EXPLAIN SCHOOL EXPULSION')">3. EXPLAIN SCHOOL EXPULSION</button>
+            <button class="cat-btn" onclick="openCategory('social', 'CANCEL SOCIAL PLANS')">4. CANCEL SOCIAL PLANS</button>
+            <button class="cat-btn" onclick="openCategory('illness', 'FAKE TERMINAL ILLNESS')">5. FAKE TERMINAL ILLNESS</button>
+        </div>
+
+        <!-- 2. Jeneratör Ekranı -->
+        <div class="generator-screen" id="generatorScreen">
+            <div class="selected-cat-title" id="catTitle">CATEGORY</div>
+            <div class="result-box">
+                <div class="excuse-text" id="excuseText">Press GENERATE to fabricate reality.</div>
+            </div>
+            <button class="action-btn" onclick="generateExcuse()">GENERATE EXCUSE</button>
+            <button class="action-btn back-btn" onclick="goBack()">CHANGE CRISIS</button>
+        </div>
+    </div>
+
+    <script>
+        const categoryScreen = document.getElementById('categoryScreen');
+        const generatorScreen = document.getElementById('generatorScreen');
+        const catTitle = document.getElementById('catTitle');
+        const excuseText = document.getElementById('excuseText');
+        
+        let currentCategory = '';
+        let audioCtx;
+
+        // Kara mizah ve absürt bahane veritabanı
+        const excuses = {
+            rel: [
+                "I just found out my parallel universe self is married to you, and I don't want to cause a dimensional rift.",
+                "My horoscope specifically said I need to eliminate 'karmic dead weight' to achieve financial freedom.",
+                "I was officially diagnosed with a rare, highly contagious allergy to your personality.",
+                "I need to break up with you because my imaginary friend doesn't like your vibe.",
+                "I am actually a government drone, and my mission objective has been updated to avoid you."
+            ],
+            job: [
+                "I have decided to pursue my true passion: being a complete financial burden to my family.",
+                "The voices in my head are offering a much better dental plan than this corporation.",
+                "I accidentally sold my soul to the break room coffee machine, I can no longer enter the premises.",
+                "I am resigning because my chair squeaks in a frequency that offends my ancestors.",
+                "I realized I am allergic to capitalism and need to go live as a moss-covered rock."
+            ],
+            school: [
+                "The education system is a simulation, and I purposefully got expelled to save you all from the Matrix.",
+                "My brain waves were too powerful and kept disrupting the principal's Wi-Fi connection.",
+                "They finally discovered I'm actually a 45-year-old undercover agent investigating the cafeteria food.",
+                "I refused to learn math because numbers were invented by the government to track our sadness.",
+                "I was expelled because I kept trying to legally adopt the school mascot."
+            ],
+            social: [
+                "My pet rock is going through a severe existential crisis and requires my undivided emotional support.",
+                "I accidentally locked myself inside my own mind palace and forgot the master password.",
+                "I have been drafted into a secret, underground war against sentient pigeons.",
+                "I can't make it. I am currently practicing how to blink aggressively in front of the mirror.",
+                "I tried to leave the house, but the atmosphere outside felt entirely too disrespectful today."
+            ],
+            illness: [
+                "My doctor says I have exactly 24 hours to complain about everything before my vocal cords dissolve into dust.",
+                "I inhaled a cursed Victorian ghost, and we are currently fighting for control of my nervous system.",
+                "My blood type just changed to 'Error 404', I need to go reboot my immune system in a dark cave.",
+                "I am suffering from chronic gravity intolerance. Standing up is currently fatal.",
+                "My DNA is currently uninstalling itself, please do not disturb my final update."
+            ]
+        };
+
+        // Retro bip sesi
+        function playBeep() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+            
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        // Kategori seçildiğinde
+        function openCategory(catId, title) {
+            currentCategory = catId;
+            catTitle.innerText = title;
+            excuseText.innerText = "Press GENERATE to fabricate reality.";
+            excuseText.style.color = "#888";
+            
+            categoryScreen.style.display = 'none';
+            generatorScreen.style.display = 'flex';
+        }
+
+        // Geri dön tuşu
+        function goBack() {
+            generatorScreen.style.display = 'none';
+            categoryScreen.style.display = 'flex';
+        }
+
+        // Bahane Üret (Generate)
+        function generateExcuse() {
+            playBeep();
+            
+            const list = excuses[currentCategory];
+            const randomIndex = Math.floor(Math.random() * list.length);
+            const selectedExcuse = list[randomIndex];
+
+            // Hacker/Glitch Efekti 
+            excuseText.style.color = "#fff";
+            excuseText.innerText = "ACCESSING DATABASE...";
+            
+            setTimeout(() => {
+                excuseText.innerText = selectedExcuse;
+            }, 300); // 300ms sonra bahaneyi ekrana bas
+        }
+    </script>
+</body>
+</html>

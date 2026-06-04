@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Xeno-Reproduction Ban</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+        }
+        .app-wrapper {
+            width: 90%;
+            max-width: 360px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+        .header {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            border-bottom: 2px dashed #333;
+            padding-bottom: 10px;
+        }
+        .header h2 {
+            font-size: 26px;
+            letter-spacing: 1px;
+            color: #FF3B30;
+        }
+
+        /* Başlangıç Ekranı */
+        .start-screen {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+
+        /* Soru Ekranı */
+        .quiz-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            gap: 30px;
+            width: 100%;
+            height: 100%;
+        }
+        .progress-text {
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            color: #888;
+        }
+        .question-box {
+            font-size: 28px;
+            line-height: 1.2;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+        .btn-row {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .action-button {
+            background-color: #222;
+            color: #FFD700;
+            border: 2px solid #FFD700;
+            font-family: 'VT323', monospace;
+            font-size: 28px;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            flex: 1;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+        .action-button:active {
+            transform: scale(0.95);
+        }
+        .btn-yes:active { background-color: #FF3B30; color: #fff; border-color: #FF3B30; }
+        .btn-no:active { background-color: #4CD964; color: #000; border-color: #4CD964; }
+
+        /* Yükleme Ekranı */
+        .analysis-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+        }
+        .loading-text {
+            font-size: 24px;
+            animation: blink 1s infinite alternate;
+        }
+        @keyframes blink {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        /* Sonuç Ekranı */
+        .result-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+        }
+        .result-title {
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .result-alien {
+            font-size: 42px;
+            color: #FF3B30;
+            line-height: 1.1;
+            text-shadow: 0 0 10px rgba(255, 59, 48, 0.4);
+            margin-bottom: 5px;
+        }
+        .result-desc {
+            font-family: 'Roboto', sans-serif;
+            font-size: 15px;
+            color: #ccc;
+            line-height: 1.5;
+            background: #222;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #FFD700;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        
+
+        <div class="start-screen" id="startScreen">
+            <div style="font-size: 24px; line-height: 1.3; color:#fff;">
+                Calculate your xenobiological compatibility to avoid catastrophic interspecies reproduction.
+            </div>
+            <button class="action-button" style="background-color: #FFD700; color: #000; width: 100%;" onclick="startQuiz()">SCAN MY DNA</button>
+        </div>
+
+        <div class="quiz-screen" id="quizScreen">
+            <div class="progress-text" id="progressText">GENETIC PROFILING 1/20</div>
+            <div class="question-box" id="questionText">Question goes here...</div>
+            <div class="btn-row">
+                <button class="action-button btn-yes" onclick="answer(true)">YES</button>
+                <button class="action-button btn-no" onclick="answer(false)">NO</button>
+            </div>
+        </div>
+
+        <div class="analysis-screen" id="analysisScreen">
+            <h2 style="font-size: 32px; color: #fff;">COMPUTING...</h2>
+            <div class="loading-text" id="loadingText">Analyzing DNA compatibility...</div>
+        </div>
+
+        <div class="result-screen" id="resultScreen">
+            <div class="result-title">YOU MUST NEVER HAVE SEX WITH:</div>
+            <div class="result-alien" id="alienRace">Alien Name</div>
+            <div class="result-desc" id="alienDesc">Explanation goes here.</div>
+            
+            <button class="action-button" style="margin-top: auto; font-size: 20px; width: 100%;" onclick="location.reload()">RE-CALCULATE</button>
+        </div>
+    </div>
+
+    <script>
+        const startScreen = document.getElementById('startScreen');
+        const quizScreen = document.getElementById('quizScreen');
+        const analysisScreen = document.getElementById('analysisScreen');
+        const resultScreen = document.getElementById('resultScreen');
+        
+        const questionText = document.getElementById('questionText');
+        const progressText = document.getElementById('progressText');
+        const loadingText = document.getElementById('loadingText');
+        
+        const alienRace = document.getElementById('alienRace');
+        const alienDesc = document.getElementById('alienDesc');
+
+        // 20 Absürt Soru
+        const questions = [
+            "Do you occasionally try to move objects with your mind when no one is looking?",
+            "Have you ever felt a deep, romantic attraction to a household appliance?",
+            "Do you believe the moon is just a giant cosmic egg waiting to hatch?",
+            "Have you ever hissed at a stranger to establish dominance?",
+            "Do you consider mayonnaise to be a highly advanced alien lubricant?",
+            "Would you willingly upload your consciousness into a smart fridge?",
+            "Do you suspect that your kneecaps are plotting against you?",
+            "Have you ever communicated with a houseplant and felt it judged you?",
+            "Do you think crop circles are just intergalactic QR codes for discounts on space tacos?",
+            "Would you date a being made entirely of sentient plasma if they had a good personality?",
+            "Have you ever tried to bite your own ear to see what human flesh tastes like?",
+            "Do you believe that octopuses are actually stranded alien spies?",
+            "If a glowing orb offered you infinite knowledge in exchange for your eyebrows, would you accept?",
+            "Do you routinely check behind the shower curtain for interdimensional assassins?",
+            "Have you ever aggressively winked at the starry night sky, just in case?",
+            "Would you let a Grey alien borrow your Netflix password?",
+            "Do you feel an inexplicable urge to eat glowing radioactive rocks?",
+            "Have you ever suspected that you are a sleeper agent for the Galactic Federation?",
+            "Do you consider 'probing' to be a valid form of first date?",
+            "If you found a crashed UFO, would your first instinct be to lick it?"
+        ];
+
+        // Uzaylı Irkları ve Neden Asla Çiftleşilmemesi Gerektiği (Dinamiğe göre orantılanacak)
+        const outcomes = [
+            { 
+                race: "THE PLEIADIANS", 
+                desc: "They are highly evolved beings seeking genetic perfection. Your chaotic, pizza-fueled DNA would set their evolutionary progress back by 5,000 years." 
+            },
+            { 
+                race: "THE GREYS (ZETA RETICULANS)", 
+                desc: "They already abducted and probed you once. They officially logged your biology as 'disappointing' and decided you aren't worth a second date." 
+            },
+            { 
+                race: "THE ANUNNAKI", 
+                desc: "They engineered humanity purely to mine gold for their atmosphere. They view you as heavy machinery, not a romantic partner." 
+            },
+            { 
+                race: "THE REPTILIANS (DRACONIANS)", 
+                desc: "They are cold-blooded shape-shifting conquerors. You get emotional over cat videos on the internet. You wouldn't survive the honeymoon." 
+            },
+            { 
+                race: "THE KLINGONS", 
+                desc: "You lack the honor, the aggressively ridged forehead structure, and frankly, the physical stamina to survive even a casual romantic encounter with them." 
+            },
+            { 
+                race: "THE XENOMORPHS", 
+                desc: "Even a Facehugger, a creature designed exclusively to forcibly reproduce with any living organism, would politely decline your biological material." 
+            }
+        ];
+
+        let currentIndex = 0;
+        let yesCount = 0;
+
+        function startQuiz() {
+            startScreen.style.display = 'none';
+            quizScreen.style.display = 'flex';
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            progressText.innerText = `GENETIC PROFILING ${currentIndex + 1}/${questions.length}`;
+            questionText.innerText = questions[currentIndex];
+        }
+
+        function answer(isYes) {
+            if (isYes) yesCount++;
+            currentIndex++;
+            
+            if (currentIndex < questions.length) {
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            quizScreen.style.display = 'none';
+            analysisScreen.style.display = 'flex';
+
+            const fakeSteps = [
+                "Extracting digital DNA...",
+                "Scanning intergalactic registries...",
+                "Calculating xenobiological disaster probability...",
+                "Finalizing breeding restriction..."
+            ];
+
+            let step = 0;
+            const interval = setInterval(() => {
+                loadingText.innerText = fakeSteps[step];
+                step++;
+                if (step >= fakeSteps.length) {
+                    clearInterval(interval);
+                    setTimeout(showResult, 800);
+                }
+            }, 1000);
+        }
+
+        function showResult() {
+            analysisScreen.style.display = 'none';
+            resultScreen.style.display = 'flex';
+
+            // Oranlama algoritması (Çökmez yapı)
+            let ratioIndex = Math.floor((yesCount / questions.length) * (outcomes.length - 1));
+            
+            const finalMatch = outcomes[ratioIndex];
+            
+            alienRace.innerText = finalMatch.race;
+            alienDesc.innerText = finalMatch.desc;
+        }
+    </script>
+</body>
+</html>

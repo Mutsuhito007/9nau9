@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fallout Shelter Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .app-wrapper {
+            width: 90%;
+            max-width: 360px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 2px dashed #333;
+            padding-bottom: 8px;
+        }
+        .header h2 {
+            font-size: 30px;
+            letter-spacing: 1px;
+        }
+
+        /* Form Ekranı */
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex-grow: 1;
+            justify-content: center;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            text-align: center;
+        }
+
+        label {
+            font-size: 22px;
+            color: #ccc;
+        }
+
+        input[type="number"] {
+            background-color: #222;
+            border: 2px solid #555;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            font-size: 26px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            border-color: #FFD700;
+        }
+
+        /* Yükleme Ekranı */
+        .processing-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+            gap: 20px;
+        }
+
+        .loading-text {
+            font-size: 20px;
+            color: #fff;
+            animation: blink 1s infinite alternate;
+        }
+
+        @keyframes blink {
+            0% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        /* Sonuç Manifest Ekranı */
+        .result-screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            gap: 10px;
+        }
+
+        .manifest-title {
+            font-size: 20px;
+            text-align: center;
+            color: #fff;
+        }
+
+        /* Liste Alanı - Kendi içinde taşarsa kaydırır, ana ekranı bozmaz */
+        .manifest-list {
+            flex-grow: 1;
+            background-color: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 5px;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Webkit scrollbar gizleme (Retro havayı bozmasın diye) */
+        .manifest-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .manifest-list::-webkit-scrollbar-thumb {
+            background: #FFD700;
+            border-radius: 2px;
+        }
+
+        .manifest-item {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Roboto', sans-serif;
+            font-size: 13px;
+            border-bottom: 1px solid #262626;
+            padding-bottom: 4px;
+            color: #ddd;
+        }
+
+        .manifest-item span:last-child {
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            color: #FFD700;
+        }
+
+        /* Aksiyon Butonu */
+        .action-button {
+            background-color: #FFD700;
+            color: #000;
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-top: auto;
+            transition: transform 0.1s;
+        }
+        .action-button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        
+
+        <div class="form-container" id="formContainer">
+            <div class="input-group">
+                <label>NUMBER OF SURVIVORS</label>
+                <input type="number" id="peopleCount" placeholder="0" min="1" max="9999">
+            </div>
+            <button class="action-button" onclick="startSimulation()">CALCULATE SUPPLY</button>
+        </div>
+
+        <div class="processing-screen" id="processingScreen">
+            <h2 style="font-size: 26px; color: #FF3B30;">SEALING AIRLOCKS...</h2>
+            <div class="loading-text" id="loadingText">Simulating rationing protocols...</div>
+        </div>
+
+        <div class="result-screen" id="resultScreen">
+            <div class="manifest-title">REQUIRED FOR 90-DAY LOCKDOWN</div>
+            
+            <div class="manifest-list" id="manifestList">
+                </div>
+            
+            <button class="action-button" onclick="resetForm()">RESET SIMULATION</button>
+        </div>
+    </div>
+
+    <script>
+        const formContainer = document.getElementById('formContainer');
+        const processingScreen = document.getElementById('processingScreen');
+        const resultScreen = document.getElementById('resultScreen');
+        const loadingText = document.getElementById('loadingText');
+        const manifestList = document.getElementById('manifestList');
+
+        // Sahte yükleme adımları
+        const simulationSteps = [
+            "Testing backup power generators...",
+            "Calculating total caloric intake...",
+            "Measuring hydro-recycler efficiency...",
+            "Assessing psychological decay rate...",
+            "Finalizing emergency survival manifest..."
+        ];
+
+        function startSimulation() {
+            const people = parseInt(document.getElementById('peopleCount').value);
+
+            if (!people || people <= 0) {
+                alert("Enter a valid survivor count!");
+                return;
+            }
+
+            formContainer.style.display = 'none';
+            processingScreen.style.display = 'flex';
+
+            let step = 0;
+            const interval = setInterval(() => {
+                loadingText.innerText = simulationSteps[step];
+                step++;
+
+                if (step >= simulationSteps.length) {
+                    clearInterval(interval);
+                    setTimeout(() => showManifest(people), 600);
+                }
+            }, 800);
+        }
+
+        function showManifest(people) {
+            processingScreen.style.display = 'none';
+            resultScreen.style.display = 'flex';
+
+            const days = 90; // Sabit 90 gün karantina planı
+
+            // ESKİ VE YENİ HESAPLAMALAR
+            const water = people * 3 * days;            
+            const mre = people * 3 * days;              
+            const oxygen = Math.ceil((people * days) / 5); 
+            const power = people * 2 * days;            
+            const radPills = people * 14;               
+            const wasteBags = people * 1 * days;        
+            const sanityKits = Math.ceil(people * 0.5); 
+            
+            // YENİ EKLENEN TÜCCAR VE SAVUNMA İTEMLERİ
+            const ammo = people * 120;                  // Kişi başı 120 mermi
+            const currency = people * 250;              // Kişi başı 250 kapak (Kıyamet parası)
+            const traumaKits = Math.ceil(people / 4);   // Her 4 kişiye 1 ameliyat kiti
+            const seeds = people * 5;                   // Kişi başı 5 paket tohum
+
+            // Listeyi HTML olarak basma
+            manifestList.innerHTML = `
+                <div class="manifest-item">
+                    <span>Drinking & Hygiene Water</span>
+                    <span>${water.toLocaleString()} Liters</span>
+                </div>
+                <div class="manifest-item">
+                    <span>Emergency MRE Rations</span>
+                    <span>${mre.toLocaleString()} Units</span>
+                </div>
+                <div class="manifest-item">
+                    <span>Oxygen Scrubber Filters</span>
+                    <span>${oxygen.toLocaleString()} Units</span>
+                </div>
+                <div class="manifest-item">
+                    <span>Power Grid Reserve (kWh)</span>
+                    <span>${power.toLocaleString()} kWh</span>
+                </div>
+                <div class="manifest-item">
+                    <span>Potassium Iodide (Rad Pills)</span>
+                    <span>${radPills.toLocaleString()} Pills</span>
+                </div>
+                <div class="manifest-item">
+                    <span>Biohazard Waste Kits</span>
+                    <span>${wasteBags.toLocaleString()} Packs</span>
+                </div>
+                <div class="manifest-item">
+                    <span>Sanity & Stress Placebos</span>
+                    <span>${sanityKits.toLocaleString()} Kits</span>
+                </div>
+                <div class="manifest-item" style="color: #FF3B30;">
+                    <span>5.56mm Ammunition Rounds</span>
+                    <span>${ammo.toLocaleString()} Rnds</span>
+                </div>
+                <div class="manifest-item" style="color: #4CD964;">
+                    <span>Trade Currency (Bottle Caps)</span>
+                    <span>${currency.toLocaleString()} Caps</span>
+                </div>
+                <div class="manifest-item">
+                    <span>Trauma & Surgery Kits</span>
+                    <span>${traumaKits.toLocaleString()} Kits</span>
+                </div>
+                <div class="manifest-item">
+                    <span>Heirloom Seed Packets</span>
+                    <span>${seeds.toLocaleString()} Packs</span>
+                </div>
+            `;
+        }
+
+        function resetForm() {
+            resultScreen.style.display = 'none';
+            formContainer.style.display = 'flex';
+            document.getElementById('peopleCount').value = '';
+        }
+    </script>
+</body>
+</html>

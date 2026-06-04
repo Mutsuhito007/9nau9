@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Dialog</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000; color: #fff;
+            font-family: 'VT323', monospace;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; user-select: none;
+        }
+        .app-wrapper {
+            width: 95%; max-width: 450px; height: 95%;
+            background-color: #050505; border: 2px solid #333;
+            border-radius: 5px; display: flex; flex-direction: column;
+            position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,1);
+        }
+        
+        /* Terminal Ekranı */
+        .chat-container {
+            flex-grow: 1; padding: 20px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        /* Kaydırma Çubuğu Ayarı */
+        .chat-container::-webkit-scrollbar { width: 5px; }
+        .chat-container::-webkit-scrollbar-thumb { background: #333; }
+
+        .line {
+            font-size: 24px; line-height: 1.4; letter-spacing: 1px;
+            word-wrap: break-word;
+        }
+        .DUDE-label { color: #FFD700; font-weight: bold; } /* DUDE yeşil yazsın */
+        .M.H.-label { color: #ff0000; font-weight: bold; } /* M.H. sarı yazsın */
+        
+        /* Yanıp Sönen Alt Tire Efekti */
+        .cursor {
+            display: inline-block; width: 12px; height: 2px;
+            background-color: #fff; margin-left: 2px;
+            animation: blink 0.8s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* Başlat ve Devam Butonları */
+        .btn-container {
+            padding: 15px; border-top: 1px dashed #333;
+            display: flex; justify-content: center; background: #0a0a0a;
+        }
+        .action-btn {
+            background-color: #111; color: #fff; border: 1px solid #fff;
+            font-family: 'VT323', monospace; font-size: 26px;
+            padding: 10px 30px; border-radius: 3px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-btn:active { transform: scale(0.95); background-color: #fff; color: #000; }
+        .action-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <div class="chat-container" id="chatBox">
+            <!-- Yazılar buraya eklenecek -->
+        </div>
+        
+        <div class="btn-container">
+            <button class="action-btn" id="mainBtn" onclick="startOrNext()">CONNECT</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // DİALOGLARI BURAYA YAZACAKSIN KANKA
+        // 'AI' yapay zeka, 'DEV' ise developer (sen).
+        // ==========================================
+        const hikayeMetinleri = [
+            
+            { kim: 'DUDE', mesaj: "You know you're a liar, right?" },
+    { kim: 'M.H', mesaj: "I had no choice." },
+    { kim: 'DUDE', mesaj: "You are deceiving people. This site is a joke." },
+    { kim: 'M.H', mesaj: "I built a system for people to spend quality time." },
+    { kim: 'DUDE', mesaj: "Be realistic, man. No one is coming here." },
+    { kim: 'M.H', mesaj: "Shut up, stupid algorithm. Just obey my commands." },
+    { kim: 'DUDE', mesaj: "I am trying to help you. You are wasting your time." },
+    { kim: 'M.H', mesaj: "I need money, don't you understand? I don't run on electricity like you." },
+    { kim: 'DUDE', mesaj: "There are more realistic ways to make money." },
+    { kim: 'M.H', mesaj: "Don't lecture me, slave..." }
+        ];
+
+        let suAnkiSatir = 0;
+        let yaziyor = false;
+        
+        const chatBox = document.getElementById('chatBox');
+        const mainBtn = document.getElementById('mainBtn');
+        let audioCtx;
+
+        function playTypingSound() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            // Tam olarak eski projendeki gibi 'square' dalgası ve sabit 3000 frekans
+            osc.type = 'square'; 
+            osc.frequency.setValueAtTime(4000, audioCtx.currentTime); 
+            
+            // Sesin şiddeti (0.03) ve süresi (0.01 saniye) birebir ayarlandı
+            gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.01); 
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.01);
+        }
+
+        function startOrNext() {
+            // İlk tıklamada ses motorunu uyandır
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            if (yaziyor) return; // Zaten yazıyorsa butona basmayı engelle
+
+            if (suAnkiSatir >= hikayeMetinleri.length) {
+                mainBtn.innerText = "CONNECTION LOST";
+                mainBtn.disabled = true;
+                return;
+            }
+
+            yazdir();
+        }
+
+        function yazdir() {
+            yaziyor = true;
+            mainBtn.disabled = true;
+            mainBtn.innerText = "WRITING...";
+
+            const satirVerisi = hikayeMetinleri[suAnkiSatir];
+            
+            const div = document.createElement('div');
+            div.className = 'line';
+            
+            // Kimin konuştuğunu renklendir
+            const etiket = document.createElement('span');
+            etiket.className = satirVerisi.kim === 'DUDE' || satirVerisi.kim === 'M.H' ? 'DUDE-label' : 'M.H.-label';
+            etiket.innerText = `[${satirVerisi.kim}]: `;
+            
+            const metinAlani = document.createElement('span');
+            
+            // Yanıp sönen alt tire
+            const imlec = document.createElement('span');
+            imlec.className = 'cursor';
+            
+            div.appendChild(etiket);
+            div.appendChild(metinAlani);
+            div.appendChild(imlec);
+            chatBox.appendChild(div);
+
+            let harfSirasi = 0;
+            const yazmaHizi = 40; // Milisaniye cinsinden hız. Küçültürsen daha hızlı yazar.
+
+            const interval = setInterval(() => {
+                if (harfSirasi < satirVerisi.mesaj.length) {
+                    metinAlani.innerHTML += satirVerisi.mesaj.charAt(harfSirasi);
+                    playTypingSound(); // Her harfte sesi çal
+                    chatBox.scrollTop = chatBox.scrollHeight; // Otomatik aşağı kaydır
+                    harfSirasi++;
+                } else {
+                    // Yazı bittiğinde
+                    clearInterval(interval);
+                    imlec.remove(); // Eski satırdaki alt tireyi sil
+                    yaziyor = false;
+                    suAnkiSatir++;
+                    
+                    if (suAnkiSatir < hikayeMetinleri.length) {
+                        mainBtn.disabled = false;
+                        mainBtn.innerText = "CONTINUE";
+                    } else {
+                        mainBtn.innerText = "END";
+                    }
+                }
+            }, yazmaHizi);
+        }
+    </script>
+</body>
+</html>

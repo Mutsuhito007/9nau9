@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Shifting Chaos</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .app-wrapper {
+            width: 95%;
+            max-width: 400px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+            padding: 10px;
+        }
+
+        /* Oyun Tahtası */
+        .board {
+            flex-grow: 1;
+            position: relative;
+            width: 100%;
+            background-color: #0a0a0a;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        /* Kart Yapısı (6 Kolon x 8 Satır) */
+        .card-slot {
+            position: absolute;
+            width: 16.66%;
+            height: 12.5%;
+            padding: 2px;
+            transition: top 0.4s ease-in-out, left 0.4s ease-in-out; 
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            background-color: #222;
+            border: 1px solid #FFD700;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+            cursor: pointer;
+            transition: background-color 0.2s, opacity 0.3s, transform 0.3s;
+        }
+
+        /* Seçili Kart Vurgusu */
+        .card.selected {
+            background-color: #FF3B30;
+            border-color: #fff;
+            transform: scale(0.95);
+        }
+
+        /* Eşleşen Kart Yok Olur */
+        .card.matched {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.5);
+        }
+
+        /* UI Ekranları */
+        .ui-screen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .action-button {
+            background-color: #FFD700;
+            color: #000;
+            border: none;
+            font-family: 'VT323', monospace;
+            font-size: 28px;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 5px 0 #b39700;
+            margin-top: 20px;
+        }
+
+        .action-button:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 #b39700;
+        }
+
+        /* ZAFER EKRANI ANİMASYONLARI */
+        @keyframes victoryPulse {
+            0% { transform: scale(1); text-shadow: 0 0 10px #4CD964; }
+            50% { transform: scale(1.1); text-shadow: 0 0 30px #4CD964, 0 0 50px #4CD964; }
+            100% { transform: scale(1); text-shadow: 0 0 10px #4CD964; }
+        }
+        
+        #endScreen h2 {
+            animation: victoryPulse 1s infinite;
+        }
+
+        .falling-emoji {
+            position: absolute;
+            z-index: 9999;
+            pointer-events: none;
+            transition: top 2.5s linear, transform 2.5s linear;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <div class="board" id="gameBoard">
+            <!-- Kartlar JS ile buraya basılacak -->
+        </div>
+
+        <!-- Başlangıç Ekranı -->
+        <div class="ui-screen" id="startScreen">
+            
+            <p style="font-family: 'Roboto'; color: #ccc; margin-top: 10px; line-height: 1.5;">
+                Match 24 pairs.<br><br>
+                WARNING: The board is highly unstable. Cards will swap places every second. Good luck tracking them.
+            </p>
+            <button class="action-button" onclick="startGame()">INITIATE</button>
+        </div>
+
+        <!-- Bitiş Ekranı -->
+        <div class="ui-screen" id="endScreen" style="display: none;">
+            <h2 style="font-size: 40px; color: #4CD964;">SYSTEM CLEARED</h2>
+            <p style="font-family: 'Roboto'; color: #ccc; margin-top: 10px;">Your focus is terrifying.</p>
+            <button class="action-button" onclick="startGame()">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        // Tam 24 adet farklı emoji (Toplam 48 kart)
+        const emojis = [
+            '👽', '👾', '🤖', '👻', '💀', '🤡', '💩', '👺', 
+            '👹', '🧠', '🚀', '🛸', '☄️', '🌑', '🧿', '👁️', 
+            '🦷', '🔥', '☢️', '☣️', '🌀', '🎭', '🧩', '🎲'
+        ];
+        const board = document.getElementById('gameBoard');
+        const startScreen = document.getElementById('startScreen');
+        const endScreen = document.getElementById('endScreen');
+
+        let cards = [];
+        let hasSelectedCard = false;
+        let lockBoard = false;
+        let firstCard, secondCard;
+        let matchesFound = 0;
+        let swapInterval;
+
+        // --- SES MOTORU ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function playWinSound() {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = 'square';
+            const now = audioCtx.currentTime;
+            
+            osc.frequency.setValueAtTime(261.63, now);       
+            osc.frequency.setValueAtTime(329.63, now + 0.1); 
+            osc.frequency.setValueAtTime(392.00, now + 0.2); 
+            osc.frequency.setValueAtTime(523.25, now + 0.3); 
+            
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+            
+            osc.start(now);
+            osc.stop(now + 0.8);
+        }
+
+        function playClickSound() {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = 'sine'; // Yumuşak bir tıklama sesi
+            const now = audioCtx.currentTime;
+            
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+            
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+            
+            osc.start(now);
+            osc.stop(now + 0.1);
+        }
+
+        // --- EMOJİ YAĞMURU ---
+        function createEmojiRain() {
+            for(let i = 0; i < 60; i++) {
+                setTimeout(() => {
+                    let drop = document.createElement('div');
+                    drop.classList.add('falling-emoji');
+                    drop.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                    
+                    drop.style.left = Math.random() * 100 + 'vw';
+                    drop.style.top = '-10vh';
+                    drop.style.fontSize = (Math.random() * 20 + 20) + 'px';
+                    
+                    document.body.appendChild(drop);
+
+                    setTimeout(() => {
+                        drop.style.top = '110vh';
+                        drop.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    }, 50);
+
+                    setTimeout(() => drop.remove(), 2600);
+                }, i * 60);
+            }
+        }
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            endScreen.style.display = 'none';
+            board.innerHTML = '';
+            cards = [];
+            matchesFound = 0;
+            hasSelectedCard = false;
+            lockBoard = false;
+            firstCard = null;
+            secondCard = null;
+            
+            clearInterval(swapInterval);
+
+            let deck = [...emojis, ...emojis];
+            deck.sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < 48; i++) {
+                let col = i % 6;
+                let row = Math.floor(i / 6);
+                
+                cards.push({
+                    id: i,
+                    emoji: deck[i],
+                    col: col,
+                    row: row,
+                    isMatched: false,
+                    element: null,
+                    innerElement: null
+                });
+            }
+
+            cards.forEach(card => {
+                const slot = document.createElement('div');
+                slot.classList.add('card-slot');
+                
+                const cardInner = document.createElement('div');
+                cardInner.classList.add('card');
+                cardInner.dataset.id = card.id;
+                cardInner.innerText = card.emoji;
+                
+                slot.appendChild(cardInner);
+                board.appendChild(slot);
+                
+                card.element = slot;
+                card.innerElement = cardInner;
+                
+                updateCardPosition(card);
+                
+                cardInner.addEventListener('click', () => selectCard(card));
+            });
+
+            swapInterval = setInterval(trollSwap, 1000);
+        }
+
+        function updateCardPosition(card) {
+            card.element.style.left = `${card.col * 16.66}%`;
+            card.element.style.top = `${card.row * 12.5}%`;
+        }
+
+        function selectCard(card) {
+            if (lockBoard) return;
+            if (card.innerElement.classList.contains('selected')) return;
+            if (card.isMatched) return;
+
+            // TIKLAMA SESİNİ BURADA ÇALDIRIYORUZ
+            playClickSound();
+
+            card.innerElement.classList.add('selected');
+
+            if (!hasSelectedCard) {
+                hasSelectedCard = true;
+                firstCard = card;
+                return;
+            }
+
+            secondCard = card;
+            checkForMatch();
+        }
+
+        function checkForMatch() {
+            let isMatch = firstCard.emoji === secondCard.emoji;
+
+            if (isMatch) {
+                disableCards();
+            } else {
+                unselectCards();
+            }
+        }
+function disableCards() {
+            firstCard.isMatched = true;
+            secondCard.isMatched = true;
+            
+            setTimeout(() => {
+                firstCard.innerElement.classList.remove('selected');
+                secondCard.innerElement.classList.remove('selected');
+                firstCard.innerElement.classList.add('matched');
+                secondCard.innerElement.classList.add('matched');
+                
+                matchesFound++;
+                
+                // DİNAMİK KAZANMA KONTROLÜ
+                if (matchesFound === emojis.length) {
+                    clearInterval(swapInterval);
+                    playWinSound();
+                    createEmojiRain();
+                    setTimeout(() => { endScreen.style.display = 'flex'; }, 500);
+                }
+                
+                // HAFIZA SIFIRLAMA KOMUTU İÇERİ ALINDI (Hata buradaydı!)
+                resetBoard(); 
+            }, 300);
+        }
+
+        function unselectCards() {
+            lockBoard = true;
+            setTimeout(() => {
+                firstCard.innerElement.classList.remove('selected');
+                secondCard.innerElement.classList.remove('selected');
+                resetBoard();
+            }, 500);
+        }
+
+        function resetBoard() {
+            [hasSelectedCard, lockBoard] = [false, false];
+            [firstCard, secondCard] = [null, null];
+        }
+
+        function trollSwap() {
+            let availableCards = cards.filter(c => !c.isMatched);
+            if (availableCards.length < 2) return; // Son eşleşmede hata vermemesi için güvenlik önlemi
+            
+            let swapsToDo = Math.floor(Math.random() * 4) + 1;
+
+            for (let i = 0; i < swapsToDo; i++) {
+                if (availableCards.length < 2) break;
+
+                let card1 = availableCards[Math.floor(Math.random() * availableCards.length)];
+                
+                let neighbors = availableCards.filter(c => {
+                    let isHorizontalNeighbor = (c.row === card1.row) && (Math.abs(c.col - card1.col) === 1);
+                    let isVerticalNeighbor = (c.col === card1.col) && (Math.abs(c.row - card1.row) === 1);
+                    return isHorizontalNeighbor || isVerticalNeighbor;
+                });
+
+                if (neighbors.length > 0) {
+                    let card2 = neighbors[Math.floor(Math.random() * neighbors.length)];
+
+                    let tempCol = card1.col;
+                    let tempRow = card1.row;
+                    
+                    card1.col = card2.col;
+                    card1.row = card2.row;
+                    
+                    card2.col = tempCol;
+                    card2.row = tempRow;
+
+                    updateCardPosition(card1);
+                    updateCardPosition(card2);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

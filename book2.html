@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hikaye</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        /* 9nau9 Standart Retro Tasarım */
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #050505; color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; user-select: none;
+        }
+        .app-wrapper {
+            width: 90%; max-width: 400px; height: 95%;
+            border: none;
+            border-radius: 10px;
+            background-color: #111; padding: 20px;
+            display: flex; flex-direction: column;
+            position: relative;
+        }
+        
+        /* İçerik Alanı - Kaydırma (Scroll) eklendi */
+        .content-area {
+            flex-grow: 1; display: flex;
+            justify-content: center; align-items: center;
+            text-align: center; 
+            overflow-y: auto; /* Taşan uzun metinler için dikey kaydırma açıldı */
+            overflow-x: hidden;
+            background-color: #0a0a0a; border: 2px solid #333;
+            border-radius: 5px; padding: 15px; margin-bottom: 15px;
+        }
+
+        /* Retro Scrollbar (Kaydırma Çubuğu) Tasarımı */
+        .content-area::-webkit-scrollbar { width: 8px; }
+        .content-area::-webkit-scrollbar-track { background: #0a0a0a; }
+        .content-area::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 4px; }
+        
+        /* Yazı ve Görsel Animasyonları */
+        .slide-text {
+            font-size: 44px; letter-spacing: 2px;
+            color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        /* UZUN METİNLER İÇİN ÖZEL CLASS */
+        .slide-text.long {
+            font-size: 24px; /* Uzun metin okunsun diye küçültüldü */
+            text-align: left; /* Sola hizalandı */
+            line-height: 1.4; /* Satır aralığı açıldı */
+            letter-spacing: 1px;
+            white-space: pre-wrap; /* Paragraf boşlukları (enter) korundu */
+            width: 100%;
+        }
+
+        .slide-img {
+            max-width: 100%; max-height: 100%;
+            border-radius: 5px;
+            animation: fadeIn 0.5s ease-in;
+            object-fit: contain;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        /* Sağ Sol Butonları */
+        .controls {
+            display: flex; justify-content: space-between; gap: 10px;
+        }
+        .nav-btn {
+            flex: 1; background-color: #222; color: #FFD700;
+            border: 2px solid #FFD700; border-radius: 5px;
+            font-family: 'VT323', monospace; font-size: 28px;
+            padding: 12px; cursor: pointer;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+        .nav-btn:active { transform: scale(0.95); background-color: #FFD700; color: #000; }
+        .nav-btn:disabled { opacity: 0.3; border-color: #555; color: #555; cursor: not-allowed; transform: none; background-color: #222; }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="content-area" id="displayArea">
+            </div>
+        <div class="controls">
+            <button class="nav-btn" id="prevBtn" onclick="prevSlide()">&#9664; PREV</button>
+            <button class="nav-btn" id="nextBtn" onclick="nextSlide()">READ &#9654;</button>
+        </div>
+    </div>
+
+    <script>
+        // İÇERİK LİSTESİ: Sırayla çıkacak metinler ve görseller
+        const slides = [
+            { type: 'img', value: 'assets/26.webp' },
+            {
+                type: 'text',
+                value: `My childhood was always filled with the scent of vanilla and that fine powdered sugar. My father's small, dimly lit bakery on the corner of the neighborhood was my entire world. He was the kindest-hearted baker in the world, or at least that's what he told me.
+
+Sometimes, when it got dark, he would go to the back of the bakery and prepare the 'special' cookies he made only at that hour. Then he would put them in small paper bags and place them in my backpack. He would tell me to go to the people waiting on the corners of abandoned buildings in the backstreets, in the hidden darkness of the parks.
+
+When I asked, "Why don't they come to the bakery, Dad?", he would smile and stroke my hair.
+
+"They are very shy people, sweetheart. Life has broken them so much that they even hesitate to ask for help. That's why we take their sweets to them."
+
+And so, I would go to those shy people. To those people with dark circles under their eyes, whose hands trembled, who constantly sweat even though it wasn't cold... I would watch the desperate anticipation on their faces turn into a strange, numb relief the moment they took the package from my hands. I was an angel of goodness.
+
+Until that day. I was in my early teens. When the police stopped me at the end of the street and opened my backpack, I wasn't scared in the slightest. Why would I be? I told them everything with great innocence and pride. I told them that my father made the cookies, that we were simply helping those shy people, and how my father's special recipe made them happy. I can never forget the pitying, horrified expression on the police officers' faces as they looked at me.
+
+The rest is history... They sent my father behind those iron bars, and me to that cold, soulless orphanage. For years on those bunk beds, you told me that my father wasn't an angel of goodness but a dangerous man, and that I was his biggest accomplice without even realizing it. You tried to make me face the ugly realities of the world.
+
+But you are wrong, Dr. Elena.
+
+The day I left the orphanage, I went to that sealed-off old bakery. It didn't take me long to find that leather-bound notebook under the rotted floorboards. My father's 'special' recipe book... Inside, everything was written about what the ingredients that gave those cookies that magical feeling actually were.
+
+Now, I make those cookies. And you know what? My father was right. I am saving people from the suffocating, disgusting realities of this world, even if just for a moment. The government and doctors like you scream at the top of your lungs that these cookies harm people.
+
+Do you know why?
+
+Because when everyone eats these cookies, no one goes to those soulless plazas, to those dark factories at six in the morning. People whose minds are clouded cannot turn the wheels of corporations. Corporations cannot exploit people!
+
+The reason they are hostile to my cookies isn't about people's health; it's the fear of losing their free slaves. I am selling them a warm freedom, fresh out of the oven, even if only for a short time, Elena. I am throwing a wrench into your perfect system. And believe me, there are so many people out there hungry for this treat... The oven never turns off anymore.
+
+These stories are entirely fictional!`
+            },
+            
+        ];
+
+        let currentIndex = 0;
+        const displayArea = document.getElementById('displayArea');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function renderSlide() {
+            const slide = slides[currentIndex];
+            displayArea.innerHTML = ''; // Ekranı temizle
+            
+            // Eğer yeni bir slayta geçersek scroll'u (kaydırmayı) en başa al
+            displayArea.scrollTop = 0;
+
+            if (slide.type === 'text') {
+                const txt = document.createElement('div');
+                txt.className = 'slide-text';
+                txt.innerText = slide.value;
+                
+                // Karar mekanizması: Metin 50 karakterden uzunsa "long" sınıfını ekle
+                if (slide.value.length > 50) {
+                    txt.classList.add('long');
+                    displayArea.style.alignItems = 'flex-start'; // Metni yukarı yasla
+                } else {
+                    displayArea.style.alignItems = 'center'; // Kısa metni ortala
+                }
+                
+                displayArea.appendChild(txt);
+            } else if (slide.type === 'img') {
+                displayArea.style.alignItems = 'center'; // Görselleri her zaman ortala
+                const img = document.createElement('img');
+                img.className = 'slide-img';
+                img.src = slide.value;
+                displayArea.appendChild(img);
+            }
+
+            // İlk ve son slaytlarda butonları kilitle
+            prevBtn.disabled = (currentIndex === 0);
+            nextBtn.disabled = (currentIndex === slides.length - 1);
+        }
+
+        function nextSlide() {
+            if (currentIndex < slides.length - 1) {
+                currentIndex++;
+                renderSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderSlide();
+            }
+        }
+
+        // Sistemi ilk slayt ile başlat
+        renderSlide();
+    </script>
+</body>
+</html>

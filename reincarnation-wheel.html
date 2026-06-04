@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wheel of Reincarnation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .app-wrapper {
+            width: 90%;
+            max-width: 380px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #444;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+        .header h2 {
+            font-size: 26px;
+            color: #FF3B30;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 59, 48, 0.4);
+        }
+
+        /* Tanrı'nın Konuşma Alanı */
+        .dialogue-box {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .god-text {
+            font-family: 'Roboto', sans-serif;
+            font-size: 15px;
+            color: #ccc;
+            line-height: 1.5;
+            text-align: left;
+        }
+        .highlight {
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        /* Çark / Slot Ekranı */
+        .wheel-container {
+            flex-grow: 1;
+            background-color: #000;
+            border: 3px solid #FF3B30;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-shadow: inset 0 0 20px rgba(255, 59, 48, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Scanline efekti */
+        .wheel-container::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .result-text {
+            font-family: 'Roboto', sans-serif;
+            font-size: 20px;
+            color: #fff;
+            text-align: center;
+            line-height: 1.4;
+            word-wrap: break-word;
+            z-index: 3;
+        }
+        .spinning {
+            color: #888;
+            font-style: italic;
+            filter: blur(1px);
+        }
+        .winner {
+            color: #4CD964;
+            font-weight: bold;
+            font-size: 22px;
+            text-shadow: 0 0 10px rgba(76, 217, 100, 0.5);
+            animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        /* Buton */
+        .action-btn {
+            background-color: #222;
+            color: #FFD700;
+            border: 2px solid #FFD700;
+            font-family: 'VT323', monospace;
+            font-size: 26px;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.1s, background-color 0.1s;
+            width: 100%;
+            flex-shrink: 0;
+        }
+        .action-btn:active {
+            transform: scale(0.95);
+            background-color: #FFD700;
+            color: #000;
+        }
+        .disabled-btn {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="header">
+            
+        </div>
+
+        <div class="dialogue-box">
+            <div class="god-text" id="godText">
+                So, you died. Tragic. <br><br>
+                You're begging for a second chance? Fine. But I don't do requests. The <span class="highlight">WHEEL OF FATE</span> decides your next form. <br><br>
+                Spin it. I dare you.
+            </div>
+        </div>
+
+        <div class="wheel-container">
+            <div class="result-text" id="resultText">
+                [ WAITING FOR SPIN ]
+            </div>
+        </div>
+
+        <button class="action-btn" id="spinBtn" onclick="spinWheel()">SPIN THE WHEEL</button>
+    </div>
+
+    <script>
+        const resultText = document.getElementById('resultText');
+        const spinBtn = document.getElementById('spinBtn');
+        const godText = document.getElementById('godText');
+
+        let audioCtx;
+
+        // 23 Absürt Reenkarnasyon Senaryosu
+        const scenarios = [
+            "The underwear of an extreme marathon runner.",
+            "A majestic horse, but you have 2 legs and crawl.",
+            "A human, but your eyes and ears have swapped places.",
+            "A sentient roll of toilet paper in a Taco Bell bathroom.",
+            "A USB drive that is cursed to always be inserted the wrong way first.",
+            "A mosquito with a severe, life-threatening allergy to human blood.",
+            "A pigeon whose only life goal is to poop on black cars, but you have chronic diarrhea.",
+            "A single sock lost in the washing machine dimension for all eternity.",
+            "A highly intelligent philosopher reincarnated as a Golden Retriever who can only say 'Bork'.",
+            "The 'W' key on the keyboard of a very sweaty competitive gamer.",
+            "A shopping cart with one wheel that aggressively spins in the wrong direction.",
+            "A snowman spawned in the deepest pits of Hell.",
+            "A traffic light that is emotionally forced to turn red when people are late.",
+            "An immortal snail whose only purpose is to chase a terrifying billionaire.",
+            "A WiFi router that only provides internet when someone verbally abuses it.",
+            "A piece of chewing gum permanently stuck under a middle school math desk.",
+            "An alarm clock that feels immense physical pain every time it gets snoozed.",
+            "A mirror that reflects everyone exactly 10% uglier than they actually are.",
+            "A majestic bald eagle, but you have a crippling fear of heights.",
+            "The left shoe of an aggressive professional tap dancer.",
+            "A microwave that makes the plate boiling hot but leaves the food frozen.",
+            "A fly trapped in a moving bus, trying to understand relative physics.",
+            "A highly advanced AI trapped in a cheap mobile game."
+        ];
+
+        // Slot dönerken çıkan hızlı bip sesleri
+        function playTickSound() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+        }
+
+        // Çark durduğunda çıkan dramatik ses
+        function playDingSound() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.5);
+            
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 1);
+        }
+
+        function spinWheel() {
+            spinBtn.classList.add('disabled-btn');
+            spinBtn.innerText = "SPINNING...";
+            resultText.classList.remove('winner');
+            resultText.classList.add('spinning');
+            
+            let spins = 0;
+            const maxSpins = 30; // Çarkın kaç kere döneceği
+            const intervalTime = 70; // Yazıların değişme hızı (ms)
+
+            const spinInterval = setInterval(() => {
+                const randomIndex = Math.floor(Math.random() * scenarios.length);
+                resultText.innerText = scenarios[randomIndex];
+                playTickSound();
+                spins++;
+
+                if (spins >= maxSpins) {
+                    clearInterval(spinInterval);
+                    finishSpin();
+                }
+            }, intervalTime);
+        }
+
+        function finishSpin() {
+            const finalIndex = Math.floor(Math.random() * scenarios.length);
+            resultText.innerText = scenarios[finalIndex];
+            
+            resultText.classList.remove('spinning');
+            resultText.classList.add('winner');
+            
+            playDingSound();
+
+           godText.innerHTML = "Oh... <span class='highlight'>Wow.</span> <br><br>Even I feel a little bad about that one. Enjoy your new existence!";
+            spinBtn.innerText = "ACCEPT YOUR FATE";
+            // Bilerek butonu tekrar aktif etmiyoruz ki trollensin. Kaderden kaçış yok!
+        }
+    </script>
+</body>
+</html>

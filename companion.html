@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Companion Matrix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+        }
+        .app-wrapper {
+            width: 90%;
+            max-width: 360px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+        .header {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            border-bottom: 2px dashed #333;
+            padding-bottom: 10px;
+        }
+        .header h2 {
+            font-size: 26px;
+            letter-spacing: 2px;
+            color: #4CD964;
+        }
+
+        /* 1. Başlangıç Ekranı */
+        .start-screen {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+
+        /* 2. Soru Ekranı */
+        .quiz-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            gap: 30px;
+            width: 100%;
+            height: 100%;
+        }
+        .progress-text {
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            color: #888;
+        }
+        .question-box {
+            font-size: 30px;
+            line-height: 1.2;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+        .btn-row {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+        }
+
+        /* Butonlar */
+        .action-button {
+            background-color: #222;
+            color: #FFD700;
+            border: 2px solid #FFD700;
+            font-family: 'VT323', monospace;
+            font-size: 28px;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            flex: 1;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+        .action-button:active {
+            transform: scale(0.95);
+        }
+        .btn-yes:active { background-color: #FF3B30; color: #fff; border-color: #FF3B30; }
+        .btn-no:active { background-color: #4CD964; color: #000; border-color: #4CD964; }
+
+        /* 3. Analiz Ekranı */
+        .analysis-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+        }
+        .loading-text {
+            font-size: 24px;
+            animation: blink 1s infinite alternate;
+        }
+        @keyframes blink {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        /* 4. Sonuç Ekranı */
+        .result-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+        }
+        .result-title {
+            font-size: 28px;
+            color: #fff;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            width: 100%;
+        }
+        .result-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 100%;
+            background: #222;
+            border: 2px solid #555;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .result-label {
+            font-family: 'Roboto', sans-serif;
+            font-size: 12px;
+            color: #888;
+        }
+        .result-value {
+            font-size: 32px;
+            color: #FFD700;
+            line-height: 1.1;
+        }
+        .plant-color { color: #4CD964; }
+        .animal-color { color: #FF3B30; }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        
+
+        <!-- BAŞLANGIÇ -->
+        <div class="start-screen" id="startScreen">
+            <div style="font-size: 24px; line-height: 1.3; color:#fff;">
+                Answer to discover the biological entities you are legally required to nurture.
+            </div>
+            <button class="action-button" style="background-color: #FFD700; color: #000; width: 100%;" onclick="startQuiz()">BEGIN TEST</button>
+        </div>
+
+        <!-- SORULAR -->
+        <div class="quiz-screen" id="quizScreen">
+            <div class="progress-text" id="progressText">PSYCHO-ANALYSIS 1/20</div>
+            <div class="question-box" id="questionText">Question goes here...</div>
+            <div class="btn-row">
+                <button class="action-button btn-yes" onclick="answer(true)">YES</button>
+                <button class="action-button btn-no" onclick="answer(false)">NO</button>
+            </div>
+        </div>
+
+        <!-- YÜKLEME / ANALİZ -->
+        <div class="analysis-screen" id="analysisScreen">
+            <h2 style="font-size: 32px; color: #fff;">COMPUTING...</h2>
+            <div class="loading-text" id="loadingText">Scanning brainwaves...</div>
+        </div>
+
+        <!-- SONUÇLAR -->
+        <div class="result-screen" id="resultScreen">
+            <div class="result-title">YOUR COMPANIONS</div>
+            
+            <div class="result-item">
+                <span class="result-label">ASSIGNED ANIMAL</span>
+                <span class="result-value animal-color" id="animalResult">Animal Name</span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">ASSIGNED PLANT</span>
+                <span class="result-value plant-color" id="plantResult">Plant Name</span>
+            </div>
+
+            <button class="action-button" style="margin-top: 10px; font-size: 20px; width: 100%;" onclick="location.reload()">TRY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        const startScreen = document.getElementById('startScreen');
+        const quizScreen = document.getElementById('quizScreen');
+        const analysisScreen = document.getElementById('analysisScreen');
+        const resultScreen = document.getElementById('resultScreen');
+        
+        const questionText = document.getElementById('questionText');
+        const progressText = document.getElementById('progressText');
+        const loadingText = document.getElementById('loadingText');
+        
+        const animalResult = document.getElementById('animalResult');
+        const plantResult = document.getElementById('plantResult');
+
+        // Absürt Sorular
+        const questions = [
+            "Do you occasionally bark at mailmen to assert dominance?",
+            "Is it morally acceptable to steal a child's ice cream if they are eating it too slowly?",
+            "Do you secretly believe pigeons are government drones?",
+            "Have you ever tried to photosynthesize by standing completely still in the sun?",
+            "Do you consider mayonnaise to be a musical instrument?",
+            "Have you ever apologized to an inanimate object and genuinely meant it?",
+
+"Would you bite a ghost in self-defense?",
+
+"Do you suspect your shadow is constantly judging your posture?",
+
+"Have you ever faked your own death just to get out of a WhatsApp group?",
+
+"Do you consider staring at a blank wall to be a competitive sport?",
+
+"Have you ever tried to pay for groceries using only intense eye contact?",
+
+"Do you secretly believe you could win a fistfight against a medium-sized kangaroo?",
+
+"If a chair looks uncomfortable, do you sit on it anyway to assert dominance over the furniture?",
+
+"Would you attend a wedding for two squirrels if you were formally invited?",
+
+"Have you ever swallowed a fruit seed and quietly accepted your fate as a future tree?",
+
+"Do you regularly negotiate terms and conditions with your morning alarm clock?",
+
+"Have you ever verbally threatened a Wi-Fi router to make the internet faster?",
+
+"Do you feel personally attacked when an automatic door doesn't open fast enough for you?",
+
+"If a microwave beeped with a foreign accent, would you still trust the food inside?",
+
+"Do you believe that clouds are just floating cotton candy hoarded by the government?"
+        ];
+
+        // Absürt Kombinasyonlar (Evet sayısına göre 0'dan 5'e kadar)
+        const outcomes = [
+            { animal: "A Taxidermied Owl", plant: "A Plastic Cactus" },         // 0 Evet
+            { animal: "A Depressed Iguana", plant: "A Single Rotten Potato" },  // 1 Evet
+            { animal: "A Hairless Cat Named 'Greg'", plant: "Screaming Mandrake" }, // 2 Evet
+            { animal: "A Retired Racehorse", plant: "Industrial Hemp" },        // 3 Evet
+            { animal: "A Feral Raccoon", plant: "Radioactive Venus Flytrap" },  // 4 Evet
+            { animal: "A Soviet Attack Bear", plant: "Sentient Poison Ivy" }    // 5 Evet
+        ];
+
+        let currentIndex = 0;
+        let yesCount = 0;
+
+        function startQuiz() {
+            startScreen.style.display = 'none';
+            quizScreen.style.display = 'flex';
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            // "/5" yerine "/questions.length" ekledik ki soru sayısını otomatik saysın
+            progressText.innerText = `PSYCHO-ANALYSIS ${currentIndex + 1}/${questions.length}`;
+            questionText.innerText = questions[currentIndex];
+        }
+
+        function answer(isYes) {
+            if (isYes) yesCount++;
+            currentIndex++;
+            
+            if (currentIndex < questions.length) {
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            quizScreen.style.display = 'none';
+            analysisScreen.style.display = 'flex';
+
+            const fakeSteps = [
+                "Scanning brainwaves...",
+                "Evaluating psychological decay...",
+                "Consulting the mother nature...",
+                "Matching biological frequencies..."
+            ];
+
+            let step = 0;
+            const interval = setInterval(() => {
+                loadingText.innerText = fakeSteps[step];
+                step++;
+                if (step >= fakeSteps.length) {
+                    clearInterval(interval);
+                    setTimeout(showResult, 800);
+                }
+            }, 1000);
+        }
+
+        function showResult() {
+            analysisScreen.style.display = 'none';
+            resultScreen.style.display = 'flex';
+
+            // Kaç soru olursa olsun, evet sayısını orantılayıp 0 ile 5 arasında bir indeks bulur
+            let ratioIndex = Math.floor((yesCount / questions.length) * (outcomes.length - 1));
+            
+            // Oranlanan indekse göre sonucu çeker
+            const finalMatch = outcomes[ratioIndex];
+            
+            animalResult.innerText = finalMatch.animal;
+            plantResult.innerText = finalMatch.plant;
+        }
+    </script>
+</body>
+</html>

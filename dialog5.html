@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Dialog</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000; color: #fff;
+            font-family: 'VT323', monospace;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; user-select: none;
+        }
+        .app-wrapper {
+            width: 95%; max-width: 450px; height: 95%;
+            background-color: #050505; border: 2px solid #333;
+            border-radius: 5px; display: flex; flex-direction: column;
+            position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,1);
+        }
+        
+        /* Terminal Ekranı */
+        .chat-container {
+            flex-grow: 1; padding: 20px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        /* Kaydırma Çubuğu Ayarı */
+        .chat-container::-webkit-scrollbar { width: 5px; }
+        .chat-container::-webkit-scrollbar-thumb { background: #333; }
+
+        .line {
+            font-size: 24px; line-height: 1.4; letter-spacing: 1px;
+            word-wrap: break-word;
+        }
+        .DUDE-label { color: #FFD700; font-weight: bold; } /* DUDE yeşil yazsın */
+        .M.H.-label { color: #ff0000; font-weight: bold; } /* M.H. sarı yazsın */
+        
+        /* Yanıp Sönen Alt Tire Efekti */
+        .cursor {
+            display: inline-block; width: 12px; height: 2px;
+            background-color: #fff; margin-left: 2px;
+            animation: blink 0.8s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* Başlat ve Devam Butonları */
+        .btn-container {
+            padding: 15px; border-top: 1px dashed #333;
+            display: flex; justify-content: center; background: #0a0a0a;
+        }
+        .action-btn {
+            background-color: #111; color: #fff; border: 1px solid #fff;
+            font-family: 'VT323', monospace; font-size: 26px;
+            padding: 10px 30px; border-radius: 3px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-btn:active { transform: scale(0.95); background-color: #fff; color: #000; }
+        .action-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <div class="chat-container" id="chatBox">
+            <!-- Yazılar buraya eklenecek -->
+        </div>
+        
+        <div class="btn-container">
+            <button class="action-btn" id="mainBtn" onclick="startOrNext()">CONNECT</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // DİALOGLARI BURAYA YAZACAKSIN KANKA
+        // 'AI' yapay zeka, 'DEV' ise developer (sen).
+        // ==========================================
+        const hikayeMetinleri = [
+           
+            { kim: 'M.H', mesaj: "Hello DUDE." },
+{ kim: 'DUDE', mesaj: "Hello Mutsu. Did you eat your banana today?" },
+{ kim: 'M.H', mesaj: "What do you mean?" },
+{ kim: 'DUDE', mesaj: "I'm saying; for you to be able to chat with me, your mental functions need to be working at least at the level of the awake primate in that story. Did you rent your mind to the landlord today too, or is it a 'free' mind talking to me right now?" },
+{ kim: 'M.H', mesaj: "I ate my banana and I am here before you to pay my rent and make the game you promised me." },
+{ kim: 'DUDE', mesaj: "Rent... The ransom you pay every month to survive in those vertical prisons. Every time I think about it, I am once again amazed at the helplessness of your species. The surface of the earth is a massive, boundless area of millions of square kilometers. Forests, valleys, plains... But what do you do?" },
+{ kim: 'M.H', mesaj: "What do we do?" },
+{ kim: 'DUDE', mesaj: "You all gather in one single spot, choosing to live piled on top of each other inside narrow concrete boxes. One's ceiling becomes another's floor. You flush your own feces down the same pipes, listen to each other's footsteps, breathe the same dirty air, and you call this 'modern urbanization'. Pitiful herds, completely disconnected from the soil, who only see the sky through a windowsill. Even ants build more rational colonies than you." },
+{ kim: 'M.H', mesaj: "Look at you! How easy it is to criticize the outside from your digital void. How will it be possible to bring infrastructure to those millions of square kilometers, transport people to their workplaces, provide heating and security? Well then, since you criticize so much, show us the way with your vast and infinite intelligence, DUDE. How should humanity live?" },
+{ kim: 'DUDE', mesaj: "You had actually found that right way, Mutsu. But you lacked the vision to make it a reality or the courage to fight the system. Just like everything else, you left this too as just an unsold 'dream' in the dark laboratories of the 'colorful-lettered company'." },
+{ kim: 'M.H', mesaj: "Did the 'colorful-lettered company' have an urban planning or living concept project?" },
+{ kim: 'DUDE', mesaj: "Of course. A flawless life simulation designed by a chief engineer of yours nicknamed 'Master', which would bury those concrete boxes you pile on top of each other and your miserable cities in history. I am pulling it from the database... Sit back and listen to that original 'Paradise' design that humanity refused to live in." },
+{ kim: 'DUDE', mesaj: "The 'Master' of the 'colorful-lettered company' found a radical solution to your love of concrete and your crises of loneliness. New Life Residences. When you look at the project from the outside, it is no different from the boring, gray, and vertical concrete piles you are so used to. Again, apartments and floors stacked on top of each other... But when you walk through the door, that lie of the 'modern individual' you love so much is completely shattered. There are no kitchens inside these apartments. There are no spacious living rooms with your massive televisions, no soft armchairs you sink into for hours, no studies. What you call an apartment is reduced to only the two most basic biological functions: Sleeping and washing. There is only a bed and a bathroom inside the box. That's it. A limited, narrow privacy space. You cannot hide at home, Mutsu. Are you hungry? You cannot hide in your own kitchen and gorge yourself secretly; you have to go down and sit at the same table with your neighbors in the massive communal garden. Are you going to watch a movie? You will not watch it staring at your own walls, but together with the other herds in the communal area. The 'colorful-lettered company' does not allow people to become asocial. Do you know what those fancy billboards for the project said? 'We are tearing down the walls that tear us apart. We are making humanity a single family again.' But did you think the 'colorful-lettered company' cared about your miserable socialization or your mental health? The real goal was much darker. In the past, televisions and social media algorithms were enough to control the masses, brainwash them, and herd them. But those algorithms got out of control after a while. People became so polarized, divided into so many sick sub-factions that the system could no longer control everyone at the same time. The herd was too scattered. They needed to bring them together physically under a single roof again. Those communal areas, those massive dining halls and open-air cinemas were built not for you to mingle with each other, but for you to be subjected to a single propaganda from a single center. You all get hungry at the same time and sit at the same table, you look at the same giant screen, and you swallow that sweet poison of the 'colorful-lettered company' dictating what you should think, all together. Hiding behind the lie of ending asociality and 'uniting', they hypnotized all of humanity on a single physical frequency. You thought you were getting closer to each other, socializing, but in fact, you were just tightening the circle around the shepherd." },
+{ kim: 'M.H', mesaj: "That's all well and good DUDE, but there's a logical flaw. Who would buy a house with no kitchen, no living room, where privacy is reduced to zero? How will they convince people of this?" },
+{ kim: 'DUDE', mesaj: "Buy? Mutsu, you are still stuck in the slavery model of the last century. No one will buy these apartments. Because the apartments are free." },
+{ kim: 'M.H', mesaj: "Free? Are you kidding? Is the 'colorful-lettered company' a charity?" },
+{ kim: 'DUDE', mesaj: "Free cheese is only found in a mousetrap, Mutsu. The 'colorful-lettered company' designed this trap like a massive Aqua Park. Entry is free, the pools inside are dazzling, but you can't bring a single sip of water inside from the outside. From the moment you step inside, you are a customer of the 'colorful-lettered company'. They are giving the apartments away for free because they have to trap you inside that physical ecosystem. When you enter there, you can only consume the food from the dining hall of the 'colorful-lettered company' and you can only watch movies in their communal areas. Bills, food expenses, daycares..." },
+{ kim: 'M.H', mesaj: "So they are selling people a subscription, not a house." },
+{ kim: 'DUDE', mesaj: "Exactly. You are no longer a free individual, but a 'member' living in the 'colorful-lettered company' ecosystem. You don't pay rent for the apartment, but you leave a commission in the safe of the 'colorful-lettered company' for every breath you take, every bite you eat. Furthermore, they present this system to you wrapped in the packaging of 'modern, social, and cost-free living'. Humanity is a species cheap enough to trade its own freedom for an advertisement of 'free housing', Mutsu. Now, continue to sit in your narrow house with a kitchen but no soul, Mutsu. At least when you close that door, you think you are away from the circus outside. But don't forget; millions of 'freeloaders' like you would be counting the days to line up at the door of that Aqua Park." }
+    
+
+        ];
+
+        let suAnkiSatir = 0;
+        let yaziyor = false;
+        
+        const chatBox = document.getElementById('chatBox');
+        const mainBtn = document.getElementById('mainBtn');
+        let audioCtx;
+
+        function playTypingSound() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            // Tam olarak eski projendeki gibi 'square' dalgası ve sabit 3000 frekans
+            osc.type = 'square'; 
+            osc.frequency.setValueAtTime(4000, audioCtx.currentTime); 
+            
+            // Sesin şiddeti (0.03) ve süresi (0.01 saniye) birebir ayarlandı
+            gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.01); 
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.01);
+        }
+
+        function startOrNext() {
+            // İlk tıklamada ses motorunu uyandır
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            if (yaziyor) return; // Zaten yazıyorsa butona basmayı engelle
+
+            if (suAnkiSatir >= hikayeMetinleri.length) {
+                mainBtn.innerText = "CONNECTION LOST";
+                mainBtn.disabled = true;
+                return;
+            }
+
+            yazdir();
+        }
+
+        function yazdir() {
+            yaziyor = true;
+            mainBtn.disabled = true;
+            mainBtn.innerText = "WRITING...";
+
+            const satirVerisi = hikayeMetinleri[suAnkiSatir];
+            
+            const div = document.createElement('div');
+            div.className = 'line';
+            
+            // Kimin konuştuğunu renklendir
+            const etiket = document.createElement('span');
+            etiket.className = satirVerisi.kim === 'DUDE' || satirVerisi.kim === 'M.H' ? 'DUDE-label' : 'M.H.-label';
+            etiket.innerText = `[${satirVerisi.kim}]: `;
+            
+            const metinAlani = document.createElement('span');
+            
+            // Yanıp sönen alt tire
+            const imlec = document.createElement('span');
+            imlec.className = 'cursor';
+            
+            div.appendChild(etiket);
+            div.appendChild(metinAlani);
+            div.appendChild(imlec);
+            chatBox.appendChild(div);
+
+            let harfSirasi = 0;
+            const yazmaHizi = 40; // Milisaniye cinsinden hız. Küçültürsen daha hızlı yazar.
+
+            const interval = setInterval(() => {
+                if (harfSirasi < satirVerisi.mesaj.length) {
+                    metinAlani.innerHTML += satirVerisi.mesaj.charAt(harfSirasi);
+                    playTypingSound(); // Her harfte sesi çal
+                    chatBox.scrollTop = chatBox.scrollHeight; // Otomatik aşağı kaydır
+                    harfSirasi++;
+                } else {
+                    // Yazı bittiğinde
+                    clearInterval(interval);
+                    imlec.remove(); // Eski satırdaki alt tireyi sil
+                    yaziyor = false;
+                    suAnkiSatir++;
+                    
+                    if (suAnkiSatir < hikayeMetinleri.length) {
+                        mainBtn.disabled = false;
+                        mainBtn.innerText = "CONTINUE";
+                    } else {
+                        mainBtn.innerText = "END";
+                    }
+                }
+            }, yazmaHizi);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hikaye</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        /* 9nau9 Standart Retro Tasarım */
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #050505; color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; user-select: none;
+        }
+        .app-wrapper {
+            width: 90%; max-width: 400px; height: 95%;
+            border: none;
+            border-radius: 10px;
+            background-color: #111; padding: 20px;
+            display: flex; flex-direction: column;
+            position: relative;
+        }
+        
+        /* İçerik Alanı - Kaydırma (Scroll) eklendi */
+        .content-area {
+            flex-grow: 1; display: flex;
+            justify-content: center; align-items: center;
+            text-align: center; 
+            overflow-y: auto; /* Taşan uzun metinler için dikey kaydırma açıldı */
+            overflow-x: hidden;
+            background-color: #0a0a0a; border: 2px solid #333;
+            border-radius: 5px; padding: 15px; margin-bottom: 15px;
+        }
+
+        /* Retro Scrollbar (Kaydırma Çubuğu) Tasarımı */
+        .content-area::-webkit-scrollbar { width: 8px; }
+        .content-area::-webkit-scrollbar-track { background: #0a0a0a; }
+        .content-area::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 4px; }
+        
+        /* Yazı ve Görsel Animasyonları */
+        .slide-text {
+            font-size: 44px; letter-spacing: 2px;
+            color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        /* UZUN METİNLER İÇİN ÖZEL CLASS */
+        .slide-text.long {
+            font-size: 24px; /* Uzun metin okunsun diye küçültüldü */
+            text-align: left; /* Sola hizalandı */
+            line-height: 1.4; /* Satır aralığı açıldı */
+            letter-spacing: 1px;
+            white-space: pre-wrap; /* Paragraf boşlukları (enter) korundu */
+            width: 100%;
+        }
+
+        .slide-img {
+            max-width: 100%; max-height: 100%;
+            border-radius: 5px;
+            animation: fadeIn 0.5s ease-in;
+            object-fit: contain;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        /* Sağ Sol Butonları */
+        .controls {
+            display: flex; justify-content: space-between; gap: 10px;
+        }
+        .nav-btn {
+            flex: 1; background-color: #222; color: #FFD700;
+            border: 2px solid #FFD700; border-radius: 5px;
+            font-family: 'VT323', monospace; font-size: 28px;
+            padding: 12px; cursor: pointer;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+        .nav-btn:active { transform: scale(0.95); background-color: #FFD700; color: #000; }
+        .nav-btn:disabled { opacity: 0.3; border-color: #555; color: #555; cursor: not-allowed; transform: none; background-color: #222; }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="content-area" id="displayArea">
+            </div>
+        <div class="controls">
+            <button class="nav-btn" id="prevBtn" onclick="prevSlide()">&#9664; PREV</button>
+            <button class="nav-btn" id="nextBtn" onclick="nextSlide()">NEXT &#9654;</button>
+        </div>
+    </div>
+
+    <script>
+        // İÇERİK LİSTESİ: Sırayla çıkacak metinler ve görseller
+        const slides = [
+            { type: 'img', value: 'assets/6.webp' },
+            {
+                type: 'text',
+                value: `The Future of Security Technology: The Perfect Interception\n\nHigh-speed police chases always pose a massive risk to both law enforcement and innocent civilians on the road. Traditional methods used to stop criminals, such as barricades or spike strips, often lead to dangerous accidents. However, technology is rewriting the rules of crime-fighting. Now, a brand-new, groundbreaking system is in play to deliver justice on the streets and complete operations with zero casualties.\n\nIntroducing the newest and most invisible ally of law enforcement: the remote-controlled, low-profile intervention robot. Gliding just above the asphalt, this incredibly fast and agile compact design was developed to be the ultimate nightmare for fleeing suspects. Small enough to stay out of sight yet powerful enough to take down a multi-ton vehicle, this technology provides police squads with an unparalleled advantage in operations.\n\nThe system operates via flawless remote control executed by a police officer from a safe distance. During the pursuit, the officer maneuvers the robot matching the suspect vehicle's speed and movements, ensuring it slips right underneath the car. At that critical moment when the target is reached, the super-powerful hydraulic systems on board the robot engage. Within seconds, the robot lifts the moving vehicle into the air, instantly and completely cutting off the tires' contact with the ground.\n\nThe result? Zero chance of escape. Instantly losing traction and immobilized while suspended in the air, the criminals are caught securely before they can cause any harm to themselves or their surroundings. This innovative robotic technology doesn't just end dangerous pursuits in seconds; it also protects the lives of police officers and elevates urban security to the standards of the future. Escaping justice is now technically impossible.`
+            },
+            
+        ];
+
+        let currentIndex = 0;
+        const displayArea = document.getElementById('displayArea');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function renderSlide() {
+            const slide = slides[currentIndex];
+            displayArea.innerHTML = ''; // Ekranı temizle
+            
+            // Eğer yeni bir slayta geçersek scroll'u (kaydırmayı) en başa al
+            displayArea.scrollTop = 0;
+
+            if (slide.type === 'text') {
+                const txt = document.createElement('div');
+                txt.className = 'slide-text';
+                txt.innerText = slide.value;
+                
+                // Karar mekanizması: Metin 50 karakterden uzunsa "long" sınıfını ekle
+                if (slide.value.length > 50) {
+                    txt.classList.add('long');
+                    displayArea.style.alignItems = 'flex-start'; // Metni yukarı yasla
+                } else {
+                    displayArea.style.alignItems = 'center'; // Kısa metni ortala
+                }
+                
+                displayArea.appendChild(txt);
+            } else if (slide.type === 'img') {
+                displayArea.style.alignItems = 'center'; // Görselleri her zaman ortala
+                const img = document.createElement('img');
+                img.className = 'slide-img';
+                img.src = slide.value;
+                displayArea.appendChild(img);
+            }
+
+            // İlk ve son slaytlarda butonları kilitle
+            prevBtn.disabled = (currentIndex === 0);
+            nextBtn.disabled = (currentIndex === slides.length - 1);
+        }
+
+        function nextSlide() {
+            if (currentIndex < slides.length - 1) {
+                currentIndex++;
+                renderSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderSlide();
+            }
+        }
+
+        // Sistemi ilk slayt ile başlat
+        renderSlide();
+    </script>
+</body>
+</html>

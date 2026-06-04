@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Wish Pool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Iframe dikey yapısına tam oturan kapsayıcı */
+        .app-wrapper {
+            width: 90%;
+            max-width: 360px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-top: 5px;
+        }
+        .header h2 {
+            font-size: 34px;
+            letter-spacing: 1px;
+            color: #FFD700;
+        }
+        .header p {
+            font-family: 'Roboto', sans-serif;
+            font-size: 12px;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        /* Durum Göstergesi (REC / HAZIR) */
+        .status-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 13px;
+            color: #aaa;
+            background: #222;
+            padding: 5px 14px;
+            border-radius: 20px;
+            border: 1px solid #333;
+        }
+        .rec-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #FF3B30;
+            border-radius: 50%;
+            display: none;
+        }
+        .rec-dot.active {
+            display: block;
+            animation: pulse 0.8s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.3; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1.1); }
+        }
+
+        /* Sayaç ve Dalga Alanı */
+        .center-display {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            gap: 15px;
+        }
+        .timer-display {
+            font-size: 60px;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+            font-variant-numeric: tabular-nums;
+        }
+        .wave-canvas {
+            width: 100%;
+            height: 70px;
+            background-color: #1a1a1a;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+
+        /* Mikrofon / Kayıt Butonu */
+        .action-button {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background-color: #222;
+            border: 3px solid #FFD700;
+            color: #FFD700;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .action-button:active {
+            transform: scale(0.92);
+        }
+        .action-button .material-symbols-outlined {
+            font-size: 42px;
+        }
+        
+        /* Kayıt Sırasındaki Kırmızı Durum */
+        .action-button.recording {
+            background-color: #FF3B30;
+            border-color: #FF3B30;
+            color: #fff;
+            animation: recordGlow 1.2s infinite alternate;
+        }
+        @keyframes recordGlow {
+            0% { box-shadow: 0 0 10px rgba(255, 59, 48, 0.4); }
+            100% { box-shadow: 0 0 25px rgba(255, 59, 48, 0.7); }
+        }
+
+        /* Kilitli Durum */
+        .action-button.disabled {
+            background-color: #222;
+            border-color: #444;
+            color: #444;
+            cursor: not-allowed;
+        }
+
+        /* Bilgi Mesajı */
+        .info-msg {
+            font-family: 'Roboto', sans-serif;
+            font-size: 13px;
+            text-align: center;
+            color: #fff;
+            max-width: 85%;
+            min-height: 38px;
+            line-height: 1.4;
+        }
+        .info-msg.success {
+            color: #4CD964;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="header">
+            
+            <p>AI performs frequency analysis on your voice tone.</p>
+        </div>
+
+        <div class="status-container">
+            <div class="rec-dot" id="recDot"></div>
+            <span id="statusText">SYSTEM READY</span>
+        </div>
+
+        <div class="center-display">
+            <div class="timer-display" id="timerDisplay">00:09</div>
+            <canvas class="wave-canvas" id="waveCanvas"></canvas>
+        </div>
+
+        <div class="info-msg" id="infoMsg">
+            Only 1 wish allowed per day.<br>Tap the button and make your wish in 9 seconds!
+        </div>
+
+        <div class="action-button" id="actionBtn" onclick="handleBtnClick()">
+            <span class="material-symbols-outlined" id="btnIcon">mic</span>
+        </div>
+    </div>
+
+    <script>
+        const timerDisplay = document.getElementById('timerDisplay');
+        const waveCanvas = document.getElementById('waveCanvas');
+        const ctx = waveCanvas.getContext('2d');
+        const recDot = document.getElementById('recDot');
+        const statusText = document.getElementById('statusText');
+        const infoMsg = document.getElementById('infoMsg');
+        const actionBtn = document.getElementById('actionBtn');
+        const btnIcon = document.getElementById('btnIcon');
+
+        let state = 'idle'; // idle, recording, locked
+        let recordInterval;
+        let countdownInterval;
+        let animationFrameId;
+        let timeLeft = 9;
+
+        // Tarayıcının kendi ses motoru
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
+        }
+
+        function playBeep(freq, duration) {
+            initAudio();
+            if (!audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) { console.log(e); }
+        }
+
+        function resizeCanvas() {
+            waveCanvas.width = waveCanvas.offsetWidth;
+            waveCanvas.height = waveCanvas.offsetHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Sahte Ses Dalgası Çizim Fonksiyonu
+        function drawWave() {
+            ctx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+            ctx.strokeStyle = state === 'recording' ? '#FF3B30' : '#FFD700';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            const sliceWidth = waveCanvas.width / 30;
+            let x = 0;
+
+            for (let i = 0; i < 30; i++) {
+                let amplitude = 2; 
+                if (state === 'recording') {
+                    amplitude = Math.random() * (waveCanvas.height * 0.6) + 5;
+                }
+                const y = (waveCanvas.height / 2) + (Math.random() > 0.5 ? 1 : -1) * (amplitude / 2);
+                
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+
+                x += sliceWidth;
+            }
+            ctx.stroke();
+
+            if (state === 'recording' || state === 'idle') {
+                animationFrameId = requestAnimationFrame(drawWave);
+            }
+        }
+        drawWave();
+
+        // Kilidi kontrol et
+        function checkLockStatus() {
+            const nextWishTime = localStorage.getItem('nextWishTime');
+            if (nextWishTime) {
+                const now = Date.now();
+                if (now < parseInt(nextWishTime)) {
+                    startLockMode(parseInt(nextWishTime));
+                } else {
+                    localStorage.removeItem('nextWishTime');
+                    setIdleMode();
+                }
+            } else {
+                setIdleMode();
+            }
+        }
+
+        function setIdleMode() {
+            state = 'idle';
+            timeLeft = 9;
+            timerDisplay.innerText = "00:09";
+            statusText.innerText = "SYSTEM READY";
+            recDot.classList.remove('active');
+            infoMsg.innerHTML = "Only 1 wish allowed per day.<br>Tap the button and make your wish in 9 seconds!";
+            infoMsg.classList.remove('success');
+            actionBtn.className = "action-button";
+            btnIcon.innerText = "mic";
+        }
+
+        function handleBtnClick() {
+            if (state === 'locked') return;
+            if (state === 'idle') {
+                startRecording();
+            }
+        }
+
+        function startRecording() {
+            state = 'recording';
+            playBeep(440, 0.2); 
+            
+            actionBtn.className = "action-button recording";
+            btnIcon.innerText = "stop";
+            statusText.innerText = "RECORDING";
+            recDot.classList.add('active');
+            infoMsg.innerText = "Speak your wish aloud, the system is listening...";
+            
+            timeLeft = 9;
+            timerDisplay.innerText = `00:09`;
+
+            recordInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerText = `00:0${timeLeft}`;
+                
+                if (timeLeft <= 0) {
+                    stopRecording(true);
+                }
+            }, 1000);
+        }
+
+        function stopRecording(success) {
+            clearInterval(recordInterval);
+            playBeep(600, 0.3); 
+            
+            if (success) {
+                statusText.innerText = "WISH LOCKED";
+                recDot.classList.remove('active');
+                infoMsg.innerText = "The frequency of your wish has been successfully locked and sent to the universe! 🌌";
+                infoMsg.classList.add('success');
+                
+                const lockUntil = Date.now() + 24 * 60 * 60 * 1000;
+                localStorage.setItem('nextWishTime', lockUntil);
+                
+                setTimeout(() => {
+                    startLockMode(lockUntil);
+                }, 2500);
+            } else {
+                setIdleMode();
+            }
+        }
+
+        function startLockMode(lockUntil) {
+            state = 'locked';
+            actionBtn.className = "action-button disabled";
+            btnIcon.innerText = "lock";
+            statusText.innerText = "ENERGY DEPLETED";
+            recDot.classList.remove('active');
+            infoMsg.classList.remove('success');
+            infoMsg.innerText = "Your wish energy is depleted for today. Wait for the countdown to reset.";
+            
+            cancelAnimationFrame(animationFrameId);
+            ctx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+            ctx.strokeStyle = '#444';
+            ctx.beginPath();
+            ctx.moveTo(0, waveCanvas.height / 2);
+            ctx.lineTo(waveCanvas.width, waveCanvas.height / 2);
+            ctx.stroke();
+
+            updateCountdown(lockUntil);
+            countdownInterval = setInterval(() => {
+                const now = Date.now();
+                if (now >= lockUntil) {
+                    clearInterval(countdownInterval);
+                    localStorage.removeItem('nextWishTime');
+                    setIdleMode();
+                    drawWave();
+                } else {
+                    updateCountdown(lockUntil);
+                }
+            }, 1000);
+        }
+
+        function updateCountdown(lockUntil) {
+            const diff = lockUntil - Date.now();
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            const hDisplay = hours < 10 ? '0' + hours : hours;
+            const mDisplay = minutes < 10 ? '0' + minutes : minutes;
+            const sDisplay = seconds < 10 ? '0' + seconds : seconds;
+            
+            timerDisplay.innerText = `${hDisplay}:${mDisplay}:${sDisplay}`;
+        }
+
+        checkLockStatus();
+    </script>
+</body>
+</html>

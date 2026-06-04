@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Feedback Loop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .app-wrapper {
+            width: 90%;
+            max-width: 360px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        /* Ana Ekran Düzeni */
+        .main-screen {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            width: 100%;
+        }
+
+        .question-text {
+            font-size: 34px;
+            letter-spacing: 1px;
+            line-height: 1.2;
+        }
+
+        .btn-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Ortak Buton Tasarımı */
+        .action-button {
+            background-color: #FFD700;
+            color: #000;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            border: none;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: transform 0.1s;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .action-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Tavsiye Butonu Özel Retro Stili */
+        .btn-suggestions {
+            background-color: #222;
+            color: #FFD700;
+            border: 2px solid #FFD700;
+        }
+
+        /* Sol Köşedeki Kırmızı Sayaç Rozeti */
+        .counter-badge {
+            background-color: #FF3B30;
+            color: #fff;
+            font-size: 14px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 10px;
+            font-family: monospace; /* Sayılar sabit genişlikte dursun diye */
+            font-weight: bold;
+            display: none; /* İlk başta gizli, basınca açılacak */
+        }
+
+        /* Teşekkür Ekranı */
+        .thank-you-screen {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .thank-you-text {
+            font-family: 'Roboto', sans-serif;
+            font-size: 15px;
+            color: #fff;
+            line-height: 1.6;
+            padding: 0 10px;
+        }
+
+        .brand-text {
+            font-size: 28px;
+            color: #FFD700;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        
+        <div class="main-screen" id="mainScreen">
+            <div class="question-text">DO YOU LIKE OUR SITE?</div>
+            
+            <div class="btn-container">
+                <button class="action-button" onclick="showThankYou()">AWESOME</button>
+                
+                <button class="action-button btn-suggestions" id="suggestBtn" onclick="handleSuggestionClick()">
+                    <span class="counter-badge" id="counterBadge">9,999,999</span>
+                    <span id="btnText">I HAVE SUGGESTIONS</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="thank-you-screen" id="thankYouScreen">
+            <div class="question-text" style="color: #4CD964;">THANK YOU!</div>
+            <div class="thank-you-text">
+                Your absolute satisfaction is our highest priority. Your digital compliance has been logged.
+            </div>
+            <div class="brand-text">
+                9nau9.com will always make you happy.
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const mainScreen = document.getElementById('mainScreen');
+        const thankYouScreen = document.getElementById('thankYouScreen');
+        const counterBadge = document.getElementById('counterBadge');
+        const btnText = document.getElementById('btnText');
+
+        let clickCount = 9999999;
+        let isFirstClick = true;
+
+        // Harika butonuna basınca tetiklenen fonksiyon
+        function showThankYou() {
+            mainScreen.style.display = 'none';
+            thankYouScreen.style.display = 'flex';
+        }
+
+        // Tavsiyem var butonuna basınca tetiklenen troll fonksiyon
+        function handleSuggestionClick() {
+            if (isFirstClick) {
+                // İlk tıklamada sol köşedeki kırmızı sayacı görünür yapıyoruz
+                counterBadge.style.display = 'inline-block';
+                isFirstClick = false;
+            } else {
+                // Sonraki her tıklamada sayacı bir eksiltiyoruz
+                clickCount--;
+                // Sayıyı İngilizce formatta virgüllü yazdırmak için toLocaleString kullanıyoruz
+                counterBadge.innerText = clickCount.toLocaleString('en-US');
+            }
+        }
+    </script>
+</body>
+</html>

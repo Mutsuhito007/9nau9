@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Universal Remote</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .remote-container {
+            width: 90%;
+            max-width: 440px;
+            background: #1a1a1a;
+            border: 4px solid #333;
+            border-radius: 30px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 10px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Sahte TV Ekranı */
+        .tv-screen {
+            width: 100%;
+            height: 120px;
+            background-color: #000;
+            border: 3px solid #555;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 10px;
+            position: relative;
+            box-shadow: inset 0 0 15px rgba(255, 215, 0, 0.1);
+        }
+
+        .tv-text {
+            font-size: 24px;
+            line-height: 1.2;
+            color: #4CD964;
+            text-shadow: 0 0 5px rgba(76, 217, 100, 0.5);
+        }
+
+        .scanline {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+        }
+
+        /* Kumanda Tuşları */
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 100%;
+        }
+
+        .btn {
+            background-color: #2a2a2a;
+            color: #ccc;
+            border: 2px solid #444;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            margin: 0 auto;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+
+        .btn:active {
+            transform: scale(0.9);
+            background-color: #444;
+        }
+
+        .btn-power {
+            background-color: #4a1010;
+            color: #FF3B30;
+            border-color: #FF3B30;
+        }
+        .btn-power:active { background-color: #FF3B30; color: #fff; }
+
+        /* Özel Mesaj Rengi */
+        .troll-message {
+            color: #FFD700;
+            font-size: 20px;
+            text-shadow: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="remote-container">
+        <div class="tv-screen">
+            <div class="scanline"></div>
+            <div class="tv-text" id="tvText">NO SIGNAL</div>
+        </div>
+
+        <div class="button-grid" id="buttonGrid">
+            <div class="btn btn-power" onclick="pressButton('POWER')">PWR</div>
+            <div class="btn" onclick="pressButton('INPUT')">SRC</div>
+            <div class="btn" onclick="pressButton('MUTE')">MUT</div>
+            
+            <div class="btn" onclick="pressButton('VOL+')">VOL+</div>
+            <div class="btn" onclick="pressButton('OK')">OK</div>
+            <div class="btn" onclick="pressButton('CH+')">CH+</div>
+            
+            <div class="btn" onclick="pressButton('VOL-')">VOL-</div>
+            <div class="btn" onclick="pressButton('INFO')">INF</div>
+            <div class="btn" onclick="pressButton('CH-')">CH-</div>
+        </div>
+    </div>
+
+    <script>
+        const tvText = document.getElementById('tvText');
+        const buttonGrid = document.getElementById('buttonGrid');
+        
+        let clickCount = 0;
+        let isTrolling = false;
+
+        // Sahte tepkiler için rastgele değerler
+        let fakeVol = 12;
+        let fakeCh = 4;
+
+        // Ses sistemi için AudioContext
+        let audioCtx;
+
+        // Retro bip sesi üreten fonksiyon
+        function playBeep() {
+            // Tarayıcı kuralları gereği ses motoru ilk tıklamada başlatılır
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.type = 'square'; // Retro elektronik ses dalgası
+            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime); // Sesin inceliği/kalınlığı
+
+            // Sesin kulak tırmalamaması için seviye ayarı
+            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.1); // 0.1 saniye sonra sesi kes
+        }
+
+        // Troll Mesajı
+        const trollMessage = "You really tried, didn't you? :) Admit it, you believed it would work for a second. I hope no one was around you while you were doing this.";
+
+        function pressButton(action) {
+            if (isTrolling) return; // Troll başladıysa tuşlar çalışmasın
+
+            // Tuşa basıldığı an bip sesini çal
+            playBeep();
+
+            clickCount++;
+
+            // İlk 4 tıklamada kullanıcıyı inandırmak için sahte tepkiler veriyoruz
+            if (clickCount < 5) {
+                if (action === 'VOL+') { fakeVol++; tvText.innerText = `VOLUME: ${fakeVol}`; }
+                else if (action === 'VOL-') { fakeVol--; tvText.innerText = `VOLUME: ${fakeVol}`; }
+                else if (action === 'CH+') { fakeCh++; tvText.innerText = `CHANNEL: 0${fakeCh}`; }
+                else if (action === 'CH-') { fakeCh--; tvText.innerText = `CHANNEL: 0${fakeCh}`; }
+                else if (action === 'POWER') { tvText.innerText = `SYSTEM OFF?`; }
+                else if (action === 'MUTE') { tvText.innerText = `MUTED`; }
+                else { tvText.innerText = `PROCESSING...`; }
+            } 
+            // 5. Tıklamada tuzağı tetikle
+            else {
+                startTrollSequence();
+            }
+        }
+
+        function startTrollSequence() {
+            isTrolling = true;
+            tvText.innerText = ""; // Ekranı temizle
+            tvText.className = "tv-text troll-message"; // Rengi sarı yap
+            
+            let i = 0;
+            // Mesajı daktilo efektiyle yazdır
+            const typeWriter = setInterval(() => {
+                if (i < trollMessage.length) {
+                    tvText.innerHTML += trollMessage.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(typeWriter);
+                    // Tuşların görünümünü biraz karartıp iptal olduklarını hissettirelim
+                    buttonGrid.style.opacity = "0.3"; 
+                }
+            }, 60); // Yazı hızı (milisaniye)
+        }
+    </script>
+</body>
+</html>

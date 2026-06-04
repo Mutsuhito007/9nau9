@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>In Memoriam</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .app-wrapper {
+            width: 90%;
+            max-width: 380px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #444;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+        .header h2 {
+            font-size: 32px;
+            color: #FF3B30;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 59, 48, 0.4);
+        }
+        
+        /* 1. Sadece Görsel Ekranı */
+        .image-screen {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        .image-container {
+            width: 100%;
+            flex-grow: 1; /* Kalan boşluğu tamamen doldurur */
+            border: 2px solid #333;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .cat-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Görseli kutuya tam oturtur */
+        }
+
+        /* 2. Hikaye Ekranı (Başlangıçta gizli) */
+        .story-screen {
+            display: none;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        .story-text-area {
+    flex-grow: 1;
+    overflow-y: auto;
+    background-color: #1a1a1a;
+    border: 1px solid #222;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    width: 100%; /* Kutunun genişliğini zorla %100 yaptık */
+}
+        .story-text-area::-webkit-scrollbar { width: 5px; }
+        .story-text-area::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 2px; }
+        
+    .story-text {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    color: #ccc;
+    line-height: 1.6;
+    text-align: left; /* Metni sola yasladık */
+    width: 100%; /* Metin bloğunu kutunun tamamına yaydık */
+    word-wrap: break-word;
+    
+}
+        
+        /* 3. Mum Ekranı (Başlangıçta gizli) */
+        .candle-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            gap: 40px;
+        }
+        .candle-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+        .candle-body {
+            width: 50px;
+            height: 120px;
+            background: linear-gradient(to right, #ddd, #fff, #bbb);
+            border-radius: 4px;
+            position: relative;
+            box-shadow: inset 0 -5px 10px rgba(0,0,0,0.2);
+        }
+        .wick {
+            width: 4px;
+            height: 15px;
+            background-color: #222;
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+        .flame {
+            display: none;
+            width: 24px;
+            height: 45px;
+            background: #FFD700;
+            border-radius: 50% 50% 20% 20%;
+            position: absolute;
+            top: -55px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 20px #FFD700, 0 0 40px #FF3B30, 0 0 60px #FF3B30;
+            animation: flicker 0.1s infinite alternate;
+        }
+        @keyframes flicker {
+            0% { transform: translateX(-50%) scale(1) translateY(0); opacity: 0.8; }
+            100% { transform: translateX(-50%) scale(1.1) translateY(-2px); opacity: 1; }
+        }
+        
+        /* Buton */
+        .action-btn {
+            background-color: #222;
+            color: #FFD700;
+            border: 2px solid #FFD700;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.1s, background-color 0.1s;
+            width: 100%;
+            flex-shrink: 0;
+        }
+        .action-btn:active {
+            transform: scale(0.95);
+            background-color: #FFD700;
+            color: #000;
+        }
+        
+        /* Saygı Metni */
+        .respect-text {
+            display: none;
+            font-size: 26px;
+            color: #4CD964;
+            text-shadow: 0 0 10px rgba(76, 217, 100, 0.4);
+            animation: fadeIn 2s forwards;
+            text-align: center;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="header">
+            <h2>IN MEMORIAM</h2>
+        </div>
+
+        <div class="image-screen" id="imageScreen">
+            <div class="image-container">
+                <img src="assets/cat.webp" alt="My Cat" class="cat-img" onerror="this.style.display='none';">
+            </div>
+            <button class="action-btn" onclick="showStoryScreen()">READ STORY</button>
+        </div>
+
+        <div class="story-screen" id="storyScreen">
+            <div class="story-text-area">
+                <div class="story-text">
+                He was a majestic beast. A fearless warrior of the living room.<br><br>
+                    He survived three violent street dog ambushes, successfully defeated the evil vacuum cleaner countless times, and once ate an entire plastic bag without flinching.<br><br>
+                    But his end was tragically absurd. <br><br>
+                    While patrolling the kitchen floor, he saw a cucumber behind him. Believing it was an alien snake, he jumped three meters into the air, hit his head directly on the spinning ceiling fan, and lost his remaining 8 lives simultaneously.<br><br>
+                    Rest in peace, you mop.
+                </div>
+            </div>
+            <button class="action-btn" onclick="showCandleScreen()">PAY RESPECTS</button>
+        </div>
+
+        <div class="candle-screen" id="candleScreen">
+            <div class="candle-container">
+                <div class="candle-body">
+                    <div class="wick"></div>
+                    <div class="flame" id="flame"></div>
+                </div>
+            </div>
+            <div class="respect-text" id="respectText">YOUR RESPECT HAS BEEN LOGGED.</div>
+            <button class="action-btn" id="lightBtn" onclick="lightCandle()">LIGHT CANDLE</button>
+        </div>
+    </div>
+
+    <script>
+        const imageScreen = document.getElementById('imageScreen');
+        const storyScreen = document.getElementById('storyScreen');
+        const candleScreen = document.getElementById('candleScreen');
+        const flame = document.getElementById('flame');
+        const lightBtn = document.getElementById('lightBtn');
+        const respectText = document.getElementById('respectText');
+        
+        let audioCtx;
+
+        function playLighterSound() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+            
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        // 1. Ekrandan 2. Ekrana Geçiş
+        function showStoryScreen() {
+            imageScreen.style.display = 'none';
+            storyScreen.style.display = 'flex';
+        }
+
+        // 2. Ekrandan 3. Ekrana Geçiş
+        function showCandleScreen() {
+            storyScreen.style.display = 'none';
+            candleScreen.style.display = 'flex';
+        }
+
+        // Mum Yakma Animasyonu
+        function lightCandle() {
+            playLighterSound();
+            flame.style.display = 'block';
+            lightBtn.style.display = 'none';
+            
+            setTimeout(() => {
+                respectText.style.display = 'block';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>İlginç Hesap Makinesi</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'VT323', monospace;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000; /* Arka plan siyah */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Hesap Makinesi Gövdesi - Tam dikey formata uygun */
+        .calculator {
+            width: 90%;
+            max-width: 360px;
+            height: 95%;
+            background-color: #111;
+            border: 3px solid #FFD700; /* Senin meşhur sarı çerçeven */
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Ekran Alanı */
+        .display-container {
+            background-color: #222;
+            border: 2px solid #FFD700;
+            border-radius: 5px;
+            padding: 15px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            overflow: hidden;
+        }
+
+        #display {
+            color: #FFD700;
+            font-size: 40px;
+            white-space: nowrap;
+            text-align: right;
+            width: 100%;
+        }
+
+        /* Tuş Takımı Grid Yapısı */
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            flex-grow: 1;
+        }
+
+        /* Ortak Buton Stilleri */
+        button {
+            background-color: #222;
+            color: #FFD700;
+            border: 2px solid #FFD700;
+            border-radius: 5px;
+            font-size: 32px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.1s;
+        }
+
+        /* Butona basılma efekti */
+        button:active {
+            transform: scale(0.92);
+            background-color: #FFD700;
+            color: #000;
+        }
+
+        /* Eşittir ve Temizle (C) butonları için özel sarı vurgu */
+        .btn-action {
+            background-color: #FFD700;
+            color: #000;
+        }
+        .btn-action:active {
+            background-color: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator">
+        <div class="display-container">
+            <div id="display">0</div>
+        </div>
+        <div class="buttons">
+            <button class="btn-action" onclick="clearDisplay()">C</button>
+            <button onclick="appendOperator('/')">/</button>
+            <button onclick="appendOperator('*')">*</button>
+            <button onclick="appendOperator('-')">-</button>
+
+            <button onclick="appendNumber('7')">7</button>
+            <button onclick="appendNumber('8')">8</button>
+            <button onclick="appendOperator('+')">+</button>
+            <button onclick="appendNumber('6')">6</button>
+
+            <button onclick="appendNumber('5')">5</button>
+            <button onclick="appendNumber('4')">4</button>
+            <button onclick="appendNumber('3')">3</button>
+            <button onclick="appendNumber('2')">2</button>
+
+            <button onclick="appendNumber('1')">1</button>
+            <button onclick="appendNumber('0')">0</button>
+            <button class="btn-action" onclick="calculate()" style="grid-column: span 2;">=</button>
+        </div>
+    </div>
+
+    <script>
+        const display = document.getElementById('display');
+        let currentInput = '';
+        let shouldReset = false;
+
+        function updateDisplay(value) {
+            display.innerText = value;
+        }
+
+        function appendNumber(num) {
+            if (shouldReset) {
+                currentInput = '';
+                shouldReset = false;
+            }
+            if (currentInput === '0') {
+                currentInput = num;
+            } else {
+                currentInput += num;
+            }
+            updateDisplay(currentInput);
+        }
+
+        function appendOperator(op) {
+            if (shouldReset) shouldReset = false;
+            
+            // Üst üste operatör basılmasını engelle
+            const lastChar = currentInput.slice(-1);
+            if (['+', '-', '*', '/'].includes(lastChar)) {
+                currentInput = currentInput.slice(0, -1) + op;
+            } else if (currentInput !== '') {
+                currentInput += op;
+            }
+            updateDisplay(currentInput);
+        }
+
+        function clearDisplay() {
+            currentInput = '';
+            updateDisplay('0');
+        }
+
+        function calculate() {
+            if (currentInput === '') return;
+
+            try {
+                // Matematiksel işlemi güvenli bir şekilde hesapla
+                let result = eval(currentInput);
+                
+                // Sayıyı string'e çevirip kuralları kontrol ediyoruz
+                let resultStr = String(result);
+
+                // KURAL 2: Eğer sonuç tam olarak 666 ise Kalp Emojisi çıkacak
+                if (result === 666) {
+                    updateDisplay('❤️');
+                    currentInput = '';
+                    shouldReset = true;
+                    return;
+                }
+
+                // KURAL 1: Eğer işlem sonucunda 9 rakamı GEÇİYORSA hata kodu ver (Örn: 8+1=9 veya 18+1=19)
+                if (resultStr.includes('9')) {
+                    updateDisplay('NULL'); // Troll bir hata kodu
+                    currentInput = '';
+                    shouldReset = true;
+                    return;
+                }
+
+                // Kurallara takılmadıysa normal sonucu yazdır
+                updateDisplay(resultStr);
+                currentInput = resultStr;
+                shouldReset = true;
+
+            } catch (error) {
+                updateDisplay('ERROR');
+                currentInput = '';
+                shouldReset = true;
+            }
+        }
+    </script>
+</body>
+</html>

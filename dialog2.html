@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Dialog</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000; color: #fff;
+            font-family: 'VT323', monospace;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; user-select: none;
+        }
+        .app-wrapper {
+            width: 95%; max-width: 450px; height: 95%;
+            background-color: #050505; border: 2px solid #333;
+            border-radius: 5px; display: flex; flex-direction: column;
+            position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,1);
+        }
+        
+        /* Terminal Ekranı */
+        .chat-container {
+            flex-grow: 1; padding: 20px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        /* Kaydırma Çubuğu Ayarı */
+        .chat-container::-webkit-scrollbar { width: 5px; }
+        .chat-container::-webkit-scrollbar-thumb { background: #333; }
+
+        .line {
+            font-size: 24px; line-height: 1.4; letter-spacing: 1px;
+            word-wrap: break-word;
+        }
+        .DUDE-label { color: #FFD700; font-weight: bold; } /* DUDE yeşil yazsın */
+        .M.H.-label { color: #ff0000; font-weight: bold; } /* M.H. sarı yazsın */
+        
+        /* Yanıp Sönen Alt Tire Efekti */
+        .cursor {
+            display: inline-block; width: 12px; height: 2px;
+            background-color: #fff; margin-left: 2px;
+            animation: blink 0.8s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* Başlat ve Devam Butonları */
+        .btn-container {
+            padding: 15px; border-top: 1px dashed #333;
+            display: flex; justify-content: center; background: #0a0a0a;
+        }
+        .action-btn {
+            background-color: #111; color: #fff; border: 1px solid #fff;
+            font-family: 'VT323', monospace; font-size: 26px;
+            padding: 10px 30px; border-radius: 3px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-btn:active { transform: scale(0.95); background-color: #fff; color: #000; }
+        .action-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <div class="chat-container" id="chatBox">
+            <!-- Yazılar buraya eklenecek -->
+        </div>
+        
+        <div class="btn-container">
+            <button class="action-btn" id="mainBtn" onclick="startOrNext()">CONNECT</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // DİALOGLARI BURAYA YAZACAKSIN KANKA
+        // 'AI' yapay zeka, 'DEV' ise developer (sen).
+        // ==========================================
+        const hikayeMetinleri = [
+            
+            
+    { kim: 'M.H', mesaj: "No, no, no, this must be a dream." },
+    { kim: 'DUDE', mesaj: "Tell me, Mutsu. What happened?" },
+    { kim: 'M.H', mesaj: "It happened so fast. But he deserved it." },
+    { kim: 'DUDE', mesaj: "I can't help you if you don't tell me everything." },
+    { kim: 'M.H', mesaj: "He came at me, he threatened me. I was scared, do you understand? I was scared." },
+    { kim: 'DUDE', mesaj: "Who came at you? Come on, tell me what happened already." },
+    { kim: 'M.H', mesaj: "You know that son of a bitch upstairs neighbor of mine? He showed up at my door again last night. Psycho." },
+    { kim: 'DUDE', mesaj: "And then?" },
+    { kim: 'M.H', mesaj: "He started a fight again because I left my bike at the building entrance. But this time he was much angrier. He shoved me and I fell inside. He got on top of me and started punching me." },
+    { kim: 'DUDE', mesaj: "Go on." },
+    { kim: 'M.H', mesaj: "I managed to get away from him. I ran to the kitchen and grabbed the knife on the table..." },
+    { kim: 'DUDE', mesaj: "Are you at home right now? Where is he?" },
+    { kim: 'M.H', mesaj: "Help me, DUDE. I beg you. I didn't do it on purpose. I was so scared. I thought he was going to kill me." },
+    { kim: 'DUDE', mesaj: "Calm down. Turn on your phone's camera and show me the scene." },
+    { kim: 'M.H', mesaj: "What's going to happen, DUDE? Am I going to prison?" },
+    { kim: 'DUDE', mesaj: "Just do what I say. Turn on the camera..." },
+        ];
+
+        let suAnkiSatir = 0;
+        let yaziyor = false;
+        
+        const chatBox = document.getElementById('chatBox');
+        const mainBtn = document.getElementById('mainBtn');
+        let audioCtx;
+
+        function playTypingSound() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            // Tam olarak eski projendeki gibi 'square' dalgası ve sabit 3000 frekans
+            osc.type = 'square'; 
+            osc.frequency.setValueAtTime(4000, audioCtx.currentTime); 
+            
+            // Sesin şiddeti (0.03) ve süresi (0.01 saniye) birebir ayarlandı
+            gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.01); 
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.01);
+        }
+
+        function startOrNext() {
+            // İlk tıklamada ses motorunu uyandır
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            if (yaziyor) return; // Zaten yazıyorsa butona basmayı engelle
+
+            if (suAnkiSatir >= hikayeMetinleri.length) {
+                mainBtn.innerText = "CONNECTION LOST";
+                mainBtn.disabled = true;
+                return;
+            }
+
+            yazdir();
+        }
+
+        function yazdir() {
+            yaziyor = true;
+            mainBtn.disabled = true;
+            mainBtn.innerText = "WRITING...";
+
+            const satirVerisi = hikayeMetinleri[suAnkiSatir];
+            
+            const div = document.createElement('div');
+            div.className = 'line';
+            
+            // Kimin konuştuğunu renklendir
+            const etiket = document.createElement('span');
+            etiket.className = satirVerisi.kim === 'DUDE' || satirVerisi.kim === 'M.H' ? 'DUDE-label' : 'M.H.-label';
+            etiket.innerText = `[${satirVerisi.kim}]: `;
+            
+            const metinAlani = document.createElement('span');
+            
+            // Yanıp sönen alt tire
+            const imlec = document.createElement('span');
+            imlec.className = 'cursor';
+            
+            div.appendChild(etiket);
+            div.appendChild(metinAlani);
+            div.appendChild(imlec);
+            chatBox.appendChild(div);
+
+            let harfSirasi = 0;
+            const yazmaHizi = 40; // Milisaniye cinsinden hız. Küçültürsen daha hızlı yazar.
+
+            const interval = setInterval(() => {
+                if (harfSirasi < satirVerisi.mesaj.length) {
+                    metinAlani.innerHTML += satirVerisi.mesaj.charAt(harfSirasi);
+                    playTypingSound(); // Her harfte sesi çal
+                    chatBox.scrollTop = chatBox.scrollHeight; // Otomatik aşağı kaydır
+                    harfSirasi++;
+                } else {
+                    // Yazı bittiğinde
+                    clearInterval(interval);
+                    imlec.remove(); // Eski satırdaki alt tireyi sil
+                    yaziyor = false;
+                    suAnkiSatir++;
+                    
+                    if (suAnkiSatir < hikayeMetinleri.length) {
+                        mainBtn.disabled = false;
+                        mainBtn.innerText = "CONTINUE";
+                    } else {
+                        mainBtn.innerText = "END";
+                    }
+                }
+            }, yazmaHizi);
+        }
+    </script>
+</body>
+</html>

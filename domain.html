@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Future Domain Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .app-wrapper {
+            width: 90%;
+            max-width: 360px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            text-align: center;
+            gap: 40px;
+        }
+
+        .header {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            border-bottom: 2px dashed #333;
+            padding-bottom: 10px;
+        }
+        
+        .header h2 {
+            font-size: 28px;
+            letter-spacing: 2px;
+            color: #555;
+        }
+
+        /* Alan Adı Gösterge Ekranı */
+        .domain-display-container {
+            width: 100%;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #222;
+            border: 2px solid #555;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: inset 0 0 10px #000;
+        }
+
+        .domain-text {
+            font-size: 28px; /* Ekrana daha rahat sığması için 32'den 28'e çektik */
+            color: #4CD964; 
+            word-wrap: break-word;
+            word-break: break-all; /* <-- İŞTE TAŞMAYI ENGELLEYEN SİHİRLİ KOD BU */
+            line-height: 1.2;
+            text-shadow: 0 0 10px rgba(76, 217, 100, 0.4);
+            width: 100%;
+        }
+
+        .value-tag {
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            color: #FF3B30;
+            margin-top: 10px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        /* Ortadaki Dev Buton */
+        .action-button {
+            background-color: #FFD700;
+            color: #000;
+            font-family: 'VT323', monospace;
+            font-size: 28px;
+            border: none;
+            padding: 20px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            width: 90%;
+            box-shadow: 0 5px 0 #b39700;
+            transition: all 0.1s;
+        }
+        
+        .action-button:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 #b39700;
+        }
+
+        .action-button:disabled {
+            background-color: #555;
+            color: #222;
+            box-shadow: 0 5px 0 #333;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Hacker Titreme Efekti */
+        .glitch {
+            animation: glitch-anim 0.1s infinite;
+            color: #fff;
+            text-shadow: none;
+        }
+
+        @keyframes glitch-anim {
+            0% { opacity: 1; transform: translate(1px, -1px); }
+            50% { opacity: 0.5; transform: translate(-1px, 1px); }
+            100% { opacity: 1; transform: translate(0, 0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <div class="header">
+            <h2>WEB 4.0 ORACLE</h2>
+        </div>
+
+        <div class="domain-display-container">
+            <div class="domain-text" id="domainDisplay">???</div>
+            <div class="value-tag" id="valueTag">EST. VALUE: $0.00</div>
+        </div>
+
+        <button class="action-button" id="generateBtn" onclick="generateDomain()">EXTRACT DOMAIN</button>
+
+        <div style="position: absolute; bottom: 20px; font-family: 'Roboto', sans-serif; font-size: 11px; color: #555;">
+            WARNING: REGISTERING THESE DOMAINS MAY ATTRACT UNWANTED ENTITIES.
+        </div>
+    </div>
+
+    <script>
+        const domainDisplay = document.getElementById('domainDisplay');
+        const valueTag = document.getElementById('valueTag');
+        const generateBtn = document.getElementById('generateBtn');
+
+        // Absürt, komik ve tüccar zekasına uygun alan adları veritabanı
+        const domains = [
+            "iamlegent.com",
+            "humanfear.com",
+            "ruinyourpsychology.com",
+            "fakevoiceanalysis.tech",
+            "notadeveloperjustatrader.com",
+            "microgametorture.net",
+            "dontcomeifyouarebroke.com",
+            "sellingsoulsfor499.com",
+            "plasticinjectiondreams.com",
+            "error9404.com",
+            "rentmyoxygen.org",
+            "uselessplastic.com",
+            "scammingisart.com",
+            "paymetocry.net",
+            "nocashnovalue.com",
+            "buyyourownsoul.com",
+            "nothingisfree.store",
+            "weknowwhatyoudid.net",
+            "yourtearsaremycrypto.com",
+            "digitalblackmail.org",
+            "yourpovertyismyprofit.com",
+            "paytoseenothing.com",
+            "deleteyourhistory.org",
+            "buyanxiety.com",
+            "legalrobbery.tech",
+            "rentafakefamily.com",
+            "thiswebsiteisavirus.com",
+            "capitalismwinsagain.store",
+            "sellingsadness.net",
+            "givemeyourwallet.org",
+            "talktogod.com",
+            "leaseyoursoul.org",
+            "recyclehumans.net"
+        ];
+
+        // Rastgele harfler üreten fonksiyon (Hacker efekti için)
+        function getRandomChars(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function generateDomain() {
+            // Butonu kilitle ve etiketleri gizle
+            generateBtn.disabled = true;
+            valueTag.style.opacity = '0';
+            domainDisplay.classList.add('glitch');
+
+            // Rastgele bir alan adı seç
+            const targetDomain = domains[Math.floor(Math.random() * domains.length)];
+            
+            let flickers = 0;
+            const maxFlickers = 15; // Efektin ne kadar süreceği
+
+            const flickerInterval = setInterval(() => {
+                domainDisplay.innerText = getRandomChars(targetDomain.length);
+                flickers++;
+
+                if (flickers >= maxFlickers) {
+                    clearInterval(flickerInterval);
+                    finalizeDomain(targetDomain);
+                }
+            }, 50); // Her 50 milisaniyede bir harfler değişir
+        }
+
+        function finalizeDomain(domain) {
+            // Animasyonu bitir ve gerçek alan adını yaz
+            domainDisplay.classList.remove('glitch');
+            domainDisplay.innerText = domain.toUpperCase();
+            
+            // Rastgele yüksek ve absürt bir piyasa değeri uydur
+            const randomValue = (Math.random() * 900000 + 10000).toFixed(2);
+            valueTag.innerText = `EST. VALUE: $${parseFloat(randomValue).toLocaleString()}`;
+            valueTag.style.opacity = '1';
+
+            // Butonu tekrar aktifleştir
+            generateBtn.disabled = false;
+        }
+    </script>
+</body>
+</html>

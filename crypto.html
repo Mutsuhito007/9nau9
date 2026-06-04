@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crypto Oracle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .app-wrapper {
+            width: 90%;
+            max-width: 360px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* 1. KRİPTO YALAN EKRANI */
+        .scam-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+        }
+
+        .header {
+            width: 100%;
+            border-bottom: 2px dashed #333;
+            padding-bottom: 10px;
+            margin-top: 10px;
+        }
+        .header h2 {
+            font-size: 28px;
+            color: #4CD964;
+            text-shadow: 0 0 10px rgba(76, 217, 100, 0.3);
+        }
+
+        .coin-display {
+            background-color: #222;
+            border: 2px solid #555;
+            border-radius: 10px;
+            width: 100%;
+            padding: 30px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: inset 0 0 15px #000;
+        }
+
+        .coin-name {
+            font-size: 42px;
+            color: #FFD700;
+            letter-spacing: 2px;
+            animation: pulse 1.5s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { text-shadow: 0 0 5px #FFD700; }
+            100% { text-shadow: 0 0 20px #FFD700; transform: scale(1.05); }
+        }
+
+        .roi-tag {
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            color: #4CD964;
+            font-weight: bold;
+        }
+
+        .action-button {
+            background-color: #FFD700;
+            color: #000;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            border: none;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            width: 100%;
+            transition: transform 0.1s;
+            margin-bottom: 10px;
+        }
+        .action-button:active {
+            transform: scale(0.95);
+        }
+
+        /* 2. GERÇEKLİK (TROLL) EKRANI */
+        .truth-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 20px;
+            text-align: center;
+            animation: fadeIn 2s forwards;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .truth-text {
+            font-family: 'Roboto', sans-serif;
+            font-size: 18px;
+            color: #fff;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .highlight {
+            color: #FF3B30; /* Kırmızı vurgu */
+            font-weight: bold;
+        }
+
+        .brand-text {
+            font-family: 'VT323', monospace;
+            font-size: 32px;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        
+        <div class="scam-screen" id="scamScreen">
+            <div class="header">
+                <h2>1000X GEM FINDER</h2>
+                <p style="font-family: 'Roboto', sans-serif; font-size: 12px; color: #888; margin-top: 5px;">AI-POWERED PREDICTIONS</p>
+            </div>
+
+            <div class="coin-display">
+                <div class="coin-name" id="coinName">PRESS BUTTON</div>
+                <div class="roi-tag" id="roiTag">EXPECTED ROI: ???%</div>
+            </div>
+
+            <button class="action-button" onclick="revealCoin()">REVEAL NEXT GEM</button>
+        </div>
+
+        <div class="truth-screen" id="truthScreen">
+            <div class="truth-text">
+                You couldn't find the altcoins I recommended on the exchange, right? 
+                <br><br>
+                <span class="highlight">Because they don't exist.</span>
+                <br><br>
+                It's a lie, my friend. You won't get rich the easy way. Go check out other pages.
+            </div>
+            <div class="brand-text">
+                9nau9.com will always make you happy.
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const scamScreen = document.getElementById('scamScreen');
+        const truthScreen = document.getElementById('truthScreen');
+        const coinName = document.getElementById('coinName');
+        const roiTag = document.getElementById('roiTag');
+
+        // Uydurma Altcoin İsimleri
+        const fakeCoins = [
+            "$QUANTUM", "$NEUROX", "$VOIDT", "$AETH", 
+            "$LUNARI", "$CYBERDOGE", "$NEXUS", "$ECHO", 
+            "$SYNTH", "$OMNICOIN", "$GLITCH", "$ZEPHYR"
+        ];
+
+        let clickCount = 0;
+        const maxClicks = 5; // 5. Tıklamada acı gerçekle yüzleşir
+
+        function revealCoin() {
+            clickCount++;
+
+            if (clickCount >= maxClicks) {
+                // Şov Bitti, Gerçekler Ekrana Gelsin
+                scamScreen.style.display = 'none';
+                truthScreen.style.display = 'flex';
+            } else {
+                // Rastgele bir coin ve uçuk bir kâr oranı seç
+                const randomCoin = fakeCoins[Math.floor(Math.random() * fakeCoins.length)];
+                const randomROI = Math.floor(Math.random() * 85000) + 5000; // %5000 ile %90000 arası
+
+                coinName.innerText = randomCoin;
+                roiTag.innerText = `EXPECTED ROI: +${randomROI.toLocaleString()}% 🚀`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Emergency Sadness</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .app-wrapper {
+            width: 90%;
+            max-width: 380px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #444;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+        .header h2 {
+            font-size: 28px;
+            color: #FF3B30;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 59, 48, 0.4);
+        }
+        
+        /* Bilgilendirme Metni Alanı */
+        .intro-text-area {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #1a1a1a;
+            border: 1px solid #222;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .intro-text {
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            color: #ccc;
+            line-height: 1.6;
+        }
+        .highlight {
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        /* Görsel Gösterme Alanı */
+.image-container {
+    display: none;
+    width: 100%;
+    flex-grow: 1;
+    min-height: 320px; /* YENİ: Kutuyu dikeyde zorla uzatır */
+    border: 2px solid #333;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    background-color: #000;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.sad-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* YENİ: Görselin kırpılmasını engeller, ekranı tam doldurur */
+}
+        
+        /* Buton */
+        .action-btn {
+            background-color: #222;
+            color: #FFD700;
+            border: 2px solid #FFD700;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.1s, background-color 0.1s;
+            width: 100%;
+            flex-shrink: 0;
+        }
+        .action-btn:active {
+            transform: scale(0.95);
+            background-color: #FFD700;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        
+
+        <div class="intro-text-area" id="introArea">
+            <div class="intro-text">
+                Are you at a funeral? Or a job interview?<br><br>
+                You are in an environment where you absolutely <span class="highlight">CANNOT</span> laugh, but something funny just came to your mind.<br><br>
+                You must favorites this page.
+            </div>
+        </div>
+
+        <div class="image-container" id="imageArea">
+            <img src="" alt="Sadness" class="sad-img" id="sadImage">
+        </div>
+
+        <button class="action-btn" id="saddenBtn" onclick="triggerSadness()">RUIN MY MOOD</button>
+    </div>
+
+    <script>
+        // KANKA DİKKAT: Buraya kendi yüklediğin görsellerin dosya yollarını yazacaksın.
+        // İstediğin kadar virgül koyup resim ekleyebilirsin.
+        const sadImages = [
+            'assets/18.webp',
+            'assets/19.webp',
+            'assets/20.webp',
+            'assets/21.webp',
+            'assets/22.webp',
+            'assets/23.webp',
+            'assets/24.webp',
+            
+        ];
+
+        const introArea = document.getElementById('introArea');
+        const imageArea = document.getElementById('imageArea');
+        const sadImage = document.getElementById('sadImage');
+        const saddenBtn = document.getElementById('saddenBtn');
+
+        let lastImageIndex = -1;
+
+        function triggerSadness() {
+            // Eğer resim listesi boşsa hata vermesin diye kontrol
+            if (sadImages.length === 0) return;
+
+            // İlk basışta yazıyı gizle, görsel alanını aç
+            if (introArea.style.display !== 'none') {
+                introArea.style.display = 'none';
+                imageArea.style.display = 'flex';
+                saddenBtn.innerText = "SADDEN ME MORE"; // Butonun yazısını da değiştiriyoruz
+            }
+
+            // Aynı resmin üst üste 2 kere gelmesini engellemek için küçük bir algoritma
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * sadImages.length);
+            } while (randomIndex === lastImageIndex && sadImages.length > 1);
+            
+            lastImageIndex = randomIndex;
+
+            // Seçilen görseli ekrana bas
+            sadImage.src = sadImages[randomIndex];
+        }
+    </script>
+</body>
+</html>

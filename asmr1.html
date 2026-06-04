@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ASMR Melodi</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        /* Siyah arkaplan ve sıfırlamalar */
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            background-color: #000; /* Arka plan siyah */
+            overflow: hidden; 
+            font-family: 'VT323', monospace; 
+            user-select: none; 
+            -webkit-user-select: none;
+        }
+        
+        /* Ekrana dokunulacak alan */
+        #canvas { 
+            display: block; 
+            width: 100%; 
+            height: calc(100% - 60px); /* Alt buton alanına yer bırakır */
+            cursor: pointer; 
+        }
+        
+        /* Alt Buton Alanı Tasarımı */
+        .controls { 
+            height: 60px; 
+            background: #222; 
+            display: flex; 
+            justify-content: space-evenly; 
+            align-items: center; 
+            border-top: 2px solid #FFD700; /* Sarı retro detay */
+        }
+        
+        /* Play ve Sıfırlama Butonları */
+        button { 
+            background: #FFD700; 
+            color: #000; 
+            font-family: 'VT323', monospace; 
+            font-size: 24px; 
+            border: none; 
+            padding: 5px 30px; 
+            cursor: pointer; 
+            border-radius: 5px; 
+            transition: transform 0.1s; 
+            text-transform: uppercase;
+        }
+        
+        button:active { 
+            transform: scale(0.90); 
+        }
+        
+        button:disabled { 
+            opacity: 0.5; 
+            cursor: not-allowed; 
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+    <div class="controls">
+        <button id="playBtn">Play</button>
+        <button id="resetBtn">Clear</button>
+    </div>
+
+    <script>
+        // Tarayıcı Ses Motoru Bağlantısı
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const playBtn = document.getElementById('playBtn');
+        const resetBtn = document.getElementById('resetBtn'); // Artık "Clear" veya "Reset" yaptıysan ID aynı kalsın
+
+        // Ekran boyutunu ayarla
+        function resize() { 
+            canvas.width = window.innerWidth; 
+            canvas.height = window.innerHeight - 60; 
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Hafıza ve Zamanlama
+        let memory = [];
+        let isPlaying = false;
+        let lastClickTime = 0; // İki tıklama arasındaki süreyi ölçmek için eklendi
+
+        // Pentatonik Skala (Huzur veren, uyumlu frekanslar)
+        const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
+
+        function initAudio() { 
+            if (!audioCtx) { 
+                audioCtx = new AudioContext(); 
+            } 
+        }
+
+        function playNote(freq) {
+            if(!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine'; 
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+            osc.stop(audioCtx.currentTime + 1.5);
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) { 
+                color += letters[Math.floor(Math.random() * 16)]; 
+            }
+            return color;
+        }
+
+        function drawCircle(x, y, color) {
+            ctx.beginPath();
+            ctx.arc(x, y, Math.random() * 20 + 10, 0, Math.PI * 2); 
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function handleInteract(e) {
+            if (isPlaying) return; 
+            initAudio();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            
+            e.preventDefault();
+            let x, y;
+            
+            if(e.type === 'touchstart'){
+                x = e.touches[0].clientX;
+                y = e.touches[0].clientY;
+            } else {
+                x = e.clientX;
+                y = e.clientY;
+            }
+
+            const freq = scale[Math.floor(Math.random() * scale.length)];
+            const color = getRandomColor();
+            
+            // --- YENİ ZAMANLAMA MANTIĞI ---
+            const currentTime = performance.now(); // O anki zamanı milisaniye olarak al
+            let delay = 0;
+            
+            if (memory.length > 0) {
+                // Eğer ilk nota değilse, bir önceki tıklama ile arasındaki farkı bul
+                delay = currentTime - lastClickTime; 
+            }
+            lastClickTime = currentTime; // Son tıklama zamanını güncelle
+
+            drawCircle(x, y, color);
+            playNote(freq);
+            
+            // Notaları gecikme süresiyle (delay) birlikte hafızaya al
+            memory.push({x, y, freq, color, delay});
+        }
+
+        canvas.addEventListener('mousedown', handleInteract);
+        canvas.addEventListener('touchstart', handleInteract, {passive: false});
+
+        resetBtn.addEventListener('click', () => {
+            if(isPlaying) return;
+            memory = []; 
+            lastClickTime = 0; // Hafızayla birlikte zamanlayıcıyı da sıfırla
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
+        });
+
+        playBtn.addEventListener('click', () => {
+            if (memory.length === 0 || isPlaying) return;
+            initAudio();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            
+            isPlaying = true;
+            playBtn.disabled = true;
+            resetBtn.disabled = true;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            let i = 0;
+            function playNext() {
+                if (i >= memory.length) {
+                    isPlaying = false;
+                    playBtn.disabled = false;
+                    resetBtn.disabled = false;
+                    return;
+                }
+                
+                const note = memory[i];
+                drawCircle(note.x, note.y, note.color);
+                playNote(note.freq);
+                
+                i++;
+                if (i < memory.length) {
+                    // Bir sonraki notaya geçmeden önce, o notanın kaydedilen 'delay' süresi kadar bekle
+                    setTimeout(playNext, memory[i].delay);
+                } else {
+                    // Son nota çalındıktan sonra butonları serbest bırakmak için 1 saniye bekle
+                    setTimeout(playNext, 1000); 
+                }
+            }
+            
+            // İlk notayı hemen çal
+            playNext();
+        });
+    </script>
+</body>
+</html>

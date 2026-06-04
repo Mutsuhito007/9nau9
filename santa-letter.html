@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dear Santa...</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #ccc;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .app-wrapper {
+            width: 95%;
+            max-width: 400px;
+            height: 95%;
+            border: 3px solid #8a0303; /* Dark red for dark Santa */
+            border-radius: 10px;
+            background-color: #111;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 20px rgba(138, 3, 3, 0.3);
+            overflow: hidden;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #444;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        .header h2 {
+            font-size: 32px;
+            color: #FF3B30;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 59, 48, 0.4);
+        }
+        .header p {
+            font-family: 'Roboto', sans-serif;
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* Wishlist Area */
+        .wishlist-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        /* Custom Scrollbar */
+        .wishlist-container::-webkit-scrollbar { width: 6px; }
+        .wishlist-container::-webkit-scrollbar-track { background: #222; }
+        .wishlist-container::-webkit-scrollbar-thumb { background: #8a0303; border-radius: 3px; }
+
+        .wish-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: #1a1a1a;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .wish-item:hover {
+            background: #222;
+        }
+        .wish-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #FF3B30;
+            margin-top: 3px;
+            cursor: pointer;
+        }
+        .wish-label {
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            line-height: 1.4;
+            color: #ddd;
+            cursor: pointer;
+        }
+
+        /* Send Button */
+        .send-btn {
+            width: 100%;
+            background-color: #8a0303;
+            color: #FFD700;
+            border: 2px solid #FFD700;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .send-btn:active {
+            transform: scale(0.95);
+            background-color: #FFD700;
+            color: #8a0303;
+        }
+
+        /* Animation Container */
+        .animation-screen {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #111;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        /* CSS Envelope */
+        .envelope {
+            width: 160px;
+            height: 100px;
+            background-color: #ddd;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .envelope::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            border-left: 80px solid transparent;
+            border-right: 80px solid transparent;
+            border-top: 50px solid #ccc;
+            z-index: 3;
+        }
+        .envelope::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            border-left: 80px solid #eee;
+            border-right: 80px solid #eee;
+            border-bottom: 50px solid #f5f5f5;
+            z-index: 2;
+        }
+        .stamp {
+            position: absolute;
+            top: 10px; right: 10px;
+            width: 20px; height: 25px;
+            background: #8a0303;
+            z-index: 1;
+        }
+
+        /* Flying Animation */
+        .fly-away {
+            animation: flyToNorthPole 2s forwards cubic-bezier(0.5, 0, 0.5, 1);
+        }
+
+        @keyframes flyToNorthPole {
+            0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+            20% { transform: translateY(20px) scale(0.9) rotate(-5deg); } /* wind up */
+            100% { transform: translateY(-600px) translateX(200px) scale(0.2) rotate(45deg); opacity: 0; }
+        }
+
+        /* Final Message */
+        .final-msg {
+            display: none;
+            font-size: 32px;
+            color: #FF3B30;
+            text-align: center;
+            margin-top: 20px;
+            text-shadow: 0 0 10px rgba(255, 59, 48, 0.5);
+            animation: fadeIn 1s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <div id="formArea" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="header">
+                <h2>DEAR SANTA...</h2>
+                
+            </div>
+            
+            <div class="wishlist-container" id="wishlist">
+                </div>
+
+            <button class="send-btn" onclick="sendLetter()">SEND TO NORTH POLE</button>
+        </div>
+
+        <div class="animation-screen" id="animScreen">
+            <div class="envelope" id="envelopeObj">
+                <div class="stamp"></div>
+            </div>
+            <div class="final-msg" id="finalMsg">
+                REQUEST SENT.<br>
+                <span style="font-size: 16px; color:#888; font-family:'Roboto', sans-serif;">(Straight to the incinerator)</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const wishes = [
+            "A nuclear-powered smartphone",
+            "A gasoline-powered electric shaver",
+            "A time machine that only goes back 3 seconds",
+            "Bluetooth-enabled dental floss",
+            "A parachute made entirely of recycled toilet paper",
+            "A USB-C compatible pet hamster",
+            "A smart mirror that constantly criticizes my life choices",
+            "Diet water (Zero calories, zero hydration)",
+            "A premium subscription to an existential dread service",
+            "A Roomba that actively screams when it hits a wall",
+            "An alarm clock that whispers my regrets until I wake up",
+            "A Wi-Fi router powered exclusively by human tears",
+            "Self-tying shoelaces that occasionally tie both shoes together",
+            "A translation collar for my dog that just says 'I am hungry' in 40 languages",
+            "A highly detailed map of places I am not invited to",
+            "Flame-retardant matches",
+            "A smart fridge that locks itself when I am sad",
+            "Noise-canceling headphones that only cancel my own voice",
+            "A drone designed specifically to steal my neighbor's Wi-Fi password",
+            "A legally binding contract to sell my soul for a 5% discount at StarBugs"
+        ];
+
+        const wishlistContainer = document.getElementById('wishlist');
+
+        // Render checkboxes
+        wishes.forEach((wish, index) => {
+            const labelId = `wish_${index}`;
+            
+            const div = document.createElement('div');
+            div.className = 'wish-item';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = labelId;
+            
+            const label = document.createElement('label');
+            label.htmlFor = labelId;
+            label.className = 'wish-label';
+            label.innerText = wish;
+            
+            // Allow clicking the div to toggle checkbox
+            div.onclick = (e) => {
+                if (e.target !== checkbox && e.target !== label) {
+                    checkbox.checked = !checkbox.checked;
+                }
+            };
+
+            div.appendChild(checkbox);
+            div.appendChild(label);
+            wishlistContainer.appendChild(div);
+        });
+
+        function sendLetter() {
+            // Hide form, show animation screen
+            document.getElementById('formArea').style.display = 'none';
+            const animScreen = document.getElementById('animScreen');
+            animScreen.style.display = 'flex';
+
+            // Start flying animation
+            const envelope = document.getElementById('envelopeObj');
+            envelope.classList.add('fly-away');
+
+            // Wait for animation to finish, then show final message
+            setTimeout(() => {
+                envelope.style.display = 'none';
+                document.getElementById('finalMsg').style.display = 'block';
+            }, 2000); // 2 seconds matches the CSS animation duration
+        }
+    </script>
+</body>
+</html>

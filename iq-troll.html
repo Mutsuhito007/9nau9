@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IQ Yağmuru - Troll Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #111111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'VT323', monospace;
+        }
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 10px;
+            outline: 3px solid #FFD700;
+            outline-offset: -3px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+<script>
+    // --- 8-BIT SES ÜRETİCİSİ ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    function playRetroSound(type) {
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'good') {
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.1);
+        } else if (type === 'bad') {
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(250, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+            gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.2);
+        }
+    }
+
+    const config = {
+        type: Phaser.AUTO,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        backgroundColor: '#111111',
+        scale: {
+            mode: Phaser.Scale.RESIZE, 
+            autoCenter: Phaser.Scale.CENTER_BOTH
+        },
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 200 }, 
+                debug: false
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    const game = new Phaser.Game(config);
+
+    let player;
+    let items;
+    let cursors;
+    let iqScore = 100; 
+    const targetIQ = 200; 
+    let iqText;
+    let targetText;
+    let isGameOver = false;
+    let spawnTimer;
+
+    const goodItems = ['🐟', '🥦', '📚', '🧩']; 
+    const badItems = ['📺', '📱', '🍔', '🍟'];   
+
+    function preload() {}
+
+    function create() {
+        isGameOver = false;
+        iqScore = 100;
+
+        const width = this.sys.game.config.width;
+        const height = this.sys.game.config.height;
+
+        // Kahraman
+        player = this.add.text(width / 2, height - 60, '🧠', { fontSize: '46px' }).setOrigin(0.5);
+        this.physics.add.existing(player);
+        player.body.setCollideWorldBounds(true);
+        player.body.setSize(40, 40); 
+
+        // Düşen Nesneler Grubu
+        items = this.add.group();
+
+        // Çarpışma
+        this.physics.add.overlap(player, items, collectItem, null, this);
+
+        // Arayüz
+        iqText = this.add.text(10, 10, 'IQ: 100', { fontFamily: 'VT323', fontSize: '32px', fill: '#FFD700' });
+        targetText = this.add.text(10, 40, 'TARGET: 200', { fontFamily: 'VT323', fontSize: '20px', fill: '#888888' });
+
+        // Kontroller
+        cursors = this.input.keyboard.createCursorKeys();
+
+        // Yağmur Döngüsü
+        spawnTimer = this.time.addEvent({
+            delay: 800, 
+            callback: spawnItem,
+            callbackScope: this,
+            loop: true
+        });
+
+        // TAM EKRAN (RESIZE) DÜZELTMESİ
+        this.scale.on('resize', (gameSize) => {
+            const w = gameSize.width;
+            const h = gameSize.height;
+
+            // 1. Fizik dünyasının sınırlarını yeni ekrana göre büyüt/küçült
+            this.physics.world.setBounds(0, 0, w, h);
+
+            // 2. Oyuncunun (beynin) havada kalmasını önlemek için onu daima yeni ekranın altına it
+            if (player && !isGameOver) {
+                player.setY(h - 60);
+            }
+        });
+    }
+
+    function update() {
+        if (isGameOver) return;
+
+        // Hareket
+        if (cursors.left.isDown) {
+            player.body.setVelocityX(-350);
+        } else if (cursors.right.isDown) {
+            player.body.setVelocityX(350);
+        } else {
+            player.body.setVelocityX(0);
+        }
+
+        // Mobil/Mouse
+        if (this.input.activePointer.isDown) {
+            if (this.input.activePointer.x < player.x - 15) {
+                player.body.setVelocityX(-350);
+            } else if (this.input.activePointer.x > player.x + 15) {
+                player.body.setVelocityX(350);
+            }
+        }
+    }
+
+    function spawnItem() {
+        if (isGameOver) return;
+
+        const width = this.sys.game.config.width;
+        const x = Phaser.Math.Between(30, width - 30);
+        
+        const isGood = Math.random() > 0.5;
+        const char = isGood ? Phaser.Utils.Array.GetRandom(goodItems) : Phaser.Utils.Array.GetRandom(badItems);
+
+        let item = this.add.text(x, 0, char, { fontSize: '36px' }).setOrigin(0.5);
+        this.physics.add.existing(item);
+        item.body.setSize(32, 32); 
+        
+        item.iqValue = isGood ? Phaser.Math.Between(10, 20) : Phaser.Math.Between(-15, -30);
+        
+        item.body.setBounceY(Phaser.Math.FloatBetween(0.3, 0.6));
+        items.add(item);
+    }
+
+    function collectItem(player, item) {
+        if (isGameOver) return;
+
+        iqScore += item.iqValue;
+        
+        if(item.iqValue > 0) {
+            playRetroSound('good'); 
+            iqText.setFill('#4CD964'); 
+        } else {
+            playRetroSound('bad');  
+            iqText.setFill('#FF3B30'); 
+        }
+
+        item.destroy();
+
+        let currentDelay = 800 - ((iqScore - 100) * 4); 
+        if (currentDelay < 250) currentDelay = 250; 
+        spawnTimer.delay = currentDelay;
+
+        iqText.setText('IQ: ' + iqScore);
+        
+        this.time.delayedCall(150, () => { if(!isGameOver) iqText.setFill('#FFD700'); });
+
+        if (iqScore >= targetIQ) {
+            gameOver(this, 'ENLIGHTENED!\nYOU REACHED 200 IQ', '#4CD964');
+        } else if (iqScore <= 0) {
+            iqScore = 0;
+            iqText.setText('IQ: 0');
+            gameOver(this, 'BRAIN FRIED.\nIQ DROPPED TO 0', '#FF3B30');
+        }
+    }
+
+    function gameOver(scene, message, color) {
+        isGameOver = true;
+        player.body.setVelocityX(0);
+        player.setAlpha(0.5); 
+        spawnTimer.remove();
+
+        const width = scene.sys.game.config.width;
+        const height = scene.sys.game.config.height;
+
+        const bg = scene.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.85);
+        
+        scene.add.text(width / 2, height * 0.4, message, { 
+            fontFamily: 'VT323', 
+            fontSize: '40px', 
+            fill: color,
+            align: 'center' 
+        }).setOrigin(0.5);
+
+        const restartBtn = scene.add.text(width / 2, height * 0.6, '[ TAP TO RETRY ]', { 
+            fontFamily: 'VT323', 
+            fontSize: '28px', 
+            fill: '#FFFFFF' 
+        }).setOrigin(0.5).setInteractive();
+
+        restartBtn.on('pointerover', () => restartBtn.setFill('#FFD700'));
+        restartBtn.on('pointerout', () => restartBtn.setFill('#FFFFFF'));
+        
+        restartBtn.on('pointerdown', () => {
+            scene.scene.restart();
+        });
+    }
+</script>
+
+</body>
+</html>

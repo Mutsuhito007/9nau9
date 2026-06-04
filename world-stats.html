@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Global Metrics Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+        }
+        .app-wrapper {
+            width: 95%;
+            max-width: 400px;
+            height: 95%;
+            border: 3px solid #333;
+            border-radius: 10px;
+            background-color: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.9);
+        }
+        
+        .header {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px dashed #444;
+            background: #111;
+            border-radius: 10px 10px 0 0;
+            flex-shrink: 0;
+        }
+        .header h2 {
+            font-size: 26px;
+            color: #FFD700;
+            letter-spacing: 2px;
+        }
+        
+        /* Sayaç Alanı */
+        .timer-box {
+            margin-top: 10px;
+            background: #222;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #FF3B30;
+            display: inline-block;
+        }
+        .timer-text {
+            font-family: 'Roboto', sans-serif;
+            font-size: 12px;
+            color: #888;
+        }
+        .timer-value {
+            font-size: 22px;
+            color: #FF3B30;
+            animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.8; text-shadow: 0 0 5px #FF3B30; }
+            100% { opacity: 1; text-shadow: 0 0 15px #FF3B30; }
+        }
+
+        /* Liste Alanı (Kaydırılabilir) */
+        .stats-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        /* Scrollbar Ayarları */
+        .stats-container::-webkit-scrollbar { width: 6px; }
+        .stats-container::-webkit-scrollbar-track { background: #050505; }
+        .stats-container::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+
+        /* Metrik Satırları */
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            background-color: #151515;
+            border-left: 3px solid #FFD700;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        
+        .stat-item.negative { border-color: #FF3B30; }
+        .stat-item.positive { border-color: #4CD964; }
+        .stat-item.neutral { border-color: #007AFF; }
+
+        .stat-label {
+            font-family: 'Roboto', sans-serif;
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+        
+        .stat-value {
+            font-size: 26px;
+            color: #fff;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <div class="header">
+            
+            <div class="timer-box">
+                <div class="timer-text">CYCLE RESETS IN:</div>
+                <div class="timer-value" id="countdownTimer">24:00:00</div>
+            </div>
+        </div>
+
+        <div class="stats-container" id="statsContainer">
+            <!-- JavaScript ile veriler buraya dolacak -->
+        </div>
+    </div>
+
+    <script>
+        // Saniyede artış miktarları (Global yaklaşık istatistiklere dayanır)
+        const metrics = [
+            { id: 'births', label: 'Humans Born', rate: 4.3, type: 'positive' },
+            { id: 'deaths', label: 'Humans Died', rate: 1.9, type: 'negative' },
+            { id: 'co2', label: 'CO2 Emitted (Tons)', rate: 1150, type: 'negative' },
+            { id: 'water', label: 'Water Consumed (Liters)', rate: 140000, type: 'neutral' },
+            { id: 'food', label: 'Food Wasted (Tons)', rate: 41, type: 'negative' },
+            { id: 'trees', label: 'Trees Cut Down', rate: 475, type: 'negative' },
+            { id: 'oil', label: 'Oil Pumped (Barrels)', rate: 1100, type: 'negative' },
+            { id: 'plastic', label: 'Plastic Bags Used', rate: 160000, type: 'negative' },
+            { id: 'emails', label: 'Emails Sent', rate: 3200000, type: 'neutral' },
+            { id: 'google', label: 'Google Searches', rate: 95000, type: 'neutral' },
+            { id: 'youtube', label: 'YouTube Hours Watched', rate: 11500, type: 'neutral' },
+            { id: 'cigarettes', label: 'Cigarettes Smoked', rate: 175000, type: 'negative' },
+            { id: 'coffee', label: 'Coffee Consumed (kg)', rate: 310, type: 'neutral' },
+            { id: 'gaming', label: 'Dollars Spent on Games', rate: 5200, type: 'positive' },
+            { id: 'phones', label: 'Smartphones Sold', rate: 48, type: 'neutral' },
+            { id: 'cyber', label: 'Cyber Attacks Attempted', rate: 112, type: 'negative' },
+            { id: 'ice', label: 'Glacier Ice Melted (Tons)', rate: 24000, type: 'negative' },
+            { id: 'whatsapp', label: 'Messages Sent', rate: 2500000, type: 'neutral' },
+            { id: 'tacos', label: 'Tacos Eaten', rate: 142, type: 'positive' },
+            { id: 'lies', label: 'Lies Told on the Internet', rate: 450000, type: 'negative' } // 9nau9 troll dokunuşu
+        ];
+
+        const CYCLE_DURATION = 24 * 60 * 60 * 1000; // 24 Saat (Milisaniye)
+        const statsContainer = document.getElementById('statsContainer');
+        const countdownTimer = document.getElementById('countdownTimer');
+
+        // DOM Elementlerini oluştur
+        const statElements = {};
+        metrics.forEach(metric => {
+            const div = document.createElement('div');
+            div.className = `stat-item ${metric.type}`;
+            
+            div.innerHTML = `
+                <div class="stat-label">${metric.label}</div>
+                <div class="stat-value" id="val_${metric.id}">0</div>
+            `;
+            statsContainer.appendChild(div);
+            statElements[metric.id] = document.getElementById(`val_${metric.id}`);
+        });
+
+        // LocalStorage Kontrolü ve Başlangıç Zamanı
+        let startTime = localStorage.getItem('earth_metrics_start');
+        
+        // Eğer kayıt yoksa veya 24 saat geçmişse döngüyü sıfırla
+        if (!startTime || Date.now() - startTime >= CYCLE_DURATION) {
+            startTime = Date.now();
+            localStorage.setItem('earth_metrics_start', startTime);
+        } else {
+            startTime = parseInt(startTime);
+        }
+
+        function updateDashboard() {
+            const now = Date.now();
+            let elapsedMillis = now - startTime;
+
+            // Eğer süre dolmuşsa sıfırla
+            if (elapsedMillis >= CYCLE_DURATION) {
+                startTime = Date.now();
+                localStorage.setItem('earth_metrics_start', startTime);
+                elapsedMillis = 0;
+            }
+
+            const elapsedSeconds = elapsedMillis / 1000;
+            const remainingMillis = CYCLE_DURATION - elapsedMillis;
+
+            // Geri Sayımı Güncelle
+            const hours = Math.floor(remainingMillis / (1000 * 60 * 60));
+            const minutes = Math.floor((remainingMillis % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((remainingMillis % (1000 * 60)) / 1000);
+            
+            countdownTimer.innerText = 
+                String(hours).padStart(2, '0') + ':' + 
+                String(minutes).padStart(2, '0') + ':' + 
+                String(seconds).padStart(2, '0');
+
+            // Değerleri Güncelle
+            metrics.forEach(metric => {
+                const currentValue = Math.floor(elapsedSeconds * metric.rate);
+                statElements[metric.id].innerText = currentValue.toLocaleString('en-US');
+            });
+        }
+
+        // Saniyede 10 kere (100ms) yenileyerek sayıların akıcı bir şekilde dönmesini sağla
+        setInterval(updateDashboard, 100);
+        updateDashboard(); // İlk yüklemede boş kalmaması için tetikle
+
+    </script>
+</body>
+</html>

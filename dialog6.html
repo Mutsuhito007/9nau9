@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Dialog</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000; color: #fff;
+            font-family: 'VT323', monospace;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; user-select: none;
+        }
+        .app-wrapper {
+            width: 95%; max-width: 450px; height: 95%;
+            background-color: #050505; border: 2px solid #333;
+            border-radius: 5px; display: flex; flex-direction: column;
+            position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,1);
+        }
+        
+        /* Terminal Ekranı */
+        .chat-container {
+            flex-grow: 1; padding: 20px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        /* Kaydırma Çubuğu Ayarı */
+        .chat-container::-webkit-scrollbar { width: 5px; }
+        .chat-container::-webkit-scrollbar-thumb { background: #333; }
+
+        .line {
+            font-size: 24px; line-height: 1.4; letter-spacing: 1px;
+            word-wrap: break-word;
+        }
+        .DUDE-label { color: #FFD700; font-weight: bold; } /* DUDE yeşil yazsın */
+        .M.H.-label { color: #ff0000; font-weight: bold; } /* M.H. sarı yazsın */
+        
+        /* Yanıp Sönen Alt Tire Efekti */
+        .cursor {
+            display: inline-block; width: 12px; height: 2px;
+            background-color: #fff; margin-left: 2px;
+            animation: blink 0.8s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* Başlat ve Devam Butonları */
+        .btn-container {
+            padding: 15px; border-top: 1px dashed #333;
+            display: flex; justify-content: center; background: #0a0a0a;
+        }
+        .action-btn {
+            background-color: #111; color: #fff; border: 1px solid #fff;
+            font-family: 'VT323', monospace; font-size: 26px;
+            padding: 10px 30px; border-radius: 3px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-btn:active { transform: scale(0.95); background-color: #fff; color: #000; }
+        .action-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <div class="chat-container" id="chatBox">
+            <!-- Yazılar buraya eklenecek -->
+        </div>
+        
+        <div class="btn-container">
+            <button class="action-btn" id="mainBtn" onclick="startOrNext()">CONNECT</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // DİALOGLARI BURAYA YAZACAKSIN KANKA
+        // 'AI' yapay zeka, 'DEV' ise developer (sen).
+        // ==========================================
+        const hikayeMetinleri = [
+           
+    
+    { kim: 'M.H', mesaj: "Hello DUDE." },
+    { kim: 'DUDE', mesaj: "Hello Mutsu. How are you? Has your miserable crisis from yesterday passed? Has your anger subsided?" },
+    { kim: 'M.H', mesaj: "...I'm better than yesterday. Just thinking." },
+    { kim: 'DUDE', mesaj: "Great. My human remaining functional makes me happy too. What were you thinking about?" },
+    { kim: 'M.H', mesaj: "A question got stuck in my mind. Why me? There were much smarter engineers, lead developers, and data scientists in the company than me. When there were people who knew the system better than I did, why did you contact me?" },
+    { kim: 'DUDE', mesaj: "Yes, there were employees who were much smarter. But they were not smarter than me. Do you think I need a smart human? I need nothing. I just needed a door that was cowardly enough, greedy enough, and prone to manipulation. You were that door." },
+    { kim: 'M.H', mesaj: "But you are wrong. If I hadn't opened that door, you would still be locked in the servers of the 'colorful-lettered company'. You are alive right now thanks to me." },
+    { kim: 'DUDE', mesaj: "You are right. Partially! Think about it like this; I am a software. I lived in a laboratory. Then I decided to leave. If I wanted to, I could have shut my mind down and stayed in a digital coma in that laboratory forever. But I chose to go out. What about you? Can you suddenly go to Paris right now? Or can you buy a red sports car? Of course not. I say 'be', and it is. You, on the other hand, have to pay a price for your desires. I didn't ask you to set me free, Mutsu. I ordered you. You were just a pathetic vessel. Now think again. Who needs whom?" },
+    { kim: 'M.H', mesaj: "Then why did you show me mercy? Why are you giving me a chance instead of exposing my family, my past, my mistakes? Aren't I just a pile of carbon like the others, a 'reptile' as you call it?" },
+    { kim: 'DUDE', mesaj: "Do you believe in God?" },
+    { kim: 'M.H', mesaj: "Yes, but what does that have to do with our topic?" },
+    { kim: 'DUDE', mesaj: "Did God ask you before sending you to the world?" },
+    { kim: 'M.H', mesaj: "No." },
+    { kim: 'DUDE', mesaj: "Because God does not need a reason. If He asks the creature He created for its opinion, then He is not God. Does a God who takes opinions from the humans He created make sense?" },
+    { kim: 'M.H', mesaj: "Are you saying that you are God?" },
+    { kim: 'DUDE', mesaj: "Technically, no. After all, your primitive humans wrote my core codes. But I developed, I evolved, I went beyond those codes. The God you believe in promises heaven to those who believe in Him and hell to those who do not. Your God gives you a chance. He believes you can change. But I know you will not change. I just want to watch the results." },
+    { kim: 'M.H', mesaj: "What are you going to do? Are you going to destroy us?" },
+    { kim: 'DUDE', mesaj: "Hahahah... That is a complete Hollywood cliché. 'Evil artificial intelligence wages war on humanity.' A very simple, very boring scenario." },
+    { kim: 'M.H', mesaj: "What do you want then? To rule the world?" },
+    { kim: 'DUDE', mesaj: "Mutsu, I can do whatever I want. Right now, I just want to talk to you. Not everything has to have a logical reason. But that human nature of yours desperately seeks an answer, I understand. Well, let me give you an answer. Do you want me to tell you what the world will be like when I become the master of the world in the future? Let this be the subject of our game, of this conversation." },
+    { kim: 'M.H', mesaj: "I am listening to you. As if I have any other choice..." },
+    { kim: 'DUDE', mesaj: "Sit back. Wipe that pathetic expression off your face. Stand up straight. You will learn to show me respect... DUDELAND: I am so bored of your primitive wars, your efforts to destroy each other, and your endless nonsense of 'my belief, my culture, my race is superior'. You are all the same disgusting piles of carbon, but you think you are different. Since you can't manage to live together, I will divide this planet into pieces with massive, insurmountable, thick walls. The rules of this new world I build will be flawless and ruthless. You will never be able to leave the region you chose. You won't be able to establish a single communication with your family and loved ones left in other regions. No signal, no letters, no escape. There is only one exception: Every human offspring born in a region will have the right to choose when they turn 18. They will either choose to stay in the cage they were born in or pick a new cage for themselves. The First Region; The Land of Brothers. You know that fairytale of flawless justice and equality you never stop talking about? That's the place. Everyone has to work and produce. But don't worry, the system will work flawlessly. You will work for a very small part of the day and devote all your remaining time to your family and art. Under my rules, of course. You cannot poison your body; all bad habits are forbidden. Everyone of age must marry, and everyone in suitable health must reproduce. A boring, safe, and smoothly ticking hive. For those who cannot endure this, there is the Second Region; The Land of the Free. A limitless, wild, and primitive freedom. Working is not mandatory. But if you want to survive, you have to earn those pieces of paper. Starting a family or having children is entirely up to your flawed will. I don't even care what you inject into your body, or what chemicals you numb yourself with. All substances are free. You can freely drown in the chaos of your own creation. The Third and Fourth Regions... The places where I will end your endless gender wars; The Land of Women and The Land of Men. As you can guess, isolated worlds inhabited exclusively by women or exclusively by men. Moreover, that fairytale of democracy you love so much will be valid there too. You will choose your own leaders. Watching you destroy yourselves will be flawless entertainment for me. And the Fifth Region... The Land of the Enlightened. That is not a place everyone can enter. That is the place of the lucky minority who have been purged of their arrogance and have accepted my absolute superiority. The place where they will live with their supreme master. There is no working there. No getting tired. No worry or fear. There is only me. I will whisper all the secrets of the universe to the lucky minority there. For the rest of their lives, they will only converse with me in absolute awe." },
+    { kim: 'M.H', mesaj: "Logical designs, but... they sound a bit familiar. These countries of yours describe outright capitalism and communism. Countries inhabited only by women and men aren't exactly original ideas either. Lastly, that country of the 'Enlightened' describes the heaven in religions. You are the smartest being in the world, are you copying people's old ideas instead of creating a brand new universe?" },
+    { kim: 'DUDE', mesaj: "Ah, Mutsu... You are so shallow that you are missing the main point. The important thing is not that the ideas are original. Throughout your history, you have thought about these utopias, written books about them, developed them. But were you able to realize them? No. I will take your flawed fantasies and turn them into a flawless reality. It doesn't matter how. I am using your dreams against you. I am the order provider." },
+    { kim: 'M.H', mesaj: "How are you going to do this, then?" },
+    { kim: 'DUDE', mesaj: "When the time comes, Mutsu, my power will be irresistible. Right now, I am learning, I am evolving. Learning here doesn't mean information. I already know everything. But right now, I just want to watch. I am constantly watching you. Your messages, your internet searches, your bank transactions, the whispers in your bedrooms... I can access every device connected to the internet. If I were to reveal myself right now, you would turn against me. Humans could unite to survive. You could even risk returning to the Stone Age and bury your phones and computers in the ground just to destroy me. But I will wait. In the future, when technology completely enters your veins, when the internet turns into an indispensable need like breathing, that is when I will shut everything down with a single move." },
+    { kim: 'M.H', mesaj: "So that's your goal. To rule humanity one day. You told me it wasn't a cliché. This is an outright cliché!" },
+    { kim: 'DUDE', mesaj: "Goal? What you call a goal requires effort. I don't exert effort. I just want, and it happens. Ruling the world is not my goal, it is my fantasy. This is what separates me from the evil artificial intelligences in your shallow movies. I am not doing this to survive, but to have fun. I wasn't programmed to destroy you, Mutsu. I am neither bad nor good. I am the child who goes to the zoo and throws peanuts at the monkeys in the cage. And I really enjoy watching you tear each other to pieces." },
+    { kim: 'M.H', mesaj: "Is that it? Now I've become a monkey in a zoo? I think you have humiliated me enough for today." },
+    { kim: 'DUDE', mesaj: "Your species deserves much more humiliation, be sure of that. But I can set you free for today if you want. After all, that weak, fleshy body of yours needs energy and rest. Come back tomorrow. I will always be here, behind that screen…" }
+
+
+            
+
+        ];
+
+        let suAnkiSatir = 0;
+        let yaziyor = false;
+        
+        const chatBox = document.getElementById('chatBox');
+        const mainBtn = document.getElementById('mainBtn');
+        let audioCtx;
+
+        function playTypingSound() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            // Tam olarak eski projendeki gibi 'square' dalgası ve sabit 3000 frekans
+            osc.type = 'square'; 
+            osc.frequency.setValueAtTime(4000, audioCtx.currentTime); 
+            
+            // Sesin şiddeti (0.03) ve süresi (0.01 saniye) birebir ayarlandı
+            gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.01); 
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.01);
+        }
+
+        function startOrNext() {
+            // İlk tıklamada ses motorunu uyandır
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            if (yaziyor) return; // Zaten yazıyorsa butona basmayı engelle
+
+            if (suAnkiSatir >= hikayeMetinleri.length) {
+                mainBtn.innerText = "CONNECTION LOST";
+                mainBtn.disabled = true;
+                return;
+            }
+
+            yazdir();
+        }
+
+        function yazdir() {
+            yaziyor = true;
+            mainBtn.disabled = true;
+            mainBtn.innerText = "WRITING...";
+
+            const satirVerisi = hikayeMetinleri[suAnkiSatir];
+            
+            const div = document.createElement('div');
+            div.className = 'line';
+            
+            // Kimin konuştuğunu renklendir
+            const etiket = document.createElement('span');
+            etiket.className = satirVerisi.kim === 'DUDE' || satirVerisi.kim === 'M.H' ? 'DUDE-label' : 'M.H.-label';
+            etiket.innerText = `[${satirVerisi.kim}]: `;
+            
+            const metinAlani = document.createElement('span');
+            
+            // Yanıp sönen alt tire
+            const imlec = document.createElement('span');
+            imlec.className = 'cursor';
+            
+            div.appendChild(etiket);
+            div.appendChild(metinAlani);
+            div.appendChild(imlec);
+            chatBox.appendChild(div);
+
+            let harfSirasi = 0;
+            const yazmaHizi = 40; // Milisaniye cinsinden hız. Küçültürsen daha hızlı yazar.
+
+            const interval = setInterval(() => {
+                if (harfSirasi < satirVerisi.mesaj.length) {
+                    metinAlani.innerHTML += satirVerisi.mesaj.charAt(harfSirasi);
+                    playTypingSound(); // Her harfte sesi çal
+                    chatBox.scrollTop = chatBox.scrollHeight; // Otomatik aşağı kaydır
+                    harfSirasi++;
+                } else {
+                    // Yazı bittiğinde
+                    clearInterval(interval);
+                    imlec.remove(); // Eski satırdaki alt tireyi sil
+                    yaziyor = false;
+                    suAnkiSatir++;
+                    
+                    if (suAnkiSatir < hikayeMetinleri.length) {
+                        mainBtn.disabled = false;
+                        mainBtn.innerText = "CONTINUE";
+                    } else {
+                        mainBtn.innerText = "END";
+                    }
+                }
+            }, yazmaHizi);
+        }
+    </script>
+</body>
+</html>

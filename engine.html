@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4-Stroke Engine</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0a0a0a;
+            color: #FFD700;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Motor Bloğu Tasarımı */
+        .engine-block {
+            position: relative;
+            width: 160px;
+            height: 250px;
+            border: 4px solid #555;
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+            background: linear-gradient(to bottom, #1a1a1a, #111);
+            margin-bottom: 90px;
+        }
+
+        /* Valfler (Emme ve Egzoz) */
+        .valve {
+            position: absolute;
+            top: -10px;
+            width: 30px;
+            height: 10px;
+            background-color: #888;
+            border-radius: 5px;
+            transition: transform 0.3s ease;
+        }
+
+        .valve.intake { left: 20px; }
+        .valve.exhaust { right: 20px; }
+        .valve.open { transform: translateY(15px); }
+
+        /* Buji ve Kıvılcım */
+        .spark-plug {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 30px;
+            background-color: #ddd;
+            border-radius: 5px;
+        }
+
+        .spark {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 30px;
+            background-color: #ff3300;
+            border-radius: 50%;
+            box-shadow: 0 0 20px 10px #ff9900;
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+        .spark.active { opacity: 1; }
+
+        /* Piston ve Biyel Kolu */
+        .piston {
+            position: absolute;
+            bottom: 20px;
+            left: 10px;
+            width: 140px;
+            height: 80px;
+            background-color: #FFD700;
+            border-radius: 10px 10px 0 0;
+            /* JS tarafında hız değiştirileceği için transition-duration burada yok */
+            transition-property: bottom; 
+            transition-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        .connecting-rod {
+            position: absolute;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 100px;
+            background-color: #aaa;
+        }
+
+        /* Alt Bilgi Paneli */
+        .info-panel {
+            text-align: center;
+            height: 120px;
+            padding: 0 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        p {
+            font-size: 16px;
+            color: #ccc;
+            margin: 0;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="engine-block">
+            <div class="valve intake" id="intake-valve"></div>
+            <div class="spark-plug"></div>
+            <div class="spark" id="spark"></div>
+            <div class="valve exhaust" id="exhaust-valve"></div>
+            
+            <div class="piston" id="piston">
+                <div class="connecting-rod"></div>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <h1 id="stroke-name">ENGINE STANDBY</h1>
+            <p id="stroke-desc">Initializing mechanical sequences...</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elementlerini Seçiyoruz
+        const piston = document.getElementById('piston');
+        const spark = document.getElementById('spark');
+        const intakeValve = document.getElementById('intake-valve');
+        const exhaustValve = document.getElementById('exhaust-valve');
+        const strokeName = document.getElementById('stroke-name');
+        const strokeDesc = document.getElementById('stroke-desc');
+
+        // 4 Zamanlı Motor Evreleri (İngilizce Metinler)
+        const strokes = [
+            {
+                name: "1. INTAKE STROKE",
+                desc: "The intake valve opens. The piston moves down, pulling a mixture of fuel and air into the cylinder.",
+                pistonBottom: "20px",
+                intakeOpen: true,
+                exhaustOpen: false,
+                sparkActive: false,
+                speed: 2000 // Normal hız
+            },
+            {
+                name: "2. COMPRESSION STROKE",
+                desc: "Both valves close. The piston moves up, tightly compressing the fuel and air mixture.",
+                pistonBottom: "140px",
+                intakeOpen: false,
+                exhaustOpen: false,
+                sparkActive: false,
+                speed: 2000 // Normal hız
+            },
+            {
+                name: "3. POWER STROKE",
+                desc: "The spark plug fires! The explosion forces the piston down rapidly, generating power.",
+                pistonBottom: "20px",
+                intakeOpen: false,
+                exhaustOpen: false,
+                sparkActive: true,
+                speed: 600 // Patlama olduğu için piston çok daha hızlı aşağı iniyor
+            },
+            {
+                name: "4. EXHAUST STROKE",
+                desc: "The exhaust valve opens. The piston moves back up, pushing the burned gases out of the cylinder.",
+                pistonBottom: "140px",
+                intakeOpen: false,
+                exhaustOpen: true,
+                sparkActive: false,
+                speed: 2000 // Normal hız
+            }
+        ];
+
+        let currentStroke = 0;
+
+        // Motor Döngüsünü Çalıştıran Fonksiyon
+        function runEngine() {
+            const stroke = strokes[currentStroke];
+            
+            // Metinleri Güncelle
+            strokeName.innerText = stroke.name;
+            strokeDesc.innerText = stroke.desc;
+
+            // Animasyon hızını o evreye göre ayarla (Patlama evresi daha hızlı)
+            piston.style.transitionDuration = stroke.speed + 'ms';
+
+            // Pistonu hareket ettir
+            piston.style.bottom = stroke.pistonBottom;
+            
+            // Valfleri aç/kapat
+            if (stroke.intakeOpen) intakeValve.classList.add('open');
+            else intakeValve.classList.remove('open');
+
+            if (stroke.exhaustOpen) exhaustValve.classList.add('open');
+            else exhaustValve.classList.remove('open');
+
+            // Buji ateşlemesi (Sadece Power stroke'ta)
+            if (stroke.sparkActive) {
+                setTimeout(() => spark.classList.add('active'), 50);
+                setTimeout(() => spark.classList.remove('active'), 250);
+            }
+
+            // Bir sonraki evreye geçmek için zamanlayıcı (Mevcut hız + kısa bir bekleme süresi)
+            setTimeout(() => {
+                currentStroke = (currentStroke + 1) % 4;
+                runEngine();
+            }, stroke.speed + 300);
+        }
+
+        // Sayfa yüklendikten 1 saniye sonra motoru başlat
+        setTimeout(runEngine, 1000);
+    </script>
+</body>
+</html>

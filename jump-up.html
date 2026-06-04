@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ascend</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            touch-action: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .app-wrapper {
+            width: 90%;
+            max-width: 380px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            position: relative;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            font-size: 24px;
+            color: #fff;
+            text-shadow: 0 0 5px #000;
+        }
+        #scoreDisplay { color: #4CD964; }
+        #highScoreDisplay { color: #FFD700; }
+
+        .message-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 20;
+        }
+        .message-screen h2 {
+            font-size: 40px;
+            color: #FF3B30;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 59, 48, 0.5);
+        }
+        .message-screen p {
+            font-size: 22px;
+            color: #ccc;
+            animation: blink 1s infinite alternate;
+        }
+        @keyframes blink {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background-color: #111;
+        }
+        
+        .app-wrapper::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 5;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div id="ui-layer">
+            <div class="score-container">
+                <div id="scoreDisplay">SCORE: 0</div>
+                <div id="highScoreDisplay">HI: 0</div>
+            </div>
+        </div>
+
+        <div id="startScreen" class="message-screen">
+            <h2 style="color:#FFD700;">ASCEND</h2>
+            <p>TAP TO JUMP</p>
+        </div>
+
+        <div id="gameOverScreen" class="message-screen" style="display: none;">
+            <h2>CRUSHED</h2>
+            <p>TAP TO RETRY</p>
+        </div>
+
+        <canvas id="gameCanvas" width="340" height="450"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const highScoreDisplay = document.getElementById('highScoreDisplay');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+
+        let audioCtx;
+        
+        let state = 'start'; 
+        let score = 0;
+        let highScore = localStorage.getItem('9nau9_jump_hi') || 0;
+        highScoreDisplay.innerText = "HI: " + highScore;
+
+        const ballRadius = 10;
+        const startY = canvas.height - 20 - ballRadius;
+        const platformSpacing = 90;
+        
+        let ball = { x: canvas.width / 2, y: startY };
+        let platforms = [];
+        let shiftedTotal = 0;
+
+        function playSound(type) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            if (type === 'jump') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'score') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'crash') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        function spawnPlatform(yPos) {
+            let gap = Math.max(40, 95 - (score * 2)); 
+            let spd = 2 + (score * 0.25) + (Math.random() * 0.5); 
+            // Sonsuz döngü sayesinde artık kapı tam köşelerden bile doğabilir
+            let gx = Math.random() * canvas.width;
+            let dir = Math.random() > 0.5 ? 1 : -1;
+
+            platforms.push({
+                y: yPos,
+                height: 20,
+                gapX: gx,
+                gapWidth: gap,
+                speed: spd,
+                dir: dir
+            });
+        }
+
+        function initPlatforms() {
+            platforms = [];
+            for (let i = 0; i < 5; i++) {
+                spawnPlatform(startY - (i + 1) * platformSpacing);
+            }
+        }
+
+        function resetGame() {
+            score = 0;
+            scoreDisplay.innerText = "SCORE: " + score;
+            ball.y = startY;
+            initPlatforms();
+            state = 'playing';
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+        }
+
+        function gameOver() {
+            playSound('crash');
+            state = 'gameover';
+            gameOverScreen.style.display = 'flex';
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('9nau9_jump_hi', highScore);
+                highScoreDisplay.innerText = "HI: " + highScore;
+            }
+        }
+
+        window.addEventListener('pointerdown', () => {
+            if (state === 'start' || state === 'gameover') {
+                resetGame();
+            } else if (state === 'playing') {
+                playSound('jump');
+                state = 'jumping';
+            }
+        });
+
+        function update() {
+            if (state === 'playing') {
+                for (let p of platforms) {
+                    p.gapX += p.speed * p.dir;
+                    
+                    // YENİ MATEMATİK: Ekrandan çıkan kısmı diğer tarafa bağla
+                    p.gapX = p.gapX % canvas.width;
+                    if (p.gapX < 0) p.gapX += canvas.width;
+                }
+            } 
+            else if (state === 'jumping') {
+                ball.y -= 15; 
+
+                let p = platforms[0]; 
+                let pTop = p.y;
+                let pBot = p.y + p.height;
+
+                if (ball.y - ballRadius < pBot && ball.y + ballRadius > pTop) {
+                    let ballLeft = ball.x - ballRadius;
+                    let ballRight = ball.x + ballRadius;
+                    let endX = p.gapX + p.gapWidth;
+                    let isSafe = false;
+
+                    // YENİ ÇARPIŞMA: Kapı bölünmüş (ekranın iki ucunda) ise iki parçayı da kontrol et
+                    if (endX <= canvas.width) {
+                        if (ballLeft >= p.gapX && ballRight <= endX) isSafe = true;
+                    } else {
+                        let wrappedEnd = endX - canvas.width;
+                        if (ballLeft >= p.gapX || ballRight <= wrappedEnd) isSafe = true;
+                    }
+
+                    if (!isSafe) {
+                        ball.y = pBot + ballRadius; 
+                        gameOver();
+                    }
+                } 
+                else if (ball.y + ballRadius <= pTop) {
+                    score++;
+                    scoreDisplay.innerText = "SCORE: " + score;
+                    playSound('score');
+                    state = 'shifting';
+                    shiftedTotal = 0;
+                }
+            }
+            else if (state === 'shifting') {
+                let shiftStep = 10;
+                for (let p of platforms) p.y += shiftStep;
+                shiftedTotal += shiftStep;
+
+                ball.y += (startY - ball.y) * 0.3; 
+
+                if (shiftedTotal >= platformSpacing) {
+                    let diff = shiftedTotal - platformSpacing;
+                    for (let p of platforms) p.y -= diff; 
+
+                    platforms.shift(); 
+                    let topY = platforms[platforms.length - 1].y - platformSpacing;
+                    spawnPlatform(topY);
+
+                    ball.y = startY; 
+                    state = 'playing';
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Zemin
+            ctx.fillStyle = '#222';
+            ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+            ctx.fillStyle = '#444';
+            ctx.fillRect(canvas.width/2 - 20, canvas.height - 20, 40, 5);
+
+            // YENİ ÇİZİM SİSTEMİ: Bölünen Engeller
+            ctx.fillStyle = '#fff';
+            for (let p of platforms) {
+                let endX = p.gapX + p.gapWidth;
+                
+                if (endX <= canvas.width) {
+                    // Kapı bölünmemişse klasik çizim
+                    ctx.fillRect(0, p.y, p.gapX, p.height);
+                    ctx.fillRect(endX, p.y, canvas.width - endX, p.height);
+                    
+                    ctx.fillStyle = 'rgba(255, 59, 48, 0.3)';
+                    ctx.fillRect(p.gapX, p.y + p.height, p.gapWidth, 2);
+                    ctx.fillStyle = '#fff'; 
+                } else {
+                    // Kapı ekranın iki ucuna bölünmüşse ortadaki katı duvarı çiz
+                    let wrappedEnd = endX - canvas.width;
+                    ctx.fillRect(wrappedEnd, p.y, p.gapX - wrappedEnd, p.height);
+                    
+                    ctx.fillStyle = 'rgba(255, 59, 48, 0.3)';
+                    ctx.fillRect(p.gapX, p.y + p.height, canvas.width - p.gapX, 2);
+                    ctx.fillRect(0, p.y + p.height, wrappedEnd, 2);
+                    ctx.fillStyle = '#fff';
+                }
+            }
+
+            // Top
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFD700';
+            ctx.fill();
+            ctx.closePath();
+
+            // Zıplama İzi
+            if (state === 'jumping' || state === 'shifting') {
+                ctx.beginPath();
+                ctx.moveTo(ball.x, ball.y + ballRadius);
+                ctx.lineTo(ball.x, ball.y + ballRadius + 25);
+                ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+            }
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        initPlatforms();
+        loop();
+    </script>
+</body>
+</html>

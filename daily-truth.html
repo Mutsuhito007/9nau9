@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Daily Truth</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .app-wrapper {
+            width: 95%;
+            max-width: 400px;
+            height: 95%;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #444;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        .header h2 {
+            font-size: 28px;
+            color: #FF3B30;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 59, 48, 0.3);
+        }
+        .header p {
+            font-family: 'Roboto', sans-serif;
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* Question Screen */
+        .question-screen {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            animation: fadeIn 0.5s;
+        }
+        .q-number {
+            font-size: 18px;
+            color: #888;
+            margin-bottom: 10px;
+            text-align: right;
+        }
+        .q-text {
+            font-size: 26px;
+            line-height: 1.3;
+            color: #fff;
+            margin-bottom: 25px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+        }
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-btn {
+            background-color: #222;
+            color: #FFD700;
+            border: 2px solid #555;
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .option-btn:active {
+            transform: scale(0.98);
+        }
+        .option-btn span.letter {
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            color: #FF3B30;
+            margin-right: 10px;
+        }
+
+        /* Cooldown / Timer Screen */
+        .cooldown-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            text-align: center;
+            animation: fadeIn 0.5s;
+        }
+        .result-title {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        .correct-color { color: #4CD964; text-shadow: 0 0 10px rgba(76, 217, 100, 0.4); }
+        .wrong-color { color: #FF3B30; text-shadow: 0 0 10px rgba(255, 59, 48, 0.4); }
+        
+        .truth-box {
+            background: #1a1a1a;
+            border-left: 4px solid #FFD700;
+            padding: 15px;
+            margin-bottom: 30px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            color: #ddd;
+            line-height: 1.5;
+            text-align: left;
+        }
+        
+        .timer-label {
+            font-size: 18px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        .timer-display {
+            font-size: 48px;
+            color: #FF3B30;
+            background: #222;
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid #FF3B30;
+            box-shadow: 0 0 15px rgba(255, 59, 48, 0.2);
+            font-variant-numeric: tabular-nums;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="header">
+            <h2>DAILY AWAKENING</h2>
+            <p>One truth per day. Do not overdose.</p>
+        </div>
+
+        <!-- Soru Ekranı -->
+        <div class="question-screen" id="qScreen">
+            <div class="q-number" id="qNum">DAY 01</div>
+            <div class="q-text" id="qText">Question goes here?</div>
+            <div class="options-grid" id="optionsBox">
+                <!-- Seçenekler JS ile basılacak -->
+            </div>
+        </div>
+
+        <!-- Sayaç ve Sonuç Ekranı -->
+        <div class="cooldown-screen" id="cdScreen">
+            <div class="result-title" id="resTitle">WRONG.</div>
+            <div class="truth-box" id="resTruth">The actual truth goes here.</div>
+            
+            <div class="timer-label">NEXT TRUTH UNLOCKS IN:</div>
+            <div class="timer-display" id="timerDisplay">24:00:00</div>
+        </div>
+    </div>
+
+    <script>
+        const SAVE_KEY = '9nau9_daily_trivia_v2';
+        const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 Hours
+
+        const db = [
+            {
+                q: "Which company projects a 'we are so sweet' image with its colorful logo, but secretly sells your soul to advertisers in the background?",
+                opts: ["Booble", "Papple", "Nöteflix", "Amazonk"],
+                ans: 0,
+                truth: "Every embarrassing disease and anxiety you search for on Booble is instantly sold to insurance companies and your boss. You clicked 'I Agree'."
+            },
+            {
+                q: "Which 'premium' cult sells the exact same phone every year at double the price by just shifting the camera a few millimeters?",
+                opts: ["Zamazung", "MacroHard", "Papple", "Zeta"],
+                ans: 2,
+                truth: "Your Papple device doesn't break; it just systematically commits suicide via a secret signal when the new model is released."
+            },
+            {
+                q: "Which platform makes its users spend 2 hours choosing what to watch, only to have them fall asleep watching nothing?",
+                opts: ["TokTik", "Nöteflix", "SpotiCry", "Z"],
+                ans: 1,
+                truth: "Nöteflix's real goal isn't to show you movies, but to induce decision fatigue and numb you on your couch."
+            },
+            {
+                q: "Which e-commerce monopoly forbids warehouse workers from using the restroom, yet brags about delivering your package via drone in 2 minutes?",
+                opts: ["E-Pay", "Amazonk", "McTox", "AirBnC"],
+                ans: 1,
+                truth: "Your Prime membership isn't saving the world or the shipping industry; it's just buying gas for a bald billionaire's personal spaceship."
+            },
+            {
+                q: "Which company was built for your relatives to share fake news and is now trying to trap you in a virtual universe with VR goggles?",
+                opts: ["Zeta", "Instasham", "CringeIn", "Z"],
+                ans: 0,
+                truth: "Zeta's famous 'virtual universe' is actually a digital cell designed to hide people from the climate crisis outside."
+            },
+            {
+                q: "Which brand claims its cars are 'fully autonomous' but shifts all the blame from the AI to the driver the moment a crash happens?",
+                opts: ["Guber", "Papple", "Pesla", "Zamazung"],
+                ans: 2,
+                truth: "Pesla's autopilot doesn't stop when it sees a pedestrian; it just turns off the cameras at the moment of impact so the company's stock doesn't drop."
+            },
+            {
+                q: "Which platform designed for people to spew hate at each other in short sentences, later changed its name to an unknown mathematical letter?",
+                opts: ["Z", "Zeta", "TokTik", "Instasham"],
+                ans: 0,
+                truth: "The only reason it changed its name is that the blue bird in the old logo died from toxic radiation poisoning on the site."
+            },
+            {
+                q: "Which operating system sabotages your life by saying 'Restarting for an update' right when you are doing important work or a presentation?",
+                opts: ["Papple OS", "MacroHard", "Booble OS", "Adöbe"],
+                ans: 1,
+                truth: "MacroHard updates do not speed up your computer; they just slow down your hardware to drive you insane and force you to buy a new one."
+            },
+            {
+                q: "Which app pays artists $0.00001 per stream, then shows off at the end of the year by saying 'Look how much music you listened to!'?",
+                opts: ["Nöteflix", "Papple Music", "SpotiCry", "Zamazung Audio"],
+                ans: 2,
+                truth: "Your end-of-year wrapped doesn't show your great music taste, but rather your absolute inability to tolerate your own inner voice and silence."
+            },
+            {
+                q: "Which mouse empire buys your childhood memories and exploits them by making 8 different spin-off series for every single character?",
+                opts: ["Nöteflix", "Dizney", "MacroHard", "Amazonk"],
+                ans: 1,
+                truth: "That cute mouse's smile is actually a demonic seal designed to hold the copyrights to your entire childhood forever."
+            },
+            {
+                q: "Which green mermaid cult sells a $1 coffee for $10 by deliberately writing your name wrong on the cup?",
+                opts: ["McTox", "StarBugs", "Booble Cafe", "Papple Store"],
+                ans: 1,
+                truth: "They write your name wrong because they know you'll get mad, post a picture of the cup on social media, and give them free advertising."
+            },
+            {
+                q: "Which app enslaves drivers by claiming 'We are a tech company, not a taxi service,' and triples its prices the moment it starts raining?",
+                opts: ["AirBnC", "Pesla", "Guber", "Amazonk"],
+                ans: 2,
+                truth: "Guber's algorithm doesn't measure the raindrops outside, but rather your current level of desperation and desire to go home to increase the price."
+            },
+            {
+                q: "Which platform lets you rent a house in a new city, forces you to mop the floors before leaving, and still charges you a 'cleaning fee'?",
+                opts: ["Guber", "AirBnC", "Zeta", "Booble Homes"],
+                ans: 1,
+                truth: "Soon you'll just be renting a bed, and your credit card will be charged an extra 'oxygen usage fee' just for breathing in the house."
+            },
+            {
+                q: "Which app reduces your attention span to 3 seconds and makes you watch people lip-syncing for 5 hours a day?",
+                opts: ["Instasham", "Zeta", "TokTik", "Z"],
+                ans: 2,
+                truth: "TokTik's real goal isn't to entertain you, but to melt your brain cells and turn you into zombies that obey commands within 3 seconds."
+            },
+            {
+                q: "Which photo app markets the lie that everyone's life is perfect, but is actually just a giant shopping catalog?",
+                opts: ["TokTik", "CringeIn", "Instasham", "Zeta"],
+                ans: 2,
+                truth: "No one there is happy. Everyone is just using color filters to look slightly less depressed than the rest of the world."
+            },
+            {
+                q: "Which fake professional network has people wearing suits and describing even the act of breathing as an incredible visionary success story?",
+                opts: ["Zeta", "CringeIn", "Z", "Instasham"],
+                ans: 1,
+                truth: "90% of the success stories you read there are purely fictional corporate hallucinations written by people while bored on the toilet."
+            },
+            {
+                q: "Which greedy gaming company sells a half-finished game at full price, then sells the actual ending as a DLC expansion pack?",
+                opts: ["MacroHard", "E-Pay", "Zamazung", "Papple"],
+                ans: 1,
+                truth: "E-Pay's real slogan isn't 'It's in the game,' but rather 'It's in your wallet.' Soon you'll have to insert a coin just to click 'New Game'."
+            },
+            {
+                q: "Which monopoly used to let you buy software once, but now holds your design files hostage unless you pay them monthly rent for life?",
+                opts: ["MacroHard", "Booble", "Adöbe", "Zamazung"],
+                ans: 2,
+                truth: "Adöbe doesn't support your creativity; it is legally sanctioned ransomware built entirely around your inability to find the cancel subscription button."
+            },
+            {
+                q: "Which red-nosed clown syndicate is sworn to give children cheap plastic toys to turn them into lifelong cholesterol patients?",
+                opts: ["StarBugs", "Dizney", "Amazonk", "McTox"],
+                ans: 3,
+                truth: "The reason the meat in their burgers doesn't rot for years isn't because of preservatives, but because even bacteria refuse to eat that thing."
+            },
+            {
+                q: "Which company mocks Papple by saying 'We are more innovative,' only to copy every single anti-consumer move they make 3 months later?",
+                opts: ["Zamazung", "MacroHard", "Booble", "Pesla"],
+                ans: 0,
+                truth: "Your Zamazung devices aren't as smart as you think; they are just hardware gossiping about you with your refrigerator in the background."
+            }
+        ];
+
+        let state = {
+            currentIndex: 0,
+            unlockTime: 0
+        };
+
+        const qScreen = document.getElementById('qScreen');
+        const cdScreen = document.getElementById('cdScreen');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const optionsBox = document.getElementById('optionsBox');
+
+        let timerInterval;
+
+        function loadData() {
+            const saved = localStorage.getItem(SAVE_KEY);
+            if (saved) {
+                state = JSON.parse(saved);
+            }
+            checkState();
+        }
+
+        function checkState() {
+            const now = Date.now();
+            
+            // Eğer süre dolmadıysa sayaç ekranını göster
+            if (state.unlockTime > now) {
+                qScreen.style.display = 'none';
+                cdScreen.style.display = 'flex';
+                startTimer();
+                
+                // En son çözülen sorunun gerçeğini ekrana bas
+                const lastQ = (state.currentIndex - 1 + db.length) % db.length;
+                document.getElementById('resTruth').innerText = db[lastQ].truth;
+                document.getElementById('resTitle').innerText = "WAIT.";
+                document.getElementById('resTitle').className = "result-title";
+                document.getElementById('resTitle').style.color = "#888";
+            } 
+            // Süre dolduysa soruyu göster
+            else {
+                qScreen.style.display = 'flex';
+                cdScreen.style.display = 'none';
+                renderQuestion();
+            }
+        }
+
+        function renderQuestion() {
+            // Eğer 20 soru bittiyse başa sar
+            if (state.currentIndex >= db.length) {
+                state.currentIndex = 0;
+            }
+
+            const qData = db[state.currentIndex];
+            const letters = ['A', 'B', 'C', 'D'];
+            
+            document.getElementById('qNum').innerText = `DAY ${(state.currentIndex + 1).toString().padStart(2, '0')}`;
+            document.getElementById('qText').innerText = qData.q;
+            
+            optionsBox.innerHTML = '';
+            
+            qData.opts.forEach((opt, index) => {
+                const btn = document.createElement('div');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span class="letter">[${letters[index]}]</span> ${opt}`;
+                btn.onclick = () => selectOption(index, qData.ans, qData.truth);
+                optionsBox.appendChild(btn);
+            });
+        }
+
+        function selectOption(selectedIndex, correctIndex, truthText) {
+            const isCorrect = (selectedIndex === correctIndex);
+            
+            qScreen.style.display = 'none';
+            cdScreen.style.display = 'flex';
+
+            const resTitle = document.getElementById('resTitle');
+            if (isCorrect) {
+                resTitle.innerText = "CORRECT.";
+                resTitle.className = "result-title correct-color";
+            } else {
+                resTitle.innerText = "WRONG.";
+                resTitle.className = "result-title wrong-color";
+            }
+
+            document.getElementById('resTruth').innerText = truthText;
+
+            // 24 saatlik cezayı başlat ve soruyu ilerlet
+            state.unlockTime = Date.now() + COOLDOWN_MS;
+            state.currentIndex++;
+            
+            localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+            
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            updateTimerDisplay(); // İlk saniyeyi beklemeden bas
+            
+            timerInterval = setInterval(() => {
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const now = Date.now();
+            const diff = state.unlockTime - now;
+
+            if (diff <= 0) {
+                clearInterval(timerInterval);
+                checkState(); // Süre bittiyse soruyu aç
+                return;
+            }
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            timerDisplay.innerText = 
+                String(hours).padStart(2, '0') + ":" + 
+                String(minutes).padStart(2, '0') + ":" + 
+                String(seconds).padStart(2, '0');
+        }
+
+        // Başlat
+        loadData();
+    </script>
+</body>
+</html>

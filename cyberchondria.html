@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pre-Doctor Checklist</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Roboto:wght@400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .app-wrapper {
+            width: 95%;
+            max-width: 400px;
+            height: 95%;
+            border: 3px solid #333;
+            border-radius: 10px;
+            background-color: #111;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        
+        .header {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px dashed #444;
+            background: #1a1a1a;
+            border-radius: 10px 10px 0 0;
+        }
+        .header h2 {
+            font-size: 24px;
+            color: #FF3B30;
+            letter-spacing: 1px;
+        }
+        .header p {
+            font-family: 'Roboto', sans-serif;
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* Liste Alanı (Kaydırılabilir) */
+        .checklist-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        /* Scrollbar Ayarları */
+        .checklist-container::-webkit-scrollbar { width: 8px; }
+        .checklist-container::-webkit-scrollbar-track { background: #111; }
+        .checklist-container::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 4px; }
+
+        /* Checkbox Tasarımı */
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        .check-item:hover { background-color: #1a1a1a; }
+
+        .check-item input[type="checkbox"] {
+            display: none; /* Varsayılan kutuyu gizle */
+        }
+
+        .custom-box {
+            min-width: 24px;
+            height: 24px;
+            border: 2px solid #555;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 2px;
+            transition: all 0.2s;
+        }
+        
+        .check-item input[type="checkbox"]:checked + .custom-box {
+            border-color: #FFD700;
+            background-color: #FFD700;
+        }
+
+        .check-item input[type="checkbox"]:checked + .custom-box::after {
+            content: 'X';
+            color: #000;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .check-text {
+            font-size: 20px;
+            line-height: 1.2;
+            color: #ccc;
+            user-select: none;
+        }
+        
+        .check-item input[type="checkbox"]:checked ~ .check-text {
+            color: #fff;
+        }
+
+        /* Alt Buton Alanı */
+        .footer {
+            padding: 15px;
+            border-top: 2px dashed #444;
+            background: #1a1a1a;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .action-button {
+            width: 100%;
+            background-color: #222;
+            color: #FFD700;
+            border: 2px solid #FFD700;
+            font-family: 'VT323', monospace;
+            font-size: 26px;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+        .action-button:active {
+            transform: scale(0.98);
+            background-color: #FFD700;
+            color: #000;
+        }
+
+        /* Sonuç Ekranı Modalı */
+        .result-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            z-index: 10;
+        }
+
+        .result-title {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+        .result-desc {
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            color: #ccc;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 5px;
+        }
+
+        .pass-color { color: #4CD964; }
+        .fail-color { color: #FF3B30; }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <div class="header">
+            <h2>MEDICAL PRE-CHECK</h2>
+            <p>Verify your paranoia level before booking.</p>
+        </div>
+
+        <div class="checklist-container" id="checklist">
+            </div>
+
+        <div class="footer">
+            <button class="action-button" onclick="evaluateSymptoms()">EVALUATE PROTOCOL</button>
+        </div>
+
+        <div class="result-overlay" id="resultOverlay">
+            <div class="result-title" id="resultTitle">STATUS</div>
+            <div class="result-desc" id="resultDesc">Message goes here...</div>
+            <button class="action-button" id="resultBtn" onclick="resetApp()">OK</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            "I diagnosed my mild headache as a rare tropical brain parasite using a search engine.",
+            "I have already mentally drafted my dramatic final words for my family.",
+            "I started watching medical dramas to understand my 'condition' better.",
+            "I ignored real medical advice because a forum post from 2008 made more sense.",
+            "I physically poked the painful area 47 times today just to see if it still hurts.",
+            "I measured my heart rate manually while having a minor panic attack.",
+            "I searched for a sneeze symptom and ended up reading about spontaneous combustion.",
+            "I took a deep breath, coughed once, and assumed my lungs were completely failing.",
+            "I planned who gets my Steam/gaming accounts in my last will.",
+            "I asked an AI chatbot for a second opinion on my self-diagnosed lethal disease.",
+            "I suddenly started feeling phantom pains right after reading about them online.",
+            "I stared at my tongue in the mirror for an uncomfortably long time.",
+            "I checked my body temperature using only the back of my hand and sheer anxiety.",
+            "I felt my lymph nodes and convinced myself they are the size of golf balls.",
+            "I considered performing minor surgery on myself using a household sewing kit.",
+            "I aggressively cleared my throat just to test if my vocal cords still work.",
+            "I diagnosed myself with a disease that was officially eradicated in the 18th century.",
+            "I am currently experiencing symptoms of a disease I didn't know existed until 5 minutes ago.",
+            "I have checked my pulse in three different locations within the last hour.",
+            "I am genuinely annoyed that I might have to go to a real doctor to confirm my internet research."
+        ];
+
+        const checklistContainer = document.getElementById('checklist');
+
+        // Soruları HTML içine yerleştiren döngü
+        questions.forEach((q, index) => {
+            const label = document.createElement('label');
+            label.className = 'check-item';
+            
+            label.innerHTML = `
+                <input type="checkbox" class="symptom-check">
+                <div class="custom-box"></div>
+                <div class="check-text">${q}</div>
+            `;
+            checklistContainer.appendChild(label);
+        });
+
+        function evaluateSymptoms() {
+            // Kaç kutucuk işaretlendiğini say
+            const checkboxes = document.querySelectorAll('.symptom-check');
+            let checkedCount = 0;
+            
+            checkboxes.forEach(box => {
+                if(box.checked) checkedCount++;
+            });
+
+            const overlay = document.getElementById('resultOverlay');
+            const title = document.getElementById('resultTitle');
+            const desc = document.getElementById('resultDesc');
+            const btn = document.getElementById('resultBtn');
+
+            overlay.style.display = 'flex';
+
+            // 10'dan az ise
+            if (checkedCount < 10) {
+                title.innerText = "ACCESS DENIED";
+                title.className = "result-title fail-color";
+                desc.innerText = `You only checked ${checkedCount} items. Your hypochondria level is dangerously low. You are not panicked enough to waste a medical professional's time. Go back to the internet and do more research until you are properly terrified.`;
+                btn.innerText = "DO MORE RESEARCH";
+                btn.onclick = () => { overlay.style.display = 'none'; };
+            } 
+            // 10 veya daha fazlaysa
+            else {
+                title.innerText = "AUTHORIZATION GRANTED";
+                title.className = "result-title pass-color";
+                desc.innerText = `You checked ${checkedCount} items! You are officially paranoid, terrified, and psychologically exhausted. You have successfully bypassed the internet filter. You may now book a real doctor's appointment.`;
+                btn.innerText = "BOOK APPOINTMENT";
+                // Butona basınca sayfayı yeniler veya başka bir yere yönlendirebilirsin
+                btn.onclick = () => { location.reload(); }; 
+            }
+        }
+    </script>
+</body>
+</html>

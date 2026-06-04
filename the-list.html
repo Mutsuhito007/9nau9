@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Void List</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Roboto:wght@400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            transition: background-color 0.1s;
+        }
+        
+        /* FBI Alarmı için class */
+        body.alarm {
+            animation: redAlert 0.5s infinite alternate;
+        }
+        @keyframes redAlert {
+            0% { background-color: #2a0000; }
+            100% { background-color: #550000; }
+        }
+
+        .app-wrapper {
+            width: 90%;
+            max-width: 360px;
+            height: 90%;
+            border: 3px solid #333;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        /* 1. Form Ekranı */
+        .form-screen {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 20px;
+        }
+
+        .header-title {
+            font-size: 28px;
+            color: #FFD700;
+            border-bottom: 2px dashed #444;
+            padding-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .secret-text {
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .name-input {
+            background-color: #000;
+            border: 2px solid #444;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+            padding: 12px;
+            text-align: center;
+            border-radius: 5px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .name-input:focus {
+            border-color: #FFD700;
+        }
+        .name-input::placeholder {
+            color: #333;
+        }
+
+        .action-button {
+            background-color: #222;
+            color: #FFD700;
+            border: 2px solid #FFD700;
+            font-family: 'VT323', monospace;
+            font-size: 26px;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+        .action-button:active {
+            transform: scale(0.95);
+            background-color: #FFD700;
+            color: #000;
+        }
+
+        /* 2. Yükleme Ekranı */
+        .loading-screen {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .loading-text {
+            font-size: 26px;
+            color: #4CD964;
+            animation: blink 1s infinite alternate;
+        }
+        @keyframes blink {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        /* 3. Troll Ekranı */
+        .troll-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .error-title {
+            font-size: 36px;
+            color: #FF3B30;
+            text-shadow: 0 0 10px #FF3B30;
+            margin-bottom: 10px;
+        }
+
+        .fbi-message {
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            color: #fff;
+            line-height: 1.6;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #FF3B30;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: left;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        
+        <div class="form-screen" id="formScreen">
+            <h2 class="header-title">THE CLEANSING LIST</h2>
+            <p class="secret-text">
+                Enter the names of 3 people whose absence would make the world a significantly better place.<br><br>
+                <span style="color: #4CD964;">Don't worry, this is strictly between us. Nobody will ever know.</span>
+            </p>
+
+            <div class="input-group">
+                <input type="text" class="name-input" id="name1" placeholder="Target Name 1" autocomplete="off">
+                <input type="text" class="name-input" id="name2" placeholder="Target Name 2" autocomplete="off">
+                <input type="text" class="name-input" id="name3" placeholder="Target Name 3" autocomplete="off">
+            </div>
+
+            <button class="action-button" onclick="submitList()">SUBMIT TO VOID</button>
+        </div>
+
+        <div class="loading-screen" id="loadingScreen">
+            <div class="loading-text" id="statusText">Encrypting local data...</div>
+        </div>
+
+        <div class="troll-screen" id="trollScreen">
+            <div class="error-title">CRITICAL ERROR</div>
+            <div class="fbi-message">
+                <strong>We are so sorry.</strong><br><br>
+                There was a fatal routing error on our servers. The encrypted names you just submitted were accidentally forwarded directly to the <strong>FBI Cyber Division Database</strong> instead of our secure void.<br><br>
+                Please forgive us for this malfunction. We hope the authorities will understand when you explain the situation to them.<br><br>
+                <em>Good luck.</em>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const formScreen = document.getElementById('formScreen');
+        const loadingScreen = document.getElementById('loadingScreen');
+        const trollScreen = document.getElementById('trollScreen');
+        const statusText = document.getElementById('statusText');
+        const inputs = document.querySelectorAll('.name-input');
+        
+        let audioCtx;
+
+        // Korkutucu Hata Sesi
+        function playErrorSound() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'sawtooth'; // Rahatsız edici, sert bir dalga
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime); 
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.5); // Ses kalınlaşarak düşer
+
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function submitList() {
+            // Kullanıcı kutuları boş bıraktıysa uyarı ver
+            const n1 = document.getElementById('name1').value.trim();
+            const n2 = document.getElementById('name2').value.trim();
+            const n3 = document.getElementById('name3').value.trim();
+
+            if (!n1 || !n2 || !n3) {
+                alert("Please fill in all 3 names. The void requires exactly 3.");
+                return;
+            }
+
+            // 1. AŞAMA: Formu gizle, yükleme ekranını aç
+            formScreen.style.display = 'none';
+            loadingScreen.style.display = 'flex';
+
+            // 2. AŞAMA: Sahte durum güncellemeleri
+            setTimeout(() => { statusText.innerText = "Connecting to secure server..."; }, 1500);
+            setTimeout(() => { 
+                statusText.innerText = "UPLINK FAILED. REROUTING..."; 
+                statusText.style.color = "#FFD700"; // Sarı uyarı
+            }, 3000);
+
+            // 3. AŞAMA: Troll patlaması
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                trollScreen.style.display = 'flex';
+                
+                // Arka planı kırmızı alarma çevir
+                document.body.classList.add('alarm');
+                
+                // Hata sesini çal
+                playErrorSound();
+                
+            }, 4500);
+        }
+    </script>
+</body>
+</html>

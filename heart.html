@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human Heart Mechanism</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0a0a0a;
+            color: #FFD700;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Kalp Sistemi ve Odacıklar */
+        .heart-system {
+            position: relative;
+            width: 180px;
+            height: 220px;
+            margin-bottom: 90px; /* Yazılarla aradaki boşluk baştan ayarlandı */
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1.5fr;
+            gap: 8px;
+        }
+
+        .chamber {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 14px;
+            font-weight: bold;
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), background-color 0.3s;
+        }
+
+        /* Üst Odacıklar (Kulakçıklar / Atria) */
+        .atrium {
+            border-radius: 20px 20px 10px 10px;
+        }
+
+        /* Alt Odacıklar (Karıncıklar / Ventricles) */
+        .ventricle {
+            border-radius: 10px 10px 45px 45px;
+        }
+
+        /* Sağ Taraf - Oksijensiz "Kirli" Kan (Ekranda Sol) */
+        .right-side {
+            background-color: #005bb5;
+            box-shadow: 0 0 15px rgba(0, 122, 255, 0.4);
+            border: 2px solid #007AFF;
+        }
+
+        /* Sol Taraf - Oksijenli "Temiz" Kan (Ekranda Sağ) */
+        .left-side {
+            background-color: #cc2922;
+            box-shadow: 0 0 15px rgba(255, 59, 48, 0.4);
+            border: 2px solid #FF3B30;
+        }
+
+        /* --- ANİMASYON DURUMLARI (JS İLE TETİKLENECEK) --- */
+        
+        /* 1. Dinlenme (Genişleme) */
+        .heart-system.diastole .chamber {
+            transform: scale(1.05);
+        }
+
+        /* 2. Kulakçıkların Kasılması */
+        .heart-system.atrial-systole .atrium {
+            transform: scale(0.85); /* Üst taraf büzüşür */
+            background-color: #111; /* Kanı aşağı ittiği için kararır */
+        }
+        .heart-system.atrial-systole .ventricle {
+            transform: scale(1.1); /* Alt taraf kanla dolarak şişer */
+        }
+
+        /* 3. Karıncıkların Kasılması (Ana Pompalama) */
+        .heart-system.ventricular-systole .atrium {
+            transform: scale(1.0); /* Üst taraf normal haline döner */
+        }
+        .heart-system.ventricular-systole .ventricle {
+            transform: scale(0.8); /* Alt taraf sertçe büzüşür */
+            background-color: #111; /* Kanı vücuda/akciğere ittiği için kararır */
+            box-shadow: 0 0 30px inset rgba(0,0,0,0.8);
+        }
+
+        /* Alt Bilgi Paneli */
+        .info-panel {
+            text-align: center;
+            height: 120px;
+            padding: 0 20px;
+        }
+
+        h1 {
+            font-size: 22px;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        p {
+            font-size: 15px;
+            color: #ccc;
+            margin: 0;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Kalp Görseli -->
+        <div class="heart-system" id="heart">
+            <div class="chamber atrium right-side">RA</div>
+            <div class="chamber atrium left-side">LA</div>
+            <div class="chamber ventricle right-side">RV</div>
+            <div class="chamber ventricle left-side">LV</div>
+        </div>
+
+        <!-- Metin Paneli -->
+        <div class="info-panel">
+            <h1 id="phase-name">HEART STANDBY</h1>
+            <p id="phase-desc">Initializing biological sequences...</p>
+        </div>
+    </div>
+
+    <script>
+        const heart = document.getElementById('heart');
+        const phaseName = document.getElementById('phase-name');
+        const phaseDesc = document.getElementById('phase-desc');
+
+        // Kalp Atış Evreleri (Cardiac Cycle)
+       // Kalp Atış Evreleri (Cardiac Cycle)
+        const phases = [
+            {
+                name: "1. DIASTOLE (RELAXATION)",
+                desc: "The heart muscle relaxes. Oxygen-poor blood (blue) and oxygen-rich blood (red) fill the upper chambers.",
+                className: "diastole",
+                duration: 2500 // ESKİDEN 900'DÜ. Şimdi 2.5 saniye ekranda kalacak.
+            },
+            {
+                name: "2. ATRIAL SYSTOLE",
+                desc: "The upper chambers (Atria) contract, squeezing blood down into the lower chambers.",
+                className: "atrial-systole",
+                duration: 1500 // ESKİDEN 400'DÜ. Şimdi 1.5 saniye ekranda kalacak.
+            },
+            {
+                name: "3. VENTRICULAR SYSTOLE",
+                desc: "The lower chambers (Ventricles) pump forcefully! Blood is pushed out to the lungs and the entire body.",
+                className: "ventricular-systole",
+                duration: 2000 // ESKİDEN 500'DÜ. Şimdi 2 saniye ekranda kalacak.
+            }
+        ];
+        let currentPhase = 0;
+
+        function runHeartCycle() {
+            const phase = phases[currentPhase];
+            
+            // Sınıfları temizle ve yeni evreyi ekle
+            heart.className = "heart-system " + phase.className;
+            
+            // Metinleri Güncelle
+            phaseName.innerText = phase.name;
+            phaseDesc.innerText = phase.desc;
+
+            // Bir sonraki evreye geçmek için zamanlayıcı
+            setTimeout(() => {
+                currentPhase = (currentPhase + 1) % phases.length;
+                runHeartCycle();
+            }, phase.duration);
+        }
+
+        // Sayfa yüklendikten 1 saniye sonra kalbi başlat
+        setTimeout(runHeartCycle, 1000);
+    </script>
+</body>
+</html>
