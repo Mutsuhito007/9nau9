@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Absürt Ninja - Skorlu Versiyon</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+</head>
+<body>
+    <div id="game-container"></div>
+    
+    <script>
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            parent: 'game-container',
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 800 },
+                    debug: false
+                }
+            },
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+
+        const game = new Phaser.Game(config);
+
+        let targets;
+        let swipeLine;
+        let trailCoords = [];
+        let lastPointerX;
+        let lastPointerY;
+
+        // --- SKOR DEĞİŞKENLERİ EKLENDİ ---
+        let score = 0;
+        // Tarayıcı hafızasından eski skoru çeker, yoksa 0 yapar
+        let highScore = localStorage.getItem('absurtNinjaHighScore') || 0; 
+        let scoreText;
+        let highScoreText;
+
+        // --- ANA AYARLAR ---
+        const EMOJI_BOYUTU = 0.6; 
+
+        // --- EMOJİ VE SES AYARLARI (Senin Ayarların) ---
+        const emojiData = [
+            { id: 'woman', emoji: '👩‍🦰', color: '#4caf50', soundFile: 'woman.mp3' },
+            { id: 'cat', emoji: '🐱', color: '#ff9800', soundFile: 'cat.mp3' },   
+            { id: 'poop', emoji: '🧔', color: '#795548', soundFile: 'man.mp3' },  
+            { id: 'clown', emoji: '🎸', color: '#f44336', soundFile: 'guitar.mp3' }, 
+            { id: 'ghost', emoji: '💢', color: '#9c27b0', soundFile: 'damm.mp3' },
+            { id: 'bomb', emoji: '🧨', color: '#6458af', soundFile: 'bomb.mp3' },
+            { id: 'fart', emoji: '😲', color: '#145687', soundFile: 'fart.mp3' }   
+        ];
+
+        function preload() {
+            emojiData.forEach(item => {
+                this.load.audio(item.id + '_sound', 'aaa/' + item.soundFile);
+            });
+        }
+
+        function createEmojiCanvas(emoji, bgColor) {
+            let canvas = document.createElement('canvas');
+            canvas.width = 100;
+            canvas.height = 100;
+            let ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = bgColor;
+            ctx.beginPath();
+            ctx.arc(50, 50, 48, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+
+            ctx.font = '50px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(emoji, 50, 55); 
+            
+            return canvas;
+        }
+
+        function create() {
+            // Ekrana Skor Yazılarını Ekleme
+            scoreText = this.add.text(20, 20, 'Skor: 0', { fontSize: '32px', fill: '#00ff00', fontStyle: 'bold', fontFamily: 'Arial' });
+            highScoreText = this.add.text(20, 60, 'Eski Skor: ' + highScore, { fontSize: '24px', fill: '#ffeb3b', fontFamily: 'Arial' });
+            
+            // Yazılar hep en üstte (ön planda) kalsın diye depth veriyoruz
+            scoreText.setDepth(100);
+            highScoreText.setDepth(100);
+
+            emojiData.forEach(item => {
+                this.textures.addCanvas(item.id, createEmojiCanvas(item.emoji, item.color));
+            });
+
+            targets = this.physics.add.group();
+            swipeLine = this.add.graphics();
+
+            this.time.addEvent({
+                delay: 1200,
+                callback: spawnTarget,
+                callbackScope: this,
+                loop: true
+            });
+
+            lastPointerX = this.input.x;
+            lastPointerY = this.input.y;
+        }
+
+        function update() {
+            swipeLine.clear();
+            let pointer = this.input.activePointer;
+
+            if (pointer.isDown) {
+                trailCoords.push(new Phaser.Math.Vector2(pointer.x, pointer.y));
+                if (trailCoords.length > 10) {
+                    trailCoords.shift();
+                }
+
+                swipeLine.lineStyle(4, 0xE3E586, 1);
+                swipeLine.beginPath();
+                swipeLine.moveTo(trailCoords[0].x, trailCoords[0].y);
+                for (let i = 1; i < trailCoords.length; i++) {
+                    swipeLine.lineTo(trailCoords[i].x, trailCoords[i].y);
+                }
+                swipeLine.strokePath();
+
+                let line = new Phaser.Geom.Line(lastPointerX, lastPointerY, pointer.x, pointer.y);
+
+                let children = targets.getChildren();
+                for (let i = children.length - 1; i >= 0; i--) {
+                    let target = children[i];
+                    if (target.active && !target.getData('sliced')) {
+                        let targetBounds = target.getBounds();
+                        if (Phaser.Geom.Intersects.LineToRectangle(line, targetBounds)) {
+                            target.setData('sliced', true);
+                            sliceTarget.call(this, target);
+                        }
+                    }
+                }
+            } else {
+                trailCoords = [];
+            }
+
+            lastPointerX = pointer.x;
+            lastPointerY = pointer.y;
+
+            let children = targets.getChildren();
+            for (let i = children.length - 1; i >= 0; i--) {
+                let target = children[i];
+                if (target.y > 700) {
+                    // YENİ: EĞER BİR EMOJİ KESİLMEDEN AŞAĞI DÜŞERSE SKORU SIFIRLA
+                    if (!target.getData('sliced')) {
+                        score = 0;
+                        scoreText.setText('Skor: ' + score);
+                    }
+                    target.destroy();
+                }
+            }
+        }
+
+        function spawnTarget() {
+            let selectedItem = Phaser.Math.RND.pick(emojiData);
+
+            let startX = Phaser.Math.Between(100, 700);
+            let target = targets.create(startX, 650, selectedItem.id);
+            
+            target.setData('type', selectedItem.id);
+            target.setData('sliced', false);
+
+            target.setScale(EMOJI_BOYUTU);
+
+            let velocityY = Phaser.Math.Between(-650, -850);
+            let velocityX = Phaser.Math.Between(-150, 150);
+
+            target.setVelocity(velocityX, velocityY);
+            target.setAngularVelocity(Phaser.Math.Between(-100, 100));
+        }
+
+        function sliceTarget(target) {
+            let type = target.getData('type'); 
+            let soundKey = type + '_sound'; 
+
+            if (this.cache.audio.exists(soundKey)) {
+                this.sound.play(soundKey);
+            }
+
+            // --- YENİ: SKOR EKLEME VE KAYDETME ---
+            score += 1; // Her kesikte 1 puan artır
+            scoreText.setText('Skor: ' + score);
+            
+            // Eğer yeni rekor kırıldıysa eski skoru güncelle ve hafızaya al
+            if (score > highScore) {
+                highScore = score;
+                highScoreText.setText('Eski Skor: ' + highScore);
+                localStorage.setItem('absurtNinjaHighScore', highScore);
+            }
+
+            let x = target.x;
+            let y = target.y;
+            let originalWidth = target.width; 
+            let originalHeight = target.height; 
+
+            target.destroy();
+
+            let partLeft = this.physics.add.sprite(x - 10, y, type);
+            let partRight = this.physics.add.sprite(x + 10, y, type);
+
+            partLeft.setScale(EMOJI_BOYUTU);
+            partRight.setScale(EMOJI_BOYUTU);
+
+            partLeft.setCrop(0, 0, originalWidth / 2, originalHeight);
+            partRight.setCrop(originalWidth / 2, 0, originalWidth / 2, originalHeight);
+
+            partLeft.setVelocity(-200, -200);
+            partRight.setVelocity(200, -200);
+
+            partLeft.setAngularVelocity(-300);
+            partRight.setAngularVelocity(300);
+            
+            this.time.delayedCall(2000, () => {
+                if (partLeft) partLeft.destroy();
+                if (partRight) partRight.destroy();
+            });
+        }
+    </script>
+</body>
+</html>

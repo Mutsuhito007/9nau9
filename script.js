@@ -17,7 +17,6 @@ const games = [
     { url: 'domain.html', title: 'Future Domains' },
     { url: 'crypto.html', title: 'Crypto Oracle' },
     { url: 'feedback.html', title: 'Feedback ' },
-    { url: 'interrogation.html', title: 'Are You a Good Person?' },
     { url: 'engine.html', title: '4-Stroke Engine' },
     { url: 'heart.html', title: 'Human Heart Mechanism' },
     { url: 'companion.html', title: 'Companion Matrix' },
@@ -36,7 +35,6 @@ const games = [
     { url: 'final-checklist.html', title: 'Final Project' },
     { url: 'story.html', title: 'The secret of life' },
     { url: 'dialog.html', title: 'Dialogues...' },
-    { url: 'job1.html', title: 'Business İdea : 1' },
     { url: 'video1.html', title: 'Message-1' },
     { url: 'video2.html', title: 'Message-2' },
     { url: 'video3.html', title: 'Message-3' },
@@ -62,6 +60,7 @@ const games = [
     { url: 'job10.html', title: 'Business İdea : 10' },
     { url: 'job11.html', title: 'Business İdea : 11' },
     { url: 'job12.html', title: 'Business İdea : 12' },
+    { url: 'job13.html', title: 'Business İdea : 13' },
     { url: 'cat-memorial.html', title: 'Mop' },
     { url: 'dont-laugh.html', title: 'Don\'t Laugh !' },
     { url: 'excuse-generator.html', title: 'The Escape Hatch' },
@@ -76,6 +75,39 @@ const games = [
     { url: 'dialog4.html', title: 'Dialogues...' },
     { url: 'dialog5.html', title: 'Dialogues...' },
     { url: 'dialog6.html', title: 'Dialogues...' },
+    { url: 'wallpaper.html', title: 'Wallpapers' },
+    { url: 'color-wheel.html', title: 'Chroma Shift' },
+    { url: 'horror-quiz.html', title: 'Horror Cinephile' },
+    { url: 'dna-designer.html', title: 'DNA Designer' },
+    { url: 'black-loop.html', title: 'Black Loop' },
+    { url: 'math.html', title: 'Math Match' },
+    { url: 'asmr3.html', title: 'ASMR-3' },
+    { url: 'wormhole.html', title: 'Wormhole' },
+    { url: 'solarsystem.html', title: 'Solar System' },
+    { url: 'atom.html', title: 'Atom' },
+    { url: 'volkov.html', title: 'VOLKOV' },
+    { url: 'color.html', title: 'Color Circle' },
+    { url: 'market.html', title: 'Judgment Day Market' },
+    { url: 'ideas.html', title: 'The Muse' },
+    { url: 'yt-generator.html', title: 'Shoot me an idea' },
+    { url: 'conspiracy.html', title: 'Truth Uncovered' },
+    { url: 'heaven.html', title: 'Welcome to heaven' },
+    { url: 'dude-ai.html', title: 'Welcome to heaven' },
+    { url: 'join.html', title: 'Welcome to heaven' },
+    { url: 'swarm.html', title: 'Swarm' },
+    { url: 'gelirken-getir.html', title: 'WayGrab' },
+    { url: 'talent-invest.html', title: 'Talent-X' },
+    { url: 'nauduel.html', title: 'SaltArena' },
+    { url: 'beggar.html', title: 'Cardboard Destiny' },
+    { url: 'find-dude.html', title: 'Where is my cute little devil?' },
+    { url: 'wordsgame.html', title: 'Nihilist\'s Crossword' },
+    { url: 'gun.html', title: 'DIY Pew-Pew Lab' },
+    { url: 'asmr4.html', title: 'ASMR-4' },
+     { url: 'ninja.html', title: 'ASMR-5' },
+      { url: 'nau.html', title: 'nauCoin' },
+      
+
+       
 
 ];
 
@@ -117,6 +149,68 @@ const pixelIcons = {
 let currentGameIndex = 0; 
 let favoritedUrls = JSON.parse(localStorage.getItem('9nau9_favorites')) || [];
 let currentFavIndex = 0; 
+let isFirstFavView = true; // Favorilere ilk girildiğini anlamak için anahtar
+
+// Kırmızı buton için sayaç ve reklam kontrolü
+let sayfaGecisSayaci = 0;
+let isAdActive = false; // Reklamın ekranda olup olmadığını takip ediyoruz
+
+// Kırmızı (yenile) butonuna tıklama mantığı
+function handleRefreshClick() {
+    const iframe = document.getElementById('main-iframe');
+    const kirmiziButon = document.getElementById('refresh-btn');
+    const pageTitle = document.getElementById('page-title');
+
+    if (!kirmiziButon || !iframe) {
+        // Fallback: normal akış
+        nextItem();
+        return;
+    }
+
+    // Eğer reklam aktifse, kullanıcı butona bastığında reklamdan çıkılır
+    if (isAdActive) {
+        isAdActive = false;
+        nextItem();
+        return;
+    }
+
+    sayfaGecisSayaci++;
+
+    if (sayfaGecisSayaci % 10 === 0) {
+        // 1. İframe içine reklamı bas ve sistemi reklama kilitli konuma getir
+        isAdActive = true;
+        iframe.src = 'reklam-test.html'; 
+        if (pageTitle) pageTitle.innerText = "Data Buffering..."; // Üst barda başlığı değiştir
+
+        // 2. Kırmızı Butonu Kilitle ve Soluklaştır
+        kirmiziButon.style.pointerEvents = 'none';
+        kirmiziButon.style.opacity = '0.5';
+
+        // 3. Geri Sayımı Başlat
+        let kalanSure = 5;
+        const originalHTML = kirmiziButon.innerHTML;
+        kirmiziButon.innerText = kalanSure; // Butonun içine 5 yaz
+
+        const geriSayim = setInterval(() => {
+            kalanSure--;
+
+            if (kalanSure > 0) {
+                kirmiziButon.innerText = kalanSure; // 4, 3, 2, 1...
+            } else {
+                // 4. SÜRE BİTTİ - Kilidi Aç
+                clearInterval(geriSayim);
+                kirmiziButon.style.pointerEvents = 'auto'; // Buton tekrar tıklanabilir oldu
+                kirmiziButon.style.opacity = '1'; // Rengini canlandır
+                kirmiziButon.innerHTML = originalHTML; // Yenileme ikonunu geri koy
+                // NOT: Burada bilerek nextItem() çağırmıyoruz ki sayfa otomatik geçmesin. Kullanıcının basmasını bekliyoruz.
+            }
+        }, 1000);
+
+    } else {
+        // REKLAM SIRASI DEĞİLSE NORMAL AKIŞA DEVAM ET
+        nextItem();
+    }
+}
 
 // ==========================================
 // PWA: UYGULAMAYI CİHAZA İNDİRME / KURMA MOTORU
@@ -191,17 +285,26 @@ function toggleLike() {
 }
 
 function loadFavoriteToIframe() {
+    // Eğer favoriler menüsüne ilk kez tıklandıysa sabit sayfayı (info.html) göster
+    if (isFirstFavView) {
+        mainIframe.src = "footer.html";
+        pageTitle.innerText = "Transmission";
+        iframePlaceholder.style.display = 'none';
+        mainIframe.style.display = 'block';
+        return; // İşlemi burada kes ki diğer favorileri yüklemesin
+    }
+
+    // Karıştır tuşuna basıldıysa normal favori döngüsüne gir
     if (favoritedUrls.length === 0) {
         mainIframe.style.display = 'none';
         iframePlaceholder.style.display = 'block';
-        iframePlaceholder.innerText = "Henüz Favori Eklenmedi";
+        iframePlaceholder.innerText = "You haven't added any favorites yet.";
         pageTitle.innerText = "Favoriler";
     } else {
         if (currentFavIndex >= favoritedUrls.length) {
             currentFavIndex = 0;
         }
         
-        // Kaydettiğimiz URL üzerinden doğru oyunu buluyoruz
         const favUrl = favoritedUrls[currentFavIndex];
         const favGame = games.find(g => g.url === favUrl);
         
@@ -215,10 +318,14 @@ function loadFavoriteToIframe() {
 }
 
 function nextFavorite() {
-    if (favoritedUrls.length > 0) {
+    // Karıştır butonuna ilk basışta info sayfasından çıkıp favorilere geçiyoruz
+    if (isFirstFavView) {
+        isFirstFavView = false;
+    } else if (favoritedUrls.length > 0) {
+        // Sonraki basışlarda favoriler arasında sırayla geziyor
         currentFavIndex = (currentFavIndex + 1) % favoritedUrls.length;
-        loadFavoriteToIframe();
     }
+    loadFavoriteToIframe();
 }
 
 function removeFavorite() {
@@ -279,7 +386,7 @@ function loadAnaAkis() {
             <span class="icon-btn" onclick="loadFavoriler()" aria-label="star">${pixelIcons.star}</span>
         </div>
         <div class="footer-center">
-            <span class="icon-btn icon-large" onclick="nextItem()" aria-label="refresh">${pixelIcons.refresh}</span>
+            <span id="refresh-btn" class="icon-btn icon-large" onclick="handleRefreshClick()" aria-label="refresh">${pixelIcons.refresh}</span>
         </div>
         <div class="footer-right">
             ${installBtnHTML}
@@ -290,6 +397,7 @@ function loadAnaAkis() {
 
 // 2. Sahne: Favoriler (Eksiksiz Tam Sürüm)
 function loadFavoriler() {
+    isFirstFavView = true;
     loadFavoriteToIframe();
     
     // Sağ taraftaki kalp butonu (Sadece favori varsa çıkar, ikonu ve buton yuvarlağını içerir)

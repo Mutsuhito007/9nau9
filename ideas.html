@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Million Dollar Ideas - 9nau9</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            display: block !important;
+            height: 100% !important;
+            overflow-y: auto !important;
+            background: transparent !important; 
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        .ideas-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100%;
+            text-align: center;
+            padding: 15px 10px;
+            color: #fff;
+        }
+
+        .ideas-text {
+            font-family: 'Bebas Neue', sans-serif; /* FONT BURAYA EKLENDİ */
+            font-size: 1.8rem; /* Bebas Neue dar bir font olduğu için biraz büyüttük */
+            letter-spacing: 1px; /* Agresif durması için harf arası boşluk */
+            margin-bottom: 25px;
+            line-height: 1.2;
+        }
+
+        .download-btn {
+            font-family: 'Bebas Neue', sans-serif; /* Butona da uyum için aynı fontu verdik */
+            background-color: #ff003c;
+            color: white;
+            border: 2px solid #ff003c;
+            padding: 10px 20px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        .download-btn:hover {
+            background-color: transparent;
+            color: #ff003c;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="ideas-container">
+        <p class="ideas-text">
+            Want to sell content to major digital platforms?<br><br>
+            Dreaming of becoming a famous author?<br><br>
+            Still haven't found that one million-dollar idea?<br><br>
+            Stop wasting time. Download these three exclusive story concepts right now—before millions of other people get their hands on them.
+        </p>
+        
+        <button class="download-btn" onclick="downloadAllConcepts()">DOWNLOAD CONCEPTS NOW</button>
+    </div>
+
+    <script>
+        function downloadAllConcepts() {
+            // PDF DOSYALARININ YOLLARINI BURAYA YAZMAYI UNUTMA:
+            const files = [
+                '0.pdf', 
+                '777.pdf', 
+                '11.pdf'  
+            ];
+
+            files.forEach((file, index) => {
+                setTimeout(() => {
+                    const a = document.createElement('a');
+                    a.href = file;
+                    a.download = file.split('/').pop();
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }, index * 500); 
+            });
+        }
+    </script>
+</body>
+</html>

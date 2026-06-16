@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Match vs AI Prototip</title>
+    <style>
+        body {
+            background-color: #1a1a2e;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+            user-select: none;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 400px; 
+            background-color: #16213e;
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        #header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #e94560;
+        }
+
+        #score-board {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #16213e;
+            background: #fff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+        
+        .score-box {
+            display: inline-block;
+        }
+
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .cell {
+            background-color: #0f3460;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 22px;
+            font-weight: bold;
+            height: 55px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s, opacity 0.3s;
+        }
+
+        .cell:active {
+            transform: scale(0.90);
+        }
+
+        .cell.selected {
+            background-color: #e94560;
+            box-shadow: 0 0 10px #e94560;
+        }
+        
+        .cell.ai-selected {
+            background-color: #0097e6;
+            box-shadow: 0 0 10px #0097e6;
+            pointer-events: none; 
+        }
+
+        .cell.solved {
+            visibility: hidden; 
+        }
+
+        .cell.game-over-cell {
+            opacity: 0.3;
+            pointer-events: none;
+            filter: grayscale(100%);
+        }
+
+        #status {
+            margin-top: 15px;
+            text-align: center;
+            height: 20px;
+            font-size: 14px;
+            color: #aaa;
+            font-weight: bold;
+        }
+        
+        #restart-btn {
+            display: none; /* Başlangıçta gizli tutuyoruz */
+            margin: 15px auto 0 auto;
+            padding: 10px 25px;
+            background-color: #e94560;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
+            display: none; /* Flex veya block ile JavaScript üzerinden açacağız */
+        }
+
+        #restart-btn:hover {
+            background-color: #d13d56;
+        }
+
+        #restart-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="header">
+            
+            <div id="score-board">
+                <span class="score-box" style="color:#e94560">You: <span id="score">0</span></span>
+                <span class="score-box" style="color:#0097e6">AI: <span id="ai-score">0</span></span>
+            </div>
+        </div>
+        
+        <div id="status">Hurry up! AI is searching for a move...</div>
+        <button id="restart-btn">Play Again</button>
+        <div id="grid"></div>
+    </div>
+
+    <script>
+        const gridElement = document.getElementById('grid');
+        const scoreElement = document.getElementById('score');
+        const aiScoreElement = document.getElementById('ai-score');
+        const statusElement = document.getElementById('status');
+
+        let score = 0;
+        let aiScore = 0;
+        let board = [];
+        let selectedIndices = []; 
+        let isGameOver = false;
+
+        function initGame() {
+            generateBoardData();
+            renderBoard();
+            setTimeout(makeAiMove, 3000);
+        }
+
+        function generateBoardData() {
+            let elements = [];
+            const operators = ['+', '-', 'x'];
+
+            for (let i = 0; i < 10; i++) {
+                let op = operators[Math.floor(Math.random() * operators.length)];
+                let num1 = Math.floor(Math.random() * 9) + 1; 
+                let num2 = Math.floor(Math.random() * 9) + 1;
+                
+                if (op === '-' && num1 < num2) {
+                    let temp = num1;
+                    num1 = num2;
+                    num2 = temp;
+                }
+
+                let result;
+                if (op === '+') result = num1 + num2;
+                else if (op === '-') result = num1 - num2;
+                else if (op === 'x') result = num1 * num2;
+
+                elements.push(num1.toString(), op, num2.toString(), result.toString());
+            }
+
+            for (let i = elements.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [elements[i], elements[j]] = [elements[j], elements[i]];
+            }
+
+            board = elements;
+        }
+
+        function renderBoard() {
+            gridElement.innerHTML = '';
+            board.forEach((val, index) => {
+                const btn = document.createElement('button');
+                btn.classList.add('cell');
+                btn.textContent = val;
+                btn.dataset.index = index;
+                btn.addEventListener('click', () => handleCellClick(index, btn));
+                gridElement.appendChild(btn);
+            });
+        }
+
+        function handleCellClick(index, btnElement) {
+            if (isGameOver || btnElement.classList.contains('solved') || selectedIndices.includes(index) || btnElement.classList.contains('ai-selected')) {
+                return;
+            }
+
+            const val = board[index];
+            const isOperator = isNaN(val); 
+            const step = selectedIndices.length;
+
+            if (step === 0 || step === 2 || step === 3) {
+                if (isOperator) {
+                    statusElement.textContent = "Error: Please select a number!";
+                    return;
+                }
+            } else if (step === 1) {
+                if (!isOperator) {
+                    statusElement.textContent = "Error: Please select an operator (+, -, x)!";
+                    return;
+                }
+            }
+
+            selectedIndices.push(index);
+            btnElement.classList.add('selected');
+            
+            updateStatusText();
+
+            if (selectedIndices.length === 4) {
+                setTimeout(checkMatch, 250); 
+            }
+        }
+
+        function updateStatusText() {
+            const step = selectedIndices.length;
+            if (step === 1) statusElement.textContent = "Now select an operation (+, -, x)";
+            else if (step === 2) statusElement.textContent = "Select the second number";
+            else if (step === 3) statusElement.textContent = "And select the result!";
+            else statusElement.textContent = "Hurry up! AI is searching for a move...";
+        }
+
+        function checkMatch() {
+            if(isGameOver) return;
+            
+            let idx1 = selectedIndices[0];
+            let idx2 = selectedIndices[1];
+            let idx3 = selectedIndices[2];
+            let idx4 = selectedIndices[3];
+
+            let num1 = parseInt(board[idx1]);
+            let op = board[idx2];
+            let num2 = parseInt(board[idx3]);
+            let userResult = parseInt(board[idx4]);
+
+            let actualResult;
+            if (op === '+') actualResult = num1 + num2;
+            else if (op === '-') actualResult = num1 - num2;
+            else if (op === 'x') actualResult = num1 * num2;
+
+            const cells = document.querySelectorAll('.cell');
+
+            if (actualResult === userResult) {
+                score += actualResult; 
+                scoreElement.textContent = score;
+
+                selectedIndices.forEach(idx => {
+                    cells[idx].classList.remove('selected');
+                    cells[idx].classList.add('solved');
+                });
+                
+                statusElement.textContent = "You Found It! +" + actualResult + " Points.";
+                statusElement.style.color = "#e94560";
+                setTimeout(() => { if(!isGameOver) { statusElement.style.color = "#aaa"; statusElement.textContent = "Hurry up! AI is searching for a move..."; } }, 1500);
+
+                evaluateGameState();
+
+            } else {
+                statusElement.textContent = "Wrong equation! Starting over...";
+                statusElement.style.color = "#e94560";
+                setTimeout(() => { if(!isGameOver) statusElement.style.color = "#aaa"; }, 1000);
+                selectedIndices.forEach(idx => {
+                    cells[idx].classList.remove('selected');
+                });
+            }
+
+            selectedIndices = [];
+        }
+
+        function makeAiMove() {
+            if (isGameOver) return;
+
+            // YAPAY ZEKA APTALLAŞTIRMA MODÜLÜ:
+            // %40 ihtimalle AI o tur hiç hamle bulamasın ve boş geçsin
+            if (Math.random() < 0.40) {
+                setTimeout(makeAiMove, 3000); // 3 saniye şapşal gibi bekleyip tekrar denesin
+                return;
+            }
+
+            const availableCells = Array.from(document.querySelectorAll('.cell:not(.solved)'));
+            const safeCells = availableCells.filter(cell => !selectedIndices.includes(parseInt(cell.dataset.index)));
+
+            const numbers = [];
+            const operators = [];
+
+            safeCells.forEach(cell => {
+                const val = cell.textContent;
+                const idx = parseInt(cell.dataset.index);
+                if (val === '+' || val === '-' || val === 'x') {
+                    operators.push({val, idx, cell});
+                } else {
+                    numbers.push({val: parseInt(val), idx, cell});
+                }
+            });
+
+            let foundMove = null;
+
+            for (let i = 0; i < numbers.length; i++) {
+                for (let j = 0; j < numbers.length; j++) {
+                    if (i === j) continue; 
+                    for (let k = 0; k < operators.length; k++) {
+                        let n1 = numbers[i];
+                        let n2 = numbers[j];
+                        let op = operators[k];
+                        
+                        let expected;
+                        if (op.val === '+') expected = n1.val + n2.val;
+                        else if (op.val === '-') expected = n1.val - n2.val;
+                        else if (op.val === 'x') expected = n1.val * n2.val;
+
+                        for (let m = 0; m < numbers.length; m++) {
+                            if (m !== i && m !== j && numbers[m].val === expected) {
+                                foundMove = [n1, op, n2, numbers[m]];
+                                break;
+                            }
+                        }
+                        if (foundMove) break;
+                    }
+                    if (foundMove) break;
+                }
+                if (foundMove) break;
+            }
+
+            if (foundMove) {
+                foundMove.forEach(item => item.cell.classList.add('ai-selected'));
+                statusElement.textContent = "AI found an equation!";
+                statusElement.style.color = "#0097e6";
+
+                setTimeout(() => {
+                    if (isGameOver) return; 
+
+                    const points = foundMove[3].val;
+                    aiScore += points;
+                    aiScoreElement.textContent = aiScore;
+
+                    foundMove.forEach(item => {
+                        item.cell.classList.remove('ai-selected');
+                        item.cell.classList.add('solved');
+                    });
+
+                    setTimeout(() => { if(!isGameOver) { statusElement.style.color = "#aaa"; statusElement.textContent = "Hurry up! AI is searching for a move..."; } }, 1000);
+
+                    evaluateGameState();
+
+                    // YAPAY ZEKA BEKLEME SÜRESİ UZATILDI: Artık 4 ile 7 saniye arası bekliyor
+                    setTimeout(makeAiMove, Math.random() * 3000 + 4000); 
+                }, 800); 
+
+            } else {
+                setTimeout(makeAiMove, 2000);
+            }
+        }
+
+        function evaluateGameState() {
+            const gameState = checkAvailableMoves();
+            
+            if (gameState === "WIN" || gameState === "GAMEOVER") {
+                isGameOver = true;
+                
+                let resultMessage = "";
+                if (score > aiScore) resultMessage = "🏆 YOU WON!";
+                else if (aiScore > score) resultMessage = "💀 AI WON!";
+                else resultMessage = "🤝 IT'S A TIE!";
+
+                statusElement.textContent = "Game Over! " + resultMessage;
+                statusElement.style.color = score >= aiScore ? "#4cd137" : "#e84118";
+
+                document.querySelectorAll('.cell:not(.solved)').forEach(btn => {
+                    btn.classList.add('game-over-cell');
+                });
+                // Oyun bitince restart butonunu görünür yap
+                document.getElementById('restart-btn').style.display = 'block';
+            }
+        }
+
+        function checkAvailableMoves() {
+            const availableCells = Array.from(document.querySelectorAll('.cell:not(.solved)'));
+            if (availableCells.length === 0) return "WIN";
+
+            const numbers = [];
+            const operators = [];
+
+            availableCells.forEach(cell => {
+                const val = cell.textContent;
+                if (val === '+' || val === '-' || val === 'x') {
+                    operators.push(val);
+                } else {
+                    numbers.push(parseInt(val));
+                }
+            });
+
+            if (operators.length === 0 || numbers.length < 3) return "GAMEOVER";
+
+            for (let i = 0; i < numbers.length; i++) {
+                for (let j = 0; j < numbers.length; j++) {
+                    if (i === j) continue; 
+                    for (let k = 0; k < operators.length; k++) {
+                        let num1 = numbers[i];
+                        let num2 = numbers[j];
+                        let op = operators[k];
+                        
+                        let expectedResult;
+                        if (op === '+') expectedResult = num1 + num2;
+                        else if (op === '-') expectedResult = num1 - num2;
+                        else if (op === 'x') expectedResult = num1 * num2;
+
+                        for (let m = 0; m < numbers.length; m++) {
+                            if (m !== i && m !== j && numbers[m] === expectedResult) {
+                                return "PLAYING"; 
+                            }
+                        }
+                    }
+                }
+            }
+            return "GAMEOVER"; 
+        }
+
+        // Restart butonuna tıklanınca sayfayı yenileyerek oyunu tertemiz sıfırla
+        document.getElementById('restart-btn').addEventListener('click', function() {
+            window.location.reload();
+        });
+
+        initGame();
+    </script>
+</body>
+</html>

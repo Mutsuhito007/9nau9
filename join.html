@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join the Sweet Chaos - 9nau9</title>
+    
+    <style>
+        /* SCROLLBAR GİZLEME SEVİMLİ MODU */
+        *::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+        }
+        * {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+            box-sizing: border-box;
+        }
+
+        /* 1. Arka Plan: Yumuşacık, Pamuk Şekeri ve Pelüş Hissiyatlı Pembe Odası */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100vh;
+            background: radial-gradient(circle, #fff2f7 0%, #ffe6f0 100%); /* Tatlı bebek pembesi */
+            color: #ff4d94; /* Sevimli koyu pembe yazı rengi */
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Quicksand', sans-serif; /* Yuvarlak hatlı, oyuncaksı fontlar */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .test-container {
+            width: 90%;
+            max-width: 650px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        /* Giriş Başlığı */
+        .intro-title {
+            font-size: 2.3rem;
+            text-transform: capitalize;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ff1a75;
+            text-shadow: 2px 2px 0px #ffffff; /* Kabartmalı oyuncak yazısı efekti */
+        }
+
+        .intro-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #ff66a3;
+            margin-bottom: 30px;
+        }
+
+        /* 2. Test Kartı: Yumuşak Oyuncak Ayı / Bulut Kıvamında Beyaz Pofuduk Kutu */
+        .quiz-card {
+            display: none; 
+            background: #ffffff;
+            border: 4px solid #ffb3d9; /* Pofuduk pembe çerçeve */
+            padding: 40px 20px;
+            border-radius: 40px; /* Aşırı yuvarlatılmış bulut köşeleri */
+            box-shadow: 0 15px 35px rgba(255, 105, 180, 0.15); /* Yumuşak pembe gölge */
+        }
+
+        .progress-bar {
+            font-size: 0.9rem;
+            color: #ff99cc;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .question-text {
+            font-size: 1.35rem;
+            font-weight: bold;
+            line-height: 1.5;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 35px;
+            color: #ff1a75;
+        }
+
+        /* 3. Butonlar: Yumuşak Balon / Hap Şeklinde Pofuduk Tasarım */
+        .btn {
+            padding: 15px 35px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 30px; /* Tam yuvarlak pofuduk buton */
+            cursor: pointer;
+            transition: transform 0.1s ease, background-color 0.2s;
+            margin: 10px;
+            width: 140px;
+            box-shadow: 0 6px 15px rgba(255, 105, 180, 0.2);
+            font-family: inherit;
+        }
+
+        /* Tıklayınca pofuduk bir şekilde içeri gömülme efekti */
+        .btn:active {
+            transform: scale(0.92);
+        }
+
+        .start-btn {
+            background-color: #ff3385;
+            color: #fff;
+            width: auto;
+            padding: 18px 45px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+        }
+
+        .start-btn:hover {
+            background-color: #ff1a75;
+        }
+
+        .yes-btn {
+            background-color: #ff66a3;
+            color: #fff;
+        }
+
+        .yes-btn:hover {
+            background-color: #ff4d94;
+        }
+
+        .no-btn {
+            background-color: #fff0f5;
+            color: #ff66a3;
+            border: 2px solid #ffb3d9;
+        }
+
+        .no-btn:hover {
+            background-color: #ffd1e8;
+        }
+
+        /* Sonuç Ekranı */
+        .result-screen {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .result-text {
+            font-size: 1.5rem;
+            line-height: 1.7;
+            color: #ff1a75;
+            max-width: 550px;
+            margin: 0 auto;
+            font-weight: bold;
+        }
+
+        /* 4. TERS KÖŞE: "HUMAN" KELİMESİ İÇİN KORKUNÇ VE AYKIRI VURGU */
+        /* Pespembe dünyada bir anda sert, siyah/koyu mor ve tamamen zıt sert bir font çıkıyor */
+        .highlight-human {
+            color: #260011; 
+            background-color: #ffcc00; /* Şoke edici toksik sarı arka plan */
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            display: inline-block;
+            padding: 2px 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            box-shadow: 3px 3px 0px #000;
+        }
+
+        /* Simlerin ekranda düzgün görünmesi ve butonları engellememesi için */
+        #glitterCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none; /* Simlerin arkasındaki butonlara tıklanabilmesi için şart */
+            z-index: 1;
+        }
+
+        .test-container {
+            position: relative;
+            z-index: 2; /* Yazıların ve kartın simlerin önünde kalması için */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="test-container">
+        <canvas id="glitterCanvas"></canvas>
+        
+        <div id="introScreen">
+            <h1 class="intro-title">Want to be a part of 9nau9.com? ✨</h1>
+            <p class="intro-text">
+                We are looking for brilliant, chaotic, and completely out-of-the-box page ideas. 💕 <br>
+                But first, you must prove your mental alignment. Pass this cute little evaluation test! 🌸
+            </p>
+            <button class="btn start-btn" id="startBtn">Begin Evaluation ✨</button>
+        </div>
+
+        <div id="quizCard" class="quiz-card">
+            <div class="progress-bar" id="progressDisplay">Question 1 of 40</div>
+            <div class="question-text" id="questionDisplay">Loading anomaly...</div>
+            
+            <div class="options-wrapper">
+                <button class="btn yes-btn" id="yesBtn">YES 💞</button>
+                <button class="btn no-btn" id="noBtn">NO ☕</button>
+            </div>
+        </div>
+
+        <div id="resultScreen" class="result-screen">
+            <p class="result-text">
+                We will contact you as soon as possible. 💞<br><br>
+                You are exactly the <span class="highlight-human">human</span> we are looking for.
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        // Sorular ve mantık aynen korundu
+        const questions = [
+            "Do you believe capes should make a legal comeback in corporate environments?",
+            "Have you ever apologized to a piece of furniture after bumping into it?",
+            "If a tomato is a fruit, is ketchup technically a smoothie?",
+            "Can you successfully look at a lemon without your mouth watering?",
+            "Do you think ghosts complain about their houses being full of alive people?",
+            "Would you accept $1M if a duck constantly stared at you from a distance forever?",
+            "Have you ever tried to use the Force to open an automatic sliding door?",
+            "Is it morally acceptable to eat the top half of a muffin and leave the bottom?",
+            "Do you believe plants scream in a frequency we cannot hear when being mowed?",
+            "If you could fly but only at the exact speed of a walking chicken, would you?",
+            "Is a hot dog technically a sandwich?",
+            "Have you ever had a full conversation with a pet and waited for a reply?",
+            "If you sneeze while driving fast, does your soul temporarily lag behind?",
+            "Do you trust people who do not have a private dinosaur?",
+            "Would you wear shoes made entirely of bread if it solved world hunger?",
+            "Have you ever checked behind the shower curtain for a hidden assassin?",
+            "Is it possible to hold a microphone without pretending to be a comedian?",
+            "Do you think subatomic particles have their own tiny existential crises?",
+            "If you left cheese in a dark room for 10 years, would it start a space program?",
+            "Do you calculate your exact survival rate when a minor inconvenience happens?",
+            "Would you attend a concert where the band is just five spinning washing machines?",
+            "Is water actually wet, or does it just make other things wet?",
+            "Have you ever tried to walk exactly on the rhythm of your headphones' music?",
+            "If time travel is invented, will our future selves delete our search history?",
+            "Do you think aliens haven't visited us because they looked at our internet?",
+            "Can you read the word 'unbelievable' without using a dramatic voice in your head?",
+            "Is a cereal bowl just a cold, sweet soup?",
+            "Have you ever pretended to be on a phone call just to avoid someone?",
+            "If you put two mirrors in front of each other, do they argue about accuracy?",
+            "Do you believe that the second lost laundry sock goes to an alternate dimension?",
+            "Would you live in a house where all walls show random Wikipedia articles?",
+            "Is the snooze button a form of micro-rebellion against the universe?",
+            "Have you ever suspected your cat is writing a secret memoir about your failures?",
+            "If your reflection suddenly winked at you, would you wink back to show dominance?",
+            "Do you believe that trees are just extremely slow explosions out of the ground?",
+            "Is it possible to think about nothing without thinking about nothing?",
+            "Would you hire a private investigator to find out where your motivation went?",
+            "If you turn a book upside down, are you reading from the bottom of the world?",
+            "Does the universe look significantly better when you squint your eyes?",
+            "Are you absolutely certain that you are not currently inside a simulation test?"
+        ];
+
+        let currentIndex = 0;
+
+        const introScreen = document.getElementById('introScreen');
+        const quizCard = document.getElementById('quizCard');
+        const resultScreen = document.getElementById('resultScreen');
+        
+        const startBtn = document.getElementById('startBtn');
+        const yesBtn = document.getElementById('yesBtn');
+        const noBtn = document.getElementById('noBtn');
+        
+        const questionDisplay = document.getElementById('questionDisplay');
+        const progressDisplay = document.getElementById('progressDisplay');
+
+        startBtn.addEventListener('click', () => {
+            introScreen.style.display = 'none';
+            quizCard.style.display = 'block';
+            showQuestion();
+        });
+
+        function showQuestion() {
+            if (currentIndex < questions.length) {
+                progressDisplay.innerText = `Question ${currentIndex + 1} of ${questions.length}`;
+                questionDisplay.innerText = questions[currentIndex];
+            } else {
+                quizCard.style.display = 'none';
+                resultScreen.style.display = 'block';
+            }
+        }
+
+        yesBtn.addEventListener('click', () => {
+            currentIndex++;
+            showQuestion();
+        });
+
+        noBtn.addEventListener('click', () => {
+            currentIndex++;
+            showQuestion();
+        });
+
+        // --- YUKARIDAN SİM YAĞDIRMA MOTORU ---
+        const canvas = document.getElementById('glitterCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const glitters = [];
+        const glitterColors = ['#ff66a3', '#ff3385', '#ffd1e8', '#ffffff', '#ffb3d9', '#ffcc00'];
+
+        for (let i = 0; i < 60; i++) {
+            glitters.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2 + 0.8,
+                color: glitterColors[Math.floor(Math.random() * glitterColors.length)],
+                opacity: Math.random() * 0.8 + 0.2,
+                speedX: (Math.random() - 0.5) * 0.6,
+                speedY: 0.6 + Math.random() * 1.2
+            });
+        }
+
+        function animateGlitter() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            glitters.forEach(g => {
+                g.y += g.speedY;
+                g.x += g.speedX;
+
+                if (g.y > canvas.height) {
+                    g.y = -10;
+                    g.x = Math.random() * canvas.width;
+                }
+
+                ctx.beginPath();
+                ctx.arc(g.x, g.y, g.size, 0, Math.PI * 2);
+                ctx.fillStyle = g.color;
+                ctx.globalAlpha = g.opacity;
+                ctx.fill();
+            });
+
+            ctx.globalAlpha = 1.0;
+            requestAnimationFrame(animateGlitter);
+        }
+        animateGlitter();
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Horror Movie Viewer IQ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #FFD700;
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .app-wrapper {
+            width: 90%;
+            max-width: 400px;
+            height: 95%;
+            border: 3px solid #FF3B30;
+            border-radius: 10px;
+            background-color: #111;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #444;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+
+        .header h2 {
+            font-size: 32px;
+            color: #FF3B30;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 59, 48, 0.4);
+        }
+
+        .header p {
+            font-family: 'Roboto', sans-serif;
+            font-size: 13px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* Start Screen */
+        .start-screen {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .start-desc {
+            font-family: 'Roboto', sans-serif;
+            font-size: 15px;
+            color: #ccc;
+            line-height: 1.5;
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #FFD700;
+        }
+
+        /* Quiz Screen */
+        .quiz-screen {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+
+        .score-display {
+            font-size: 24px;
+            color: #4CD964;
+            text-align: right;
+            margin-bottom: 10px;
+        }
+
+        .progress-text {
+            font-size: 18px;
+            color: #888;
+            margin-bottom: 15px;
+        }
+
+        .question-box {
+            flex-grow: 1;
+            font-size: 26px;
+            line-height: 1.2;
+            color: #fff;
+            display: flex;
+            align-items: center;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        /* Buttons */
+        .action-btn {
+            background-color: #222;
+            color: #FFD700;
+            border: 2px solid #FFD700;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: left;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        .start-btn {
+            background-color: #FF3B30;
+            border-color: #FF3B30;
+            color: #fff;
+            font-family: 'VT323', monospace;
+            font-size: 28px;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* Result Screen */
+        .result-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+        }
+
+        .result-title {
+            font-size: 38px;
+            line-height: 1.1;
+        }
+
+        .pass-color { color: #4CD964; text-shadow: 0 0 10px rgba(76, 217, 100, 0.4); }
+        .fail-color { color: #FF3B30; text-shadow: 0 0 10px rgba(255, 59, 48, 0.4); }
+
+        .result-desc {
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            color: #ccc;
+            line-height: 1.5;
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="header">
+            
+            <p>Do you have what it takes to ruin your own life?</p>
+        </div>
+
+        <!-- START SCREEN -->
+        <div class="start-screen" id="startScreen">
+            <div class="start-desc">
+                In a horror movie, logic is your worst enemy. If you make smart, logical choices, the movie ends in 5 minutes and the audience hates you.<br><br>
+                
+            </div>
+            <button class="action-btn start-btn" onclick="startQuiz()">ENTER THE WOODS</button>
+        </div>
+
+        <!-- QUIZ SCREEN -->
+        <div class="quiz-screen" id="quizScreen">
+            <div style="display: flex; justify-content: space-between;">
+                <div class="progress-text" id="progressText">SCENARIO 1/20</div>
+                <div class="score-display" id="scoreText">SCORE: 0</div>
+            </div>
+            
+            <div class="question-box" id="questionText">Question goes here...</div>
+            
+            <div class="options-container" id="optionsBox">
+                <!-- Buttons will be injected here -->
+            </div>
+        </div>
+
+        <!-- RESULT SCREEN -->
+        <div class="result-screen" id="resultScreen">
+            <div class="result-title" id="resultTitle">RESULT</div>
+            <div style="font-size: 24px; color: #FFD700;" id="finalScoreText">Final Score: 0</div>
+            <div class="result-desc" id="resultDesc">Description...</div>
+            <button class="action-btn start-btn" onclick="location.reload()">TRY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        const db = [
+            {
+                q: "You hear a strange, terrifying noise coming from the dark basement.",
+                opts: [
+                    { text: "Go down slowly with a flickering flashlight, asking 'Hello?'", isStupid: true },
+                    { text: "Lock the basement door, grab your car keys, and leave.", isStupid: false }
+                ]
+            },
+            {
+                q: "A masked killer with a chainsaw is slowly walking towards you.",
+                opts: [
+                    { text: "Keep running and don't look back.", isStupid: false },
+                    { text: "Trip over absolutely nothing on flat ground and scream.", isStupid: true }
+                ]
+            },
+            {
+                q: "You just bought an incredibly cheap, massive old house. The realtor says an entire family was murdered there.",
+                opts: [
+                    { text: "Say 'Wow, what a great deal!' and start unpacking.", isStupid: true },
+                    { text: "Demand your money back and buy a small, safe apartment.", isStupid: false }
+                ]
+            },
+            {
+                q: "You and your friends are lost in a deep, foggy forest at midnight.",
+                opts: [
+                    { text: "Stay together holding hands no matter what happens.", isStupid: false },
+                    { text: "Suggest 'Let's split up, we can cover more ground.'", isStupid: true }
+                ]
+            },
+            {
+                q: "The killer breaks into your house. You are standing near the front door.",
+                opts: [
+                    { text: "Run out the front door and scream for the neighbors.", isStupid: false },
+                    { text: "Run upstairs and trap yourself in the bathroom.", isStupid: true }
+                ]
+            },
+            {
+                q: "You hit the killer with a baseball bat. He falls to the ground, dropping his weapon.",
+                opts: [
+                    { text: "Drop your bat immediately, turn your back, and slowly walk away.", isStupid: true },
+                    { text: "Hit him five more times and take his weapon.", isStupid: false }
+                ]
+            },
+            {
+                q: "The phone rings. A creepy, distorted voice whispers 'I am watching you.'",
+                opts: [
+                    { text: "Ask 'Who is this? Is this a sick joke?!'", isStupid: true },
+                    { text: "Hang up, call the cops, and exit the building.", isStupid: false }
+                ]
+            },
+            {
+                q: "You are driving on a lonely road and see a creepy hitchhiker covered in mud and blood.",
+                opts: [
+                    { text: "Stop the car, roll down the window, and offer him a ride.", isStupid: true },
+                    { text: "Speed up, lock the doors, and call 911.", isStupid: false }
+                ]
+            },
+            {
+                q: "Your car breaks down right in front of an abandoned, terrifying asylum.",
+                opts: [
+                    { text: "Lock your doors and wait inside the car until morning.", isStupid: false },
+                    { text: "Go inside the asylum to look for a landline phone.", isStupid: true }
+                ]
+            },
+            {
+                q: "You find an ancient book bound in human skin, written in Latin.",
+                opts: [
+                    { text: "Read the dark incantations out loud just for fun.", isStupid: true },
+                    { text: "Do not touch it and throw it in a fire.", isStupid: false }
+                ]
+            },
+            {
+                q: "The power goes out suddenly while you are taking a shower.",
+                opts: [
+                    { text: "Open the curtain slowly and whisper 'Is someone there?'", isStupid: true },
+                    { text: "Wrap a towel, grab the nearest heavy object, and stay silent.", isStupid: false }
+                ]
+            },
+            {
+                q: "You look in the bathroom mirror, close the medicine cabinet, and see a shadow behind you.",
+                opts: [
+                    { text: "Slowly turn around with a terrified look on your face.", isStupid: true },
+                    { text: "Instantly smash backward with your elbow.", isStupid: false }
+                ]
+            },
+            {
+                q: "Your best friend secretly gets bitten by a zombie.",
+                opts: [
+                    { text: "Tell them 'It's just a scratch' and keep them in your group.", isStupid: true },
+                    { text: "Quarantine them immediately for the safety of the group.", isStupid: false }
+                ]
+            },
+            {
+                q: "You are hiding under the bed. The killer is walking around the room.",
+                opts: [
+                    { text: "You already put your phone on silent and turned down the brightness.", isStupid: false },
+                    { text: "Your phone starts ringing with a loud, obnoxious ringtone.", isStupid: true }
+                ]
+            },
+            {
+                q: "The police finally arrive at your house, but the killer is still hiding.",
+                opts: [
+                    { text: "Let the armed professionals enter and secure the perimeter.", isStupid: false },
+                    { text: "Run towards the cop, block his line of sight, and get him killed.", isStupid: true }
+                ]
+            },
+            {
+                q: "You discover a secret, dark, and endless tunnel hidden behind a bookshelf.",
+                opts: [
+                    { text: "Crawl inside alone with a dying matchstick to explore.", isStupid: true },
+                    { text: "Seal it with bricks and put the bookshelf back.", isStupid: false }
+                ]
+            },
+            {
+                q: "A creepy little child points at an empty, dark corner and says 'He is watching us.'",
+                opts: [
+                    { text: "Smile and say 'You just have a wild imagination, sweetie.'", isStupid: true },
+                    { text: "Pack your bags immediately and move to another state.", isStupid: false }
+                ]
+            },
+            {
+                q: "You drop your car keys on the ground while running away in panic.",
+                opts: [
+                    { text: "Fumble blindly in the dark dirt for 3 minutes, crying.", isStupid: true },
+                    { text: "Forget the car and keep running fast on foot.", isStupid: false }
+                ]
+            },
+            {
+                q: "You survived the long night. The ambulance and cops are finally here.",
+                opts: [
+                    { text: "Make sure the killer's body is actually inside the body bag.", isStupid: false },
+                    { text: "Sit on the back of the ambulance, staring blankly with a blanket.", isStupid: true }
+                ]
+            },
+            {
+                q: "You finally escape in a car. You look at the rearview mirror.",
+                opts: [
+                    { text: "The killer suddenly sits up from the backseat.", isStupid: true },
+                    { text: "You checked the backseat before getting in.", isStupid: false }
+                ]
+            }
+        ];
+
+        let currentQuestion = 0;
+        let currentScore = 0;
+        let correctStupidAnswers = 0; // The threshold metric
+
+        const startScreen = document.getElementById('startScreen');
+        const quizScreen = document.getElementById('quizScreen');
+        const resultScreen = document.getElementById('resultScreen');
+        
+        const progressText = document.getElementById('progressText');
+        const scoreText = document.getElementById('scoreText');
+        const questionText = document.getElementById('questionText');
+        const optionsBox = document.getElementById('optionsBox');
+
+        let audioCtx;
+        
+        function playClickSound() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+            
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        function startQuiz() {
+            startScreen.style.display = 'none';
+            quizScreen.style.display = 'flex';
+            
+            // Sınav dizisini rastgele karıştır
+            db.sort(() => Math.random() - 0.5);
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestion >= db.length) {
+                endQuiz();
+                return;
+            }
+
+            const qData = db[currentQuestion];
+            progressText.innerText = `SCENARIO ${currentQuestion + 1}/${db.length}`;
+            questionText.innerText = qData.q;
+            
+            optionsBox.innerHTML = '';
+            
+            // Şıkları rastgele karıştır
+            let opts = [...qData.opts];
+            opts.sort(() => Math.random() - 0.5);
+
+            opts.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'action-btn';
+                btn.innerText = opt.text;
+                btn.onclick = () => selectOption(opt.isStupid);
+                optionsBox.appendChild(btn);
+            });
+        }
+
+        function selectOption(isStupid) {
+            playClickSound();
+            
+            if (isStupid) {
+                currentScore++;
+                correctStupidAnswers++;
+            } else {
+                currentScore--;
+            }
+
+            scoreText.innerText = `SCORE: ${currentScore}`;
+            
+            currentQuestion++;
+            loadQuestion();
+        }
+
+        function endQuiz() {
+            quizScreen.style.display = 'none';
+            resultScreen.style.display = 'flex';
+            
+            const rTitle = document.getElementById('resultTitle');
+            const rDesc = document.getElementById('resultDesc');
+            document.getElementById('finalScoreText').innerText = `FINAL SCORE: ${currentScore}`;
+
+            // KURAL: En az 11 aptalca (doğru) seçenek işaretlenmeli
+            if (correctStupidAnswers >= 11) {
+                rTitle.innerText = "HORROR LEGEND!";
+                rTitle.className = "result-title pass-color";
+                rDesc.innerHTML = `You made exactly <strong>${correctStupidAnswers}</strong> beautifully stupid choices. The audience loved every second of your irrational panic. You are the perfect horror movie victim!`;
+            } else {
+                rTitle.innerText = "BORING SURVIVOR";
+                rTitle.className = "result-title fail-color";
+                rDesc.innerHTML = `You are never a good horror movie viewer. You only made <strong>${correctStupidAnswers}</strong> clichéd choices. You used logic, survived the night in 5 minutes, and completely ruined the movie's box office.`;
+            }
+        }
+    </script>
+</body>
+</html>

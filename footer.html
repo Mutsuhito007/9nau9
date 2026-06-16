@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>9nau9 - Transmission</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #e0e0e0;
+            font-family: 'Space Mono', monospace;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            /* 👑 İŞTE BU KOMUT SAĞDAKİ VE ALTTAKİ TÜM SCROLL'LARI İPTAL EDER */
+            overflow: hidden; 
+        }
+
+        .container {
+            width: 90%;
+            max-width: 500px;
+            border: 2px solid #333;
+            /* Ekrana tam sığması için iç boşlukları (padding) biraz kıstım */
+            padding: 20px 25px; 
+            background-color: #0a0a0a;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0,0,0,0.8);
+        }
+
+        h1 {
+            font-family: 'VT323', monospace;
+            color: #FFD700;
+            font-size: 50px; /* Taştığı için başlığı bir tık küçülttüm */
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #FFD700;
+            text-shadow: 3px 3px 0px #FF3B30; 
+        }
+
+        p {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+
+        .warning-box {
+            margin: 15px 0;
+            padding: 12px;
+            background-color: #1a0505;
+            border-left: 4px solid #FF3B30; 
+            color: #ccc;
+            font-size: 11px;
+            line-height: 1.4;
+            text-align: left;
+        }
+
+        .warning-title {
+            color: #FF3B30;
+            font-weight: bold;
+            margin-bottom: 6px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .contact-box {
+            background-color: #111;
+            border: 1px solid #444;
+            padding: 12px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .contact-box a {
+            color: #00FFFF;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .hint {
+            margin-top: 20px;
+            font-size: 11px;
+            color: #555;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>9nau9.com</h1>
+        
+
+        <div class="warning-box">
+            <span class="warning-title">SYSTEM WARNING //</span>
+            All stories, texts, and events within this system are entirely fictional creations of the 'Mutsu Hikari'. Any resemblance to real persons, institutions, or events is purely coincidental.
+        </div>
+
+        <div class="contact-box">
+            CONNECTION ESTABLISHED:<br><br>
+            Incoming Transmissions:<br>
+            <a href="mailto:contact@9nau9.com">contact@9nau9.com</a>
+        </div>
+
+        <div class="hint">
+            ▼ TAP 'SHUFFLE' TO BROWSE FAVORITES ▼
+        </div>
+    </div>
+
+</body>
+</html>

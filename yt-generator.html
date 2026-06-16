@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Concept Generator - 9nau9</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=VT323&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Ekran ayarları ve eski CRT TV efekti */
+        body {
+            display: block !important;
+            height: 100% !important;
+            overflow-y: auto !important;
+            background: #050505 !important; 
+            position: relative;
+        }
+
+        /* Ekranın üstünde ince cızırtı çizgileri (Scanlines) */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #ff003c; border-radius: 3px; }
+
+        .gen-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100%;
+            text-align: center;
+            padding: 20px 10px;
+            color: #fff;
+        }
+
+        /* Titreyen Glitch Başlık */
+        .title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.6rem;
+            color: #fff;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            animation: glitch 1s linear infinite; /* Glitch animasyonu eklendi */
+            position: relative;
+            z-index: 10;
+        }
+
+        @keyframes glitch {
+            0% { text-shadow: 2px 0 #ff003c, -2px 0 #00f0ff; transform: translate(0); }
+            20% { text-shadow: -2px 0 #ff003c, 2px 0 #00f0ff; transform: translate(-2px, 1px); }
+            40% { text-shadow: 2px 0 #ff003c, -2px 0 #00f0ff; transform: translate(2px, -1px); }
+            60% { text-shadow: -2px 0 #ff003c, 2px 0 #00f0ff; transform: translate(-2px, -1px); }
+            80% { text-shadow: 2px 0 #ff003c, -2px 0 #00f0ff; transform: translate(2px, 1px); }
+            100% { text-shadow: -2px 0 #ff003c, 2px 0 #00f0ff; transform: translate(0); }
+        }
+
+        /* Neon Kırmızı Parıldayan Fikir Kutusu */
+        .idea-box {
+            background: #0a0a0a;
+            border: 3px solid #ff003c;
+            border-radius: 8px;
+            padding: 20px;
+            width: 95%;
+            min-height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            /* Nefes alan neon gölge efekti */
+            animation: neon-breathe 1.5s infinite alternate;
+            position: relative;
+            z-index: 10;
+        }
+
+        @keyframes neon-breathe {
+            0% { box-shadow: 0 0 10px #ff003c, inset 0 0 10px rgba(255, 0, 60, 0.2); }
+            100% { box-shadow: 0 0 25px #ff003c, inset 0 0 30px rgba(255, 0, 60, 0.6); }
+        }
+
+        .idea-text {
+            font-family: 'VT323', monospace;
+            font-size: 1.6rem;
+            color: #fff;
+            line-height: 1.3;
+            text-shadow: 0 0 5px #fff;
+            transition: color 0.1s;
+        }
+
+        /* Agresif Buton */
+        .generate-btn {
+            font-family: 'Bebas Neue', sans-serif;
+            background-color: #ff003c;
+            color: #fff;
+            border: 3px solid #fff;
+            padding: 12px 20px;
+            font-size: 1.6rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.1s ease;
+            box-shadow: 4px 4px 0 #fff; /* Retro köşeli gölge */
+            width: 90%;
+            z-index: 10;
+        }
+
+        .disclaimer-text {
+            font-family: 'VT323', monospace; /* Konsol ekranı fontu */
+            font-size: 0.9rem; /* Küçük, hani şu ilaç kutularının altındaki okunmayan yazılar gibi */
+            color: #555; /* Sönük, mat bir gri (göze batmasın ama boşluğu doldursun) */
+            margin-top: 40px; /* Butonla arasına güzel bir boşluk koyar, sayfanın en altına iter */
+            max-width: 90%; /* Kenarlara çok yapışmasın */
+            line-height: 1.2;
+            text-transform: uppercase; /* Tamamı büyük harf olsun ki ciddi dursun */
+            letter-spacing: 0.5px;
+        }
+
+        .generate-btn:hover {
+            background-color: #fff;
+            color: #ff003c;
+            border-color: #ff003c;
+            box-shadow: -4px -4px 0 #ff003c;
+            transform: scale(1.05) rotate(-2deg); /* Üstüne gelince hafif yan yatar */
+        }
+
+        .generate-btn:active {
+            transform: scale(0.95) rotate(2deg);
+        }
+
+        /* Butona basıldığında tüm ekranı sarsacak class */
+        .shake-screen {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 1px, 0); }
+            20%, 80% { transform: translate3d(3px, -2px, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 3px, 0); }
+            40%, 60% { transform: translate3d(4px, -3px, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="gen-container">
+        <h1 class="title">YT CONCEPT GENERATOR</h1>
+        
+        <div class="idea-box">
+            <p id="ideaDisplay" class="idea-text">SYSTEM READY. HIT THE BUTTON TO STEAL A VIRAL VIDEO IDEA.</p>
+        </div>
+        
+        <button class="generate-btn" onclick="generateIdea()">Break the Algorithm</button>
+        <p class="disclaimer-text">WARNING: 9nau9.com assumes absolutely zero legal or moral responsibility if you get injured, arrested, or deported while attempting to produce content based on these ideas. You are entirely on your own.</p>
+    </div>
+
+    <script>
+        const ideas = [
+            "Reviewing water from different puddles in my city.",
+            "I tried to teach my cat quantum physics (He failed).",
+            "ASMR but it's just me aggressively doing my taxes.",
+            "Vlogging my sleep paralysis demon's morning routine.",
+            "I paid actors to pretend they are my childhood friends for a day.",
+            "Unboxing a box of smaller boxes.",
+            "Apologizing to inanimate objects I bumped into for 24 hours.",
+            "Rating the taste of different brands of glue (NOT CLICKBAIT).",
+            "I lived in a Minecraft dirt hut in real life for a week.",
+            "Giving a TED Talk to a room full of pigeons.",
+            "Cooking a 5-star meal using only an iron and a hairdryer.",
+            "I read the entire Apple Terms and Conditions as a bedtime story.",
+            "Trying to get cancelled on Club Penguin (Gone Wrong).",
+            "Interviewing people who still use Internet Explorer.",
+            "I trained a pigeon to invest in cryptocurrency.",
+            "Reviewing public restrooms like Michelin star restaurants.",
+            "I spent 24 hours walking exclusively backwards.",
+            "Reading my spam emails dramatically like Shakespearean plays.",
+            "I tried to survive purely on free samples from the grocery store.",
+            "Teaching a Roomba how to feel love.",
+            "I replaced my room's floor with bubble wrap and lived normally.",
+            "Trying to out-stare a statue for 10 hours straight.",
+            "I hired a private investigator to investigate myself.",
+            "Making a tutorial on how to breathe air (Advanced Techniques).",
+            "I speedran getting rejected by every job in my town.",
+            "Trying to convince Siri that she is my biological mother.",
+            "I hosted a talk show but the only guest is a houseplant.",
+            "Reviewing different flavors of dog food (Human Edition).",
+            "I tried to find the end of an Excel spreadsheet.",
+            "Vlogging my journey to the center of the IKEA maze.",
+            "I created a fake cult and actually got followers.",
+            "Reading my ex's texts using text-to-speech.",
+            "I built a PC out of cardboard and hope it runs Doom.",
+            "Testing if different cheeses conduct electricity.",
+            "I spent $1000 on Fiverr to get people to say 'Banana'.",
+            "Trying to start a beef with a random Wikipedia editor.",
+            "I rated every single brick on my house's wall.",
+            "Vlogging like it's 2007 and ignoring modern technology.",
+            "I tried to translate what my dog is barking at.",
+            "Unboxing my own trash from last week.",
+            "Rating the structural integrity of different potato chip brands.",
+            "Whispering emotional motivational quotes to strangers on a crowded subway.",
+            "I went to a fancy art gallery and successfully sold my half-eaten sandwich.",
+            
+        ];
+
+        function generateIdea() {
+            const body = document.body;
+            const ideaDisplay = document.getElementById('ideaDisplay');
+            
+            // Ekranı sarsma efektini başlat
+            body.classList.add('shake-screen');
+            setTimeout(() => {
+                body.classList.remove('shake-screen');
+            }, 400);
+
+            // Matrix tarzı şifre çözme / kaos animasyonu
+            let iterations = 0;
+            const interval = setInterval(() => {
+                // Rastgele yazılar ve renkler oluşturarak glitch hissi veriyoruz
+                ideaDisplay.textContent = ideas[Math.floor(Math.random() * ideas.length)].substring(0, 15) + "...!@#$%>?";
+                ideaDisplay.style.color = Math.random() > 0.5 ? '#ff003c' : '#fff'; // Renkler kırmız-beyaz flaşlasın
+
+                iterations++;
+                
+                // 15 döngüden sonra (yaklaşık 0.7 saniye) nihai fikri ver
+                if (iterations >= 15) {
+                    clearInterval(interval);
+                    const randomIndex = Math.floor(Math.random() * ideas.length);
+                    ideaDisplay.textContent = `"${ideas[randomIndex]}"`;
+                    ideaDisplay.style.color = '#4CD964'; // Fikir geldiğinde Matrix yeşiline dönsün
+                    ideaDisplay.style.textShadow = "0 0 10px #4CD964";
+                }
+            }, 50); // Her 50 milisaniyede bir yazıyı değiştir (Hızlı çakma efekti)
+        }
+    </script>
+</body>
+</html>

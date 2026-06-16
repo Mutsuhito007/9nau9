@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NauDuel - Esports Wagering</title>
+    <style>
+        /* Base Settings */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* --- SCROLL BAR HIDING --- */
+        ::-webkit-scrollbar { display: none; }
+        * { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        body { background-color: #050505; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #fff; margin: 0; }
+        
+        /* Mobile App Container (Gamer Theme) */
+        #app-container { 
+            width: 100%; max-width: 400px; height: 100vh; max-height: 850px; 
+            background: #0b0c10; position: relative; overflow: hidden; 
+            display: flex; flex-direction: column; box-shadow: 0 0 40px rgba(102, 252, 241, 0.15);
+        }
+
+        /* Header */
+        header { background: #12141a; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1f2833; z-index: 10; }
+        .info-btn { background: none; border: none; color: #66fcf1; font-size: 1.1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: opacity 0.2s; }
+        .info-btn:hover { opacity: 0.9; text-shadow: 0 0 8px #66fcf1; }
+        
+        .balance-box { background: #1f2833; padding: 6px 14px; border-radius: 8px; border: 1px solid #45a29e; text-align: right; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        .balance-label { font-size: 0.65rem; color: #c5c6c7; text-transform: uppercase; display: block; margin-bottom: 2px; }
+        .balance-amount { color: #66fcf1; font-weight: 900; font-size: 1.1rem; text-shadow: 0 0 5px rgba(102, 252, 241, 0.4); }
+
+        /* Content Area */
+        #content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 85px; background: #0b0c10; }
+
+        /* View Section Management */
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* Duel Cards */
+        .duel-card { background: #12141a; border-radius: 10px; padding: 16px; margin-bottom: 15px; border: 1px solid #1f2833; position: relative; overflow: hidden; transition: transform 0.2s; }
+        .duel-card::before { content: ''; position: absolute; left: 0; top: 0; width: 4px; height: 100%; background: #c5c6c7; }
+        .duel-card.csgo::before { background: #f4c430; }
+        .duel-card.fifa::before { background: #00ff87; }
+        .duel-card.valorant::before { background: #ff4655; }
+        
+        .duel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .player-name { font-size: 1.2rem; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
+        .game-tag { font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; font-weight: 800; text-transform: uppercase; color: #000; }
+        .tag-csgo { background: #f4c430; }
+        .tag-fifa { background: #00ff87; }
+        .tag-valorant { background: #ff4655; color: #fff; }
+
+        .duel-stats { display: flex; justify-content: space-between; background: #050505; padding: 10px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #1f2833; }
+        .stat-box { text-align: center; }
+        .stat-label { font-size: 0.65rem; color: #888; text-transform: uppercase; display: block; margin-bottom: 3px; }
+        .stat-value { font-size: 0.9rem; font-weight: 700; color: #c5c6c7; }
+        .wager-amount { font-size: 1.1rem; font-weight: 900; color: #66fcf1; }
+
+        /* Challenge Button */
+        .btn-challenge { width: 100%; padding: 14px; background: #1f2833; color: #66fcf1; border: 1px solid #66fcf1; border-radius: 6px; font-weight: 900; font-size: 1rem; text-transform: uppercase; cursor: pointer; transition: all 0.2s; letter-spacing: 1px; }
+        .btn-challenge:active { background: #66fcf1; color: #0b0c10; transform: scale(0.98); }
+        
+        /* Disabled/Scheduled Button State */
+        .btn-scheduled { background: #12141a !important; color: #45a29e !important; border-color: #1f2833 !important; cursor: not-allowed !important; transform: none !important; opacity: 0.6; }
+
+        /* Bottom Navigation */
+        footer { position: absolute; bottom: 0; width: 100%; background: #12141a; border-top: 2px solid #1f2833; display: flex; justify-content: space-around; padding: 12px 0; z-index: 10; }
+        .nav-item { text-align: center; color: #45a29e; font-size: 0.75rem; cursor: pointer; font-weight: 700; flex: 1; transition: color 0.2s; text-transform: uppercase; }
+        .nav-item.active { color: #66fcf1; text-shadow: 0 0 8px rgba(102, 252, 241, 0.5); }
+        .nav-icon { font-size: 1.4rem; margin-bottom: 4px; }
+
+        /* Modals & Alerts */
+        .modal-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 12, 16, 0.95); z-index: 100; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        
+        .info-box { border: 1px solid #66fcf1; background: #12141a; padding: 30px; text-align: center; border-radius: 12px; position: relative; max-width: 320px; }
+        .close-modal-btn { position: absolute; top: 15px; right: 20px; background: none; border: none; color: #66fcf1; font-size: 1.5rem; cursor: pointer; font-weight: bold; }
+        .info-text { font-size: 1.1rem; line-height: 1.6; font-weight: 600; color: #c5c6c7; }
+
+        .alert-box { background: #12141a; border: 1px solid #45a29e; padding: 25px; border-radius: 10px; text-align: center; width: 100%; max-width: 300px; animation: popIn 0.2s ease-out; box-shadow: 0 0 20px rgba(102,252,241,0.2); }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .alert-box p { font-size: 1rem; color: #fff; margin-bottom: 20px; font-weight: 600; line-height: 1.5; }
+        .btn-alert-ok { width: 100%; padding: 12px; background: #66fcf1; color: #0b0c10; border: none; border-radius: 6px; font-weight: 900; font-size: 1rem; cursor: pointer; text-transform: uppercase; }
+
+        /* Match Simulation Loader */
+        #match-loader { display: none; flex-direction: column; align-items: center; justify-content: center; color: #66fcf1; text-align: center; }
+        .spinner { width: 60px; height: 60px; border: 5px solid #1f2833; border-top-color: #66fcf1; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text { font-size: 1.2rem; font-weight: 900; letter-spacing: 2px; animation: pulse 1s infinite alternate; }
+        @keyframes pulse { from { opacity: 0.6; } to { opacity: 1; } }
+
+        .empty-state { text-align: center; color: #45a29e; padding: 40px 20px; font-size: 0.9rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        
+        <header>
+            <button class="info-btn" onclick="openInfo()">ℹ️ INFO</button>
+            <div class="balance-box">
+                <span class="balance-label">Wallet</span>
+                <span class="balance-amount" id="balance-display">500 nauCoin</span>
+            </div>
+        </header>
+
+        <div id="info-modal" class="modal-overlay">
+            <div class="info-box">
+                <button class="close-modal-btn" onclick="closeInfo()">✕</button>
+                <p class="info-text">
+                    "Send a duel request to players in CS:GO, FIFA, or Valorant. If they accept, a match date will be scheduled. Lock in your nauCoins and prepare for the game day!"
+                </p>
+            </div>
+        </div>
+
+        <div id="alert-modal" class="modal-overlay" style="z-index: 200;">
+            <div class="alert-box">
+                <p id="alert-text">Message</p>
+                <button class="btn-alert-ok" onclick="closeAlert()">GOT IT</button>
+            </div>
+        </div>
+
+        <div id="match-loader" class="modal-overlay" style="z-index: 150;">
+            <div class="spinner"></div>
+            <div class="loader-text" id="loader-status">SENDING REQUEST...</div>
+        </div>
+
+        <div id="content">
+            
+            <div id="arena-view" class="view-section active">
+                <h3 style="margin-bottom: 15px; color: #45a29e; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">⚔️ Open Challenges</h3>
+                <div id="duels-container">
+                    </div>
+            </div>
+
+            <div id="profile-view" class="view-section">
+                <h3 style="margin-bottom: 15px; color: #45a29e; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">👤 My Scheduled Duels</h3>
+                <div id="my-duels-container">
+                    </div>
+            </div>
+
+        </div>
+
+        <footer>
+            <div class="nav-item active" id="nav-arena" onclick="switchView('arena')">
+                <div class="nav-icon">🎮</div>
+                Arena
+            </div>
+            <div class="nav-item" id="nav-profile" onclick="switchView('profile')">
+                <div class="nav-icon">👤</div>
+                Profile
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        let userBalance = 500;
+        let isRequestInProgress = false;
+        const scheduledMatches = []; // Holds user's accepted matches
+
+        // Opponent Database
+        const opponents = [
+            { id: 1, name: "ToxicBoy_99", game: "CS:GO", gameClass: "csgo", winRate: "54%", wager: 50, status: "open", scheduleTime: "" },
+            { id: 2, name: "FifaKingXX", game: "FIFA 24", gameClass: "fifa", winRate: "68%", wager: 120, status: "open", scheduleTime: "" },
+            { id: 3, name: "Jett_Main", game: "VALORANT", gameClass: "valorant", winRate: "61%", wager: 75, status: "open", scheduleTime: "" },
+            { id: 4, name: "NoScopePro", game: "CS:GO", gameClass: "csgo", winRate: "82%", wager: 250, status: "open", scheduleTime: "" },
+            { id: 5, name: "TikiTakaMaster", game: "FIFA 24", gameClass: "fifa", winRate: "45%", wager: 30, status: "open", scheduleTime: "" }
+        ];
+
+        // UI Functions
+        function openInfo() { document.getElementById('info-modal').style.display = 'flex'; }
+        function closeInfo() { document.getElementById('info-modal').style.display = 'none'; }
+        
+        function customAlert(msg) { 
+            document.getElementById('alert-text').innerHTML = msg;
+            document.getElementById('alert-modal').style.display = 'flex'; 
+        }
+        function closeAlert() { document.getElementById('alert-modal').style.display = 'none'; }
+
+        function updateBalanceUI() {
+            document.getElementById('balance-display').innerText = userBalance + " nC";
+        }
+
+        // Render Open Arena Duels
+        function renderDuels() {
+            const container = document.getElementById('duels-container');
+            container.innerHTML = '';
+
+            opponents.forEach(p => {
+                const isScheduled = p.status === "scheduled";
+                const btnText = isScheduled ? "SCHEDULED" : "SEND CHALLENGE";
+                const btnClass = isScheduled ? "btn-challenge btn-scheduled" : "btn-challenge";
+                const disabledAttr = isScheduled ? "disabled" : "";
+
+                container.innerHTML += `
+                    <div class="duel-card ${p.gameClass}">
+                        <div class="duel-header">
+                            <span class="player-name">${p.name}</span>
+                            <span class="game-tag tag-${p.gameClass}">${p.game}</span>
+                        </div>
+                        <div class="duel-stats">
+                            <div class="stat-box">
+                                <span class="stat-label">Win Rate</span>
+                                <span class="stat-value">${p.winRate}</span>
+                            </div>
+                            <div class="stat-box" style="text-align: right;">
+                                <span class="stat-label">Stake</span>
+                                <span class="wager-amount">${p.wager} nC</span>
+                            </div>
+                        </div>
+                        <button id="btn-challenge-${p.id}" class="${btnClass}" ${disabledAttr} onclick="initiateDuel(${p.id})">${btnText}</button>
+                    </div>
+                `;
+            });
+        }
+
+        // Render Profile Scheduled Duels
+        function renderProfileDuels() {
+            const container = document.getElementById('my-duels-container');
+            container.innerHTML = '';
+
+            const activeSchedules = opponents.filter(o => o.status === "scheduled");
+
+            if (activeSchedules.length === 0) {
+                container.innerHTML = '<div class="empty-state">You have no active matches scheduled. Go to Arena and challenge other players!</div>';
+                return;
+            }
+
+            activeSchedules.forEach(p => {
+                container.innerHTML += `
+                    <div class="duel-card ${p.gameClass}" style="border-color: #66fcf1;">
+                        <div class="duel-header">
+                            <span class="player-name">${p.name}</span>
+                            <span class="game-tag tag-${p.gameClass}" style="background:#66fcf1; color:#000;">LOCKED</span>
+                        </div>
+                        <div class="duel-stats" style="margin-bottom:0;">
+                            <div class="stat-box">
+                                <span class="stat-label">Game</span>
+                                <span class="stat-value" style="color:#fff;">${p.game}</span>
+                            </div>
+                            <div class="stat-box" style="text-align: right;">
+                                <span class="stat-label">Wager Locked</span>
+                                <span class="wager-amount" style="font-size:0.95rem;">${p.wager} nC</span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; background: #1f2833; padding: 8px; border-radius: 4px; text-align: center; font-size: 0.8rem; color: #66fcf1; font-weight: bold; border: 1px dashed #45a29e;">
+                            📅 MATCH TIME: ${p.scheduleTime}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Duel Scheduling Logic
+        function initiateDuel(id) {
+            if (isRequestInProgress) return;
+            
+            const opp = opponents.find(o => o.id === id);
+            
+            if (userBalance < opp.wager) {
+                customAlert("<b>INSUFFICIENT FUNDS!</b><br><br>You don't have enough nauCoins to match this wager.");
+                return;
+            }
+
+            isRequestInProgress = true;
+            document.getElementById('match-loader').style.display = 'flex';
+            document.getElementById('loader-status').innerText = "WAITING FOR ACCEPTANCE...";
+
+            setTimeout(() => {
+                isRequestInProgress = false;
+                document.getElementById('match-loader').style.display = 'none';
+                
+                userBalance -= opp.wager;
+                updateBalanceUI();
+
+                const days = ["Tomorrow", "In 2 Days", "This Weekend"];
+                const randomDay = days[Math.floor(Math.random() * days.length)];
+                const randomHour = Math.floor(Math.random() * 6) + 16; 
+                const appointment = `${randomDay}, ${randomHour}:00`;
+
+                // Update data model
+                opp.status = "scheduled";
+                opp.scheduleTime = appointment;
+
+                // Re-render Arena list state
+                renderDuels();
+
+                customAlert(`<b>DUEL SCHEDULED! ⚔️</b><br><br>${opp.name} accepted your challenge.<br><br>Match Date:<br><span style='color:#66fcf1; font-size:1.2rem; font-weight:bold;'>${appointment}</span><br><br>Your wager is locked. You can view this match inside your Profile tab.`);
+            }, 1800);
+        }
+
+        // Tab View Switcher
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            if (viewName === 'arena') {
+                document.getElementById('arena-view').classList.add('active');
+                document.getElementById('nav-arena').classList.add('active');
+                renderDuels();
+            } else if (viewName === 'profile') {
+                document.getElementById('profile-view').classList.add('active');
+                document.getElementById('nav-profile').classList.add('active');
+                renderProfileDuels();
+            }
+        }
+
+        // Init
+        window.onload = function() {
+            renderDuels();
+        };
+    </script>
+</body>
+</html>

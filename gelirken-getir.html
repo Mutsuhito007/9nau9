@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fetch It!</title>
+    <style>
+        /* Base Settings - Transforms the page into a phone screen */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #121212; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; margin: 0; }
+        
+        /* Mobile App Container */
+        #app-container { 
+            width: 100%; 
+            max-width: 400px; 
+            height: 100vh; 
+            max-height: 850px; 
+            background: #f4f4f9; 
+            position: relative; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        /* Header */
+        header { background: #5d3ebc; color: #ffd300; padding: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .info-btn { background: none; border: none; color: #ffd300; font-size: 1.1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: opacity 0.2s; }
+        .info-btn:hover { opacity: 0.9; }
+        .balance { background: #ffd300; color: #5d3ebc; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.95rem; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); }
+
+        /* Content Area */
+        #content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; background: #eef0f5; }
+
+        /* Order Cards */
+        .order-card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); border-left: 5px solid #5d3ebc; transition: transform 0.2s; }
+        .order-header { display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 12px; }
+        .route { font-size: 0.95rem; font-weight: 700; color: #2c3e50; }
+        .earnings { font-size: 1.1rem; font-weight: 900; color: #28a745; }
+        .items { font-size: 0.85rem; color: #555; margin-bottom: 15px; line-height: 1.4; background: #f8f9fa; padding: 10px; border-radius: 6px; }
+        
+        /* Buttons */
+        .btn-accept { width: 100%; padding: 14px; background: #5d3ebc; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 6px rgba(93, 62, 188, 0.3); }
+        .btn-accept:active { background: #4a3196; transform: translateY(2px); }
+
+        /* Active Order View */
+        #active-order-view { display: none; text-align: center; padding: 20px 0; height: 100%; flex-direction: column; justify-content: center; }
+        .status-circle { width: 160px; height: 160px; border-radius: 50%; border: 8px solid #ddd; margin: 0 auto 30px; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; font-weight: bold; color: #5d3ebc; position: relative; }
+        .progress-ring { position: absolute; top: -8px; left: -8px; width: 160px; height: 160px; border-radius: 50%; border: 8px solid #ffd300; border-top-color: transparent; border-right-color: transparent; animation: spin 1.5s linear infinite; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .btn-deliver { width: 100%; padding: 16px; background: #28a745; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1.1rem; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 6px rgba(40, 167, 69, 0.3); }
+        .btn-deliver:active { background: #218838; transform: translateY(2px); }
+
+        /* Bottom Navigation */
+        footer { position: absolute; bottom: 0; width: 100%; background: white; border-top: 1px solid #ddd; display: flex; justify-content: space-around; padding: 12px 0; z-index: 10; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .nav-item { text-align: center; color: #a0a0a0; font-size: 0.75rem; cursor: pointer; font-weight: 600; }
+        .nav-item.active { color: #5d3ebc; }
+        .nav-icon { font-size: 1.5rem; margin-bottom: 4px; }
+
+        /* Information Popup Modal */
+        #info-modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(93, 62, 188, 0.98);
+            color: white; z-index: 100; padding: 30px;
+            flex-direction: column; justify-content: center; align-items: center; text-align: center;
+        }
+        .close-modal-btn {
+            position: absolute; top: 25px; right: 25px;
+            background: none; border: none; color: #ffd300;
+            font-size: 2rem; cursor: pointer; font-weight: bold; line-height: 1;
+        }
+        .info-text { font-size: 1.2rem; line-height: 1.6; font-weight: 600; padding: 0 10px; }
+
+        /* NEW: Custom In-App Alert Modal Overlay */
+        #custom-alert-modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 200; /* Stays above everything else */
+            justify-content: center; align-items: center;
+            padding: 20px;
+        }
+        .alert-box {
+            background: white;
+            padding: 24px;
+            border-radius: 14px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 320px;
+            animation: alertPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes alertPop {
+            from { transform: scale(0.85); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .alert-box p { font-size: 1rem; color: #2c3e50; margin-bottom: 20px; font-weight: 600; line-height: 1.5; }
+        .btn-alert-ok {
+            width: 100%; padding: 12px; background: #5d3ebc; color: white;
+            border: none; border-radius: 8px; font-weight: bold; font-size: 0.95rem;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .btn-alert-ok:active { background: #4a3196; }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        
+        <header>
+            <button class="info-btn" onclick="openInfoModal()">ℹ️ Info</button>
+            <div class="balance" id="balance-display">$0.00</div>
+        </header>
+
+        <div id="info-modal">
+            <button class="close-modal-btn" onclick="closeInfoModal()">✕</button>
+            <p class="info-text">
+                "Are you at the store and want to earn a few dollars on your way home? Go ahead, choose the closest order to you and get your gas money for free!"
+            </p>
+        </div>
+
+        <div id="custom-alert-modal">
+            <div class="alert-box">
+                <p id="custom-alert-text">Alert Notification</p>
+                <button class="btn-alert-ok" onclick="closeCustomAlert()">OK</button>
+            </div>
+        </div>
+
+        <div id="content">
+            
+            <div id="order-list-view">
+                <h3 style="margin-bottom: 15px; color: #444; font-size: 1rem;">📍 Opportunities on Your Route</h3>
+                <div id="orders-container">
+                    </div>
+            </div>
+
+            <div id="active-order-view">
+                <h2 style="color: #5d3ebc; margin-bottom: 10px;">Delivery Mode Active</h2>
+                <p id="active-route" style="color: #666; margin-bottom: 40px; font-weight: bold;"></p>
+                
+                <div class="status-circle">
+                    <div class="progress-ring" id="progress-ring"></div>
+                    <span id="status-text" style="text-align: center; padding: 10px;">At the Store<br><span style="font-size:0.8rem; color:#888;">(Gather items)</span></span>
+                </div>
+
+                <button class="btn-deliver" id="btn-action" onclick="nextStep()">Got the Items, Hit the Road</button>
+                <button class="btn-accept" style="background: #dc3545; margin-top: 15px; box-shadow: none;" onclick="cancelOrder()">Cancel Order</button>
+            </div>
+
+        </div>
+
+        <footer>
+            <div class="nav-item active" onclick="resetView()">
+                <div class="nav-icon">📋</div>
+                Gigs
+            </div>
+            <div class="nav-item" onclick="triggerInAppAlert('No messages yet. Focus on the delivery!')">
+                <div class="nav-icon">💬</div>
+                Messages
+            </div>
+            <div class="nav-item" onclick="triggerInAppAlert('Total Earnings: $' + balance.toFixed(2))">
+                <div class="nav-icon">👤</div>
+                Profile
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        let balance = 0.00;
+        let currentOrder = null;
+        let deliveryStep = 0; // 0: At Store, 1: On the Way
+
+        // Sample Order Database
+        const orders = [
+            { id: 1, route: "Grocery Store -> Downtown", items: "2x Bread, 1x Milk (Low-fat), 1x Eggs (15-pack)", earnings: 4.50 },
+            { id: 2, route: "Supermarket -> Mall Area", items: "3x Potato Chips, 2x Cola (2.5L), 1x Chocolate Bar", earnings: 7.20 },
+            { id: 3, route: "Convenience Store -> Campus Road", items: "1x 5L Water, Toilet Paper (16-pack)", earnings: 5.00 },
+            { id: 4, route: "Green Grocer -> Main Street", items: "1kg Tomatoes, 1kg Bananas, 0.5kg Lemons", earnings: 3.75 },
+            { id: 5, route: "Bakery -> Near Your House", items: "4x Fresh Bagels", earnings: 2.50 }
+        ];
+
+        // Custom Alert Engine (Replaces browser alerts)
+        function triggerInAppAlert(msg) {
+            document.getElementById('custom-alert-text').innerText = msg;
+            document.getElementById('custom-alert-modal').style.display = 'flex';
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('custom-alert-modal').style.display = 'none';
+        }
+
+        // Info Modal Functions
+        function openInfoModal() {
+            document.getElementById('info-modal').style.display = 'flex';
+        }
+
+        function closeInfoModal() {
+            document.getElementById('info-modal').style.display = 'none';
+        }
+
+        // Render Orders to Screen
+        function renderOrders() {
+            const container = document.getElementById('orders-container');
+            container.innerHTML = '';
+            
+            orders.forEach(order => {
+                container.innerHTML += `
+                    <div class="order-card" id="order-${order.id}">
+                        <div class="order-header">
+                            <span class="route">${order.route}</span>
+                            <span class="earnings">+$${order.earnings.toFixed(2)}</span>
+                        </div>
+                        <div class="items">🛒 <strong>Shopping List:</strong><br>${order.items}</div>
+                        <button class="btn-accept" onclick="acceptOrder(${order.id})">Accept Gig</button>
+                    </div>
+                `;
+            });
+        }
+
+        // Accept an Order
+        function acceptOrder(id) {
+            currentOrder = orders.find(o => o.id === id);
+            deliveryStep = 0; 
+            
+            document.getElementById('order-list-view').style.display = 'none';
+            document.getElementById('active-order-view').style.display = 'flex';
+            
+            document.getElementById('active-route').innerText = "Route: " + currentOrder.route;
+            document.getElementById('status-text').innerHTML = "At the Store<br><span style='font-size:0.8rem; color:#888;'>Gather items</span>";
+            document.getElementById('progress-ring').style.display = 'none';
+            document.getElementById('btn-action').innerText = "Got the Items, Hit the Road";
+            document.getElementById('btn-action').style.background = "#5d3ebc"; 
+        }
+
+        // Progress Steps
+        function nextStep() {
+            if (deliveryStep === 0) {
+                deliveryStep = 1;
+                document.getElementById('status-text').innerHTML = "On the Way...<br><span style='font-size:0.8rem; color:#888;'>Walking to drop-off</span>";
+                document.getElementById('progress-ring').style.display = 'block'; 
+                
+                let btn = document.getElementById('btn-action');
+                btn.innerText = "Deliver & Earn";
+                btn.style.background = "#28a745"; 
+            } 
+            else if (deliveryStep === 1) {
+                completeDelivery();
+            }
+        }
+
+        // Complete Delivery and Earn Money
+        function completeDelivery() {
+            if(!currentOrder) return;
+            
+            balance += currentOrder.earnings;
+            document.getElementById('balance-display').innerText = `$${balance.toFixed(2)}`;
+            
+            const index = orders.findIndex(o => o.id === currentOrder.id);
+            if (index > -1) {
+                orders.splice(index, 1);
+            }
+
+            // Triggering the custom in-app pop-up instead of native alert
+            triggerInAppAlert(`Awesome! You successfully completed the delivery and earned $${currentOrder.earnings.toFixed(2)}.`);
+            
+            resetView();
+        }
+
+        // Cancel Order
+        function cancelOrder() {
+            // Triggering the custom in-app pop-up instead of native alert
+            triggerInAppAlert("You canceled the gig. Your rating dropped a bit, but no worries.");
+            resetView();
+        }
+
+        // Reset to Main View
+        function resetView() {
+            currentOrder = null;
+            document.getElementById('order-list-view').style.display = 'block';
+            document.getElementById('active-order-view').style.display = 'none';
+            renderOrders();
+            
+            if(orders.length === 0) {
+                document.getElementById('orders-container').innerHTML = '<p style="text-align:center; color:#888; margin-top:30px; font-weight:bold;">No more gigs around. That\'s enough for today, go home and rest!</p>';
+            }
+        }
+
+        window.onload = renderOrders;
+    </script>
+</body>
+</html>

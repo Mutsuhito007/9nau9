@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Afterlife Boredom Cure - 9nau9</title>
+    
+    <style>
+        /* Kaydırma çubuğunu gizler ama sayfayı kaydırmayı engellemez */
+        body::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera için */
+        }
+
+        body, html {
+            -ms-overflow-style: none; /* IE ve Edge için */
+            scrollbar-width: none; /* Firefox için */
+        }
+
+        /* SCROLL SORUNU BURADA ÇÖZÜLDÜ: overflow: hidden kaldırıldı, overflow-x: hidden yapıldı */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+            overflow-x: hidden; /* Sadece sağa-sola kaymayı engeller, aşağı kaydırmayı serbest bırakır */
+            background-color: #050505; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+        }
+
+        /* Arka planları "fixed" yaptık, sen aşağı kaysan bile uzay sabit kalacak */
+        .cosmic-bg {
+            position: fixed; 
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 255, 204, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 204, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(255, 200, 0, 0.05) 0%, transparent 60%);
+            filter: blur(80px);
+            opacity: 0.8;
+            z-index: -2;
+            animation: nebulaDrift 20s infinite alternate linear;
+        }
+
+        @keyframes nebulaDrift {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.1) translate(10px, -10px); }
+        }
+
+        .stars {
+            position: fixed; 
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: 
+                radial-gradient(#fff 1px, transparent 1px),
+                radial-gradient(#fff 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: 0 0, 25px 25px;
+            opacity: 0.1;
+            z-index: -1;
+            animation: starsMove 100s linear infinite;
+        }
+
+        @keyframes starsMove {
+            from { background-position: 0 0, 25px 25px; }
+            to { background-position: 1000px 1000px, 1025px 1025px; }
+        }
+
+        /* İçeriğin tam ortalanması ve taşarsa aşağı kayabilmesi için ayarlandı */
+        .heaven-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+            max-width: 900px;
+            min-height: 100vh; /* Ekranı tam kaplar, içerik artarsa aşağı uzar */
+            margin: 0 auto; /* Ortalar */
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1; 
+        }
+
+        .heaven-title {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px #00ffcc, 0 0 30px #00ffcc;
+        }
+
+        .heaven-intro {
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin-bottom: 50px;
+            line-height: 1.6;
+            opacity: 0.9;
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+        }
+
+        .idea-display-box {
+            position: relative;
+            padding: 5px; 
+            border-radius: 20px;
+            background: linear-gradient(90s, #00ffcc, #ff00cc, #ffc800, #00ffcc);
+            background-size: 400% 400%;
+            animation: neonFlow 5s infinite linear;
+            margin-bottom: 50px;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
+            width: 100%;
+        }
+
+        @keyframes neonFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .idea-display-content {
+            font-size: 2rem;
+            font-weight: bold;
+            min-height: 150px;
+            padding: 40px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(10px);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 0 15px rgba(255,255,255,0.8);
+            transition: transform 0.1s ease-out; 
+            word-wrap: break-word; /* Uzun kelimelerin kutuyu bozmasını engeller */
+        }
+
+        .idea-active-glow {
+            animation: ideaPop 0.5s ease-out;
+        }
+
+        /* Kasan eski animasyon yerine bu yeni, mobil dostu animasyonu koyuyoruz */
+        @keyframes ideaPop {
+            0% { opacity: 0; transform: scale(0.95); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* EKSTRA PERFORMANS: Mobilde arkadaki buzlu cam efektini kapatır, telefonun rahat nefes almasını sağlar */
+        @media (max-width: 768px) {
+            .idea-display-content {
+                backdrop-filter: none;
+                background: rgba(20, 20, 20, 0.9);
+            }
+        }
+
+        .generate-btn {
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: linear-gradient(135deg, #ffc800 0%, #00ffcc 100%);
+            color: #000;
+            border: none;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 255, 204, 0.4);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 40px; /* Altta boşluk bırakır */
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 8px 30px rgba(255, 255, 255, 0.6);
+        }
+
+        .generate-btn:active {
+            transform: translateY(1px);
+        }
+
+        .generate-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .generate-btn:hover::after {
+            opacity: 0.2;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cosmic-bg"></div>
+    <div class="stars"></div>
+
+    <div class="heaven-container">
+        <h1 class="heaven-title">Afterlife Boredom Cure</h1>
+        
+        <p class="heaven-intro">
+            Good news, you're in heaven! Everything is unlimited. You've already fulfilled every single fantasy you ever had. Now you're bored. So, what are you gonna do? Bookmark this page. It will come in handy in the afterlife.
+        </p>
+        
+        <div class="idea-display-box">
+            <div id="ideaDisplay" class="idea-display-content">
+                [ Press the button to reveal your divine activity ]
+            </div>
+        </div>
+
+        <button id="generateBtn" class="generate-btn">Generate Idea</button>
+    </div>
+
+    <script>
+        const ideas = [
+            "Start a petition to add a 'Hell' expansion pack.",
+            "Prank call the mortals via their inner voice.",
+            "Complain to the manager that the clouds are too soft.",
+            "Organize a boxing match between historical philosophers.",
+            "Try to convince angels to unionize for better working hours.",
+            "Recreate Earth, but make spiders the dominant species.",
+            "Leave 1-star reviews for historical miracles.",
+            "Play hide and seek with omnipresent beings (good luck).",
+            "Binge-watch every single alternate reality of your past life.",
+            "Teach a choir of cherubs how to sing death metal.",
+            "Start a rumor that reincarnation is just a cosmic pyramid scheme.",
+            "Create a black hole in your backyard just to see what happens.",
+            "Throw a surprise birthday party for an omniscient entity.",
+            "Try to speedrun nirvana.",
+            "Build a giant, functioning rollercoaster out of pure light.",
+            "Convince people in hell that they just won a free vacation.",
+            "Invent a completely new primary color and refuse to name it.",
+            "Start a reality TV show featuring deceased politicians.",
+            "Make gravity work sideways for an entire day.",
+            "Write a strongly worded letter to the universe's developers.",
+            "Swap the voices of all the cats and dogs on Earth.",
+            "Try to get banned from heaven just for the thrill of the appeal process.",
+            "Open a useless junk shop that only accepts good karma as currency.",
+            "Organize a galactic staring contest.",
+            "Convince a seraphim to get a face tattoo.",
+            "Try to find the literal edge of infinity.",
+            "Debate the dinosaurs about whose fault the meteor incident really was.",
+            "Make a timeline where the Roman Empire never fell, just to laugh at their fashion.",
+            "Play golf using entire planets as the balls.",
+            "Send anonymous 'I know what you did' messages to random saints.",
+            "Host a cooking show using only abstract concepts like 'justice' and 'sorrow'.",
+            "Start a podcast reviewing different types of absolute nothingness.",
+            "Challenge Death to a game of Twister.",
+            "Try to invent a sin that hasn't been thought of yet.",
+            "Paint a giant mustache on the constellation Orion.",
+            "Convince everyone that Tuesday is just a simulation.",
+            "Rearrange the stars in the night sky to spells out 'Insert Coin to Continue'.",
+            "Start a VIP club for people who died in extremely embarrassing ways.",
+            "Try to microwave a burrito so hot that even you can't eat it.",
+            "Just take a really, really, really long nap."
+        ];
+
+        const generateBtn = document.getElementById('generateBtn');
+        const ideaDisplay = document.getElementById('ideaDisplay');
+
+        generateBtn.addEventListener('click', () => {
+            const randomIndex = Math.floor(Math.random() * ideas.length);
+            const newIdea = ideas[randomIndex];
+            
+            ideaDisplay.innerText = newIdea;
+
+            ideaDisplay.classList.remove('idea-active-glow');
+            void ideaDisplay.offsetWidth; 
+            ideaDisplay.classList.add('idea-active-glow');
+        });
+    </script>
+
+</body>
+</html>

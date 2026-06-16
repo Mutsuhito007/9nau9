@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Find The Target | 9nau9</title>
+    <style>
+        /* Tüm sayfa boşluklarını sıfırlıyoruz */
+        body {
+            background-color: #000;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Sayfanın kendisinin kaymasını engeller */
+        }
+
+        /* BÜYÜK GÖRSELE BAKTIĞIMIZ TAM EKRAN PENCERE */
+        #viewport {
+            width: 100vw; /* Ekranın tam genişliği */
+            height: 100vh; /* Ekranın tam yüksekliği */
+            overflow: hidden; 
+            cursor: grab;
+            position: relative;
+            background-color: #000;
+        }
+
+        #viewport:active {
+            cursor: grabbing;
+        }
+
+        /* DEVASA ÇÖZÜNÜRLÜKLÜ GÖRSELİMİZ */
+        #huge-map {
+            display: block;
+            /* width ve height vermiyoruz ki orijinal boyutunda kalsın */
+            user-select: none;
+            -webkit-user-drag: none;
+            pointer-events: none; 
+        }
+
+        /* Geri Dönüş Butonu (Görselin üzerinde yüzecek) */
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.5); /* Yarı şeffaf siyah */
+            color: #fff;
+            padding: 10px 15px;
+            text-decoration: none;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            border-radius: 5px;
+            z-index: 100; /* Haritanın üstünde kalmasını sağlar */
+            backdrop-filter: blur(5px); /* Arkasını hafif buzlu gösterir */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .back-btn:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+    </style>
+</head>
+<body>
+
+    
+
+    <div id="viewport">
+        <img id="huge-map" src="assets/29.webp" alt="Huge Map">
+    </div>
+
+    <script>
+        const viewport = document.getElementById('viewport');
+        
+        let isDown = false;
+        let startX;
+        let startY;
+        let scrollLeft;
+        let scrollTop;
+
+        // --- MOUSE KONTROLLERİ ---
+        viewport.addEventListener('mousedown', (e) => {
+            isDown = true;
+            startX = e.pageX - viewport.offsetLeft;
+            startY = e.pageY - viewport.offsetTop;
+            scrollLeft = viewport.scrollLeft;
+            scrollTop = viewport.scrollTop;
+        });
+
+        viewport.addEventListener('mouseleave', () => {
+            isDown = false;
+        });
+
+        viewport.addEventListener('mouseup', () => {
+            isDown = false;
+        });
+
+        viewport.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - viewport.offsetLeft;
+            const y = e.pageY - viewport.offsetTop;
+            const walkX = (x - startX) * 1.5; // Kaydırma hızı
+            const walkY = (y - startY) * 1.5;
+            viewport.scrollLeft = scrollLeft - walkX;
+            viewport.scrollTop = scrollTop - walkY;
+        });
+
+        // --- TELEFON / PARMAK KONTROLLERİ ---
+        viewport.addEventListener('touchstart', (e) => {
+            isDown = true;
+            startX = e.touches[0].pageX - viewport.offsetLeft;
+            startY = e.touches[0].pageY - viewport.offsetTop;
+            scrollLeft = viewport.scrollLeft;
+            scrollTop = viewport.scrollTop;
+        });
+
+        viewport.addEventListener('touchend', () => {
+            isDown = false;
+        });
+
+        viewport.addEventListener('touchmove', (e) => {
+            if (!isDown) return;
+            e.preventDefault(); 
+            const x = e.touches[0].pageX - viewport.offsetLeft;
+            const y = e.touches[0].pageY - viewport.offsetTop;
+            const walkX = (x - startX) * 1.5;
+            const walkY = (y - startY) * 1.5;
+            viewport.scrollLeft = scrollLeft - walkX;
+            viewport.scrollTop = scrollTop - walkY;
+        }, { passive: false });
+    </script>
+</body>
+</html>

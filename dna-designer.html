@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>9nau9 - DNA Designer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #e0e0e0;
+            font-family: 'Space Mono', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .app-wrapper {
+            width: 95%;
+            max-width: 500px;
+            height: 95%;
+            border: 2px solid #00FFFF;
+            border-radius: 5px;
+            background-color: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        /* --- HEADER SECTION --- */
+        .header {
+            text-align: center;
+            padding: 20px 10px;
+            background: #001111;
+            border-bottom: 2px solid #00FFFF;
+            flex-shrink: 0;
+        }
+
+        .header h2 {
+            font-size: 24px;
+            color: #00FFFF;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
+        }
+
+        .header p {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* --- DESIGNER SCREEN (FORM) --- */
+        .designer-screen {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .traits-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .trait-label {
+            display: flex;
+            align-items: center;
+            background-color: #111;
+            border: 1px solid #333;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .trait-label:hover {
+            border-color: #00FFFF;
+            background-color: #001a1a;
+        }
+
+        .trait-checkbox {
+            display: none;
+        }
+
+        .custom-box {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #555;
+            margin-right: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .trait-checkbox:checked + .custom-box {
+            border-color: #00FFFF;
+            background-color: #00FFFF;
+        }
+
+        .trait-checkbox:checked + .custom-box::after {
+            content: "✓";
+            color: #000;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .trait-checkbox:checked ~ .trait-text {
+            color: #00FFFF;
+        }
+
+        .action-area {
+            padding: 20px;
+            border-top: 1px solid #333;
+            background: #0a0a0a;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background-color: #00FFFF;
+            color: #000;
+            border: none;
+            font-family: 'Space Mono', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 15px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 4px 0 #008888;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .submit-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #008888;
+        }
+
+        /* --- LOADING SCREEN (ILLUSION) --- */
+        .loading-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            background-color: #050505;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #111;
+            border-top: 5px solid #00FFFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .loading-text {
+            color: #00FFFF;
+            font-size: 16px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* --- RESULT SCREEN (EMOTIONAL MESSAGE) --- */
+        .result-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            background-color: #050505;
+            padding: 40px 20px;
+            text-align: center;
+            overflow-y: auto;
+        }
+
+        .emotional-text {
+            margin: auto 0;
+            font-family: 'Courier Prime', serif;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #d0d0d0;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 2s ease, transform 2s ease;
+        }
+
+        .emotional-text.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .highlight {
+            color: #FFD700;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        
+        <div class="designer-screen" id="designerScreen">
+            <div class="header">
+                
+                <p>Creating the perfect generation is in your hands.</p>
+            </div>
+            
+            <div class="traits-container" id="traitsList">
+                </div>
+
+            <div class="action-area">
+                <button class="submit-btn" onclick="processDNA()">SYNTHESIZE GENETICS</button>
+            </div>
+        </div>
+
+        <div class="loading-screen" id="loadingScreen">
+            <div class="spinner"></div>
+            <div class="loading-text" id="loadingStatus">Cracking DNA sequences...</div>
+        </div>
+
+        <div class="result-screen" id="resultScreen">
+            <div class="emotional-text" id="finalMessage">
+                Most of these flawless traits you just selected... you don't even possess them yourself.<br><br>
+                Yet, your parents loved you exactly as you are, with all your flaws and shortcomings.<br><br>
+                Your child might not be the most perfect, highly optimized human in the world... But they will be <span class="highlight">your child</span>. A piece of you.<br><br>
+                We cannot design everything in life. Sometimes the most beautiful things emerge when you let go of control.<br><br>
+                <span style="font-size: 12px; color: #666; display: block; margin-top: 30px;">Love the randomness. Embrace the flaws.</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const traits = [
+            "Blue / Green Eye Color",
+            "Above Average Height",
+            "High IQ and Analytical Intelligence",
+            "Strong Immune System",
+            "Athletic and Symmetrical Body Structure",
+            "Perfect 20/20 Vision",
+            "Naturally Thick and Healthy Hair",
+            "Ability to Hula Hoop Non-Stop for 3 Hours",
+            "Catching Mice Barehanded in the Dark",
+            "Writing Different Sentences with Both Hands Simultaneously",
+            "Naturally Smelling like Faint Vanilla",
+            "Parallel Parking a Stroller in One Smooth Move",
+            "Never Crying on Airplanes",
+            "Sleeping 8 Full Hours Without Waking Up",
+            "Total Immunity to Emotional Damage",
+            "Instinctive Knowledge of Tax Evasion Methods",
+            "Perfect Pitch (Music)",
+            "Feeling No Pain When Stepping on a Lego",
+            "Guessing Wi-Fi Passwords by Pure Intuition",
+            "Guaranteed Preferred Gender"
+        ];
+
+        const traitsList = document.getElementById('traitsList');
+        const designerScreen = document.getElementById('designerScreen');
+        const loadingScreen = document.getElementById('loadingScreen');
+        const resultScreen = document.getElementById('resultScreen');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const finalMessage = document.getElementById('finalMessage');
+
+        traits.forEach((trait, index) => {
+            const label = document.createElement('label');
+            label.className = 'trait-label';
+            
+            label.innerHTML = `
+                <input type="checkbox" class="trait-checkbox" id="trait_${index}">
+                <div class="custom-box"></div>
+                <span class="trait-text">${trait}</span>
+            `;
+            traitsList.appendChild(label);
+        });
+
+        function processDNA() {
+            designerScreen.style.display = 'none';
+            loadingScreen.style.display = 'flex';
+
+            const statuses = [
+                "Synthesizing DNA strands...",
+                "Purging defective genes...",
+                "Integrating absurd abilities...",
+                "Writing character algorithm...",
+                "Calculating final results..."
+            ];
+
+            let step = 0;
+            
+            const loadingInterval = setInterval(() => {
+                step++;
+                if(step < statuses.length) {
+                    loadingStatus.innerText = statuses[step];
+                } else {
+                    clearInterval(loadingInterval);
+                    showResult();
+                }
+            }, 1000);
+        }
+
+        function showResult() {
+            loadingScreen.style.display = 'none';
+            resultScreen.style.display = 'flex';
+            
+            setTimeout(() => {
+                finalMessage.classList.add('visible');
+            }, 100);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TalentX - Future Athlete Investment</title>
+    <style>
+        /* Base Settings */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* --- SCROLL BAR HIDING (For All Browsers) --- */
+        ::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+        * {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* ------------------------------------------- */
+
+        body { background-color: #121212; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #fff; margin: 0; }
+        
+        /* Mobile App Container */
+        #app-container { 
+            width: 100%; 
+            max-width: 400px; 
+            height: 100vh; 
+            max-height: 850px; 
+            background: #1a1a2e; 
+            position: relative; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        /* Header - TALENTX text removed, Info button added */
+        header { background: #16162a; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2a2a4a; z-index: 10; }
+        .info-btn { background: none; border: none; color: #00f2fe; font-size: 1.1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: opacity 0.2s; }
+        .info-btn:hover { opacity: 0.9; }
+        .balance-box { background: #222244; padding: 6px 14px; border-radius: 20px; border: 1px solid #00f2fe; text-align: right; }
+        .balance-label { font-size: 0.65rem; color: #888; text-transform: uppercase; display: block; }
+        .balance-amount { color: #00ff87; font-weight: bold; font-size: 1rem; }
+
+        /* Content Area */
+        #content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 85px; background: #121225; }
+
+        /* Athlete Cards */
+        .talent-card { background: #1f1f3e; border-radius: 14px; padding: 16px; margin-bottom: 15px; border: 1px solid #2d2d5a; box-shadow: 0 4px 10px rgba(0,0,0,0.2); position: relative; overflow: hidden; }
+        .talent-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #00f2fe; }
+        .talent-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .talent-name { font-size: 1.1rem; font-weight: 700; color: #fff; }
+        .talent-sport { font-size: 0.75rem; background: #00f2fe; color: #121225; padding: 2px 8px; border-radius: 10px; font-weight: bold; text-transform: uppercase; }
+        
+        .talent-details { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #16162a; padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 0.8rem; color: #b4b4d8; }
+        .detail-item strong { color: #fff; }
+
+        .talent-financials { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px; }
+        .fin-block { display: flex; flex-direction: column; }
+        .fin-label { font-size: 0.7rem; color: #888; text-transform: uppercase; }
+        .fin-value { font-size: 0.95rem; font-weight: 700; }
+        .fin-value.cost { color: #ff007f; }
+        .fin-value.share { color: #00ff87; }
+
+        /* Buttons */
+        .btn-invest { width: 100%; padding: 12px; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #121225; border: none; border-radius: 8px; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; }
+        .btn-invest:active { transform: translateY(1px); opacity: 0.9; }
+        .btn-invest.signed { background: #2a2a4a; color: #888; cursor: not-allowed; border: 1px solid #3d3d6a; }
+
+        /* Bottom Navigation */
+        footer { position: absolute; bottom: 0; width: 100%; background: #16162a; border-top: 1px solid #2a2a4a; display: flex; justify-content: space-around; padding: 12px 0; z-index: 10; }
+        .nav-item { text-align: center; color: #63638c; font-size: 0.75rem; cursor: pointer; font-weight: 600; flex: 1; }
+        .nav-item.active { color: #00f2fe; }
+        .nav-icon { font-size: 1.4rem; margin-bottom: 4px; }
+
+        /* Information Popup Modal Overlay */
+        #info-modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(22, 22, 42, 0.98);
+            color: white; z-index: 100; padding: 30px;
+            flex-direction: column; justify-content: center; align-items: center; text-align: center;
+            border: 1px solid #00f2fe;
+        }
+        .close-modal-btn {
+            position: absolute; top: 25px; right: 25px;
+            background: none; border: none; color: #00f2fe;
+            font-size: 2rem; cursor: pointer; font-weight: bold; line-height: 1;
+        }
+        .info-text { font-size: 1.15rem; line-height: 1.7; font-weight: 600; padding: 0 10px; color: #e2e2f0; }
+
+        /* In-App Custom Popup Alert */
+        #custom-alert-modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 200;
+            justify-content: center; align-items: center;
+            padding: 20px;
+        }
+        .alert-box {
+            background: #1f1f3e; border: 1px solid #00f2fe; padding: 25px; border-radius: 16px;
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 300px;
+            animation: popIn 0.2s ease-out;
+        }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .alert-box p { font-size: 0.95rem; color: #fff; margin-bottom: 20px; font-weight: 500; line-height: 1.5; }
+        .btn-alert-ok { width: 100%; padding: 12px; background: #00f2fe; color: #121225; border: none; border-radius: 8px; font-weight: bold; font-size: 0.95rem; cursor: pointer; }
+
+        /* Views management */
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+        .empty-portfolio { text-align: center; color: #63638c; padding: 40px 20px; font-size: 0.9rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        
+        <header>
+            <button class="info-btn" onclick="openInfoModal()">ℹ️ Info</button>
+            <div class="balance-box">
+                <span class="balance-label">Available Capital</span>
+                <span class="balance-amount" id="balance-display">$10,000</span>
+            </div>
+        </header>
+
+        <div id="info-modal">
+            <button class="close-modal-btn" onclick="closeInfoModal()">✕</button>
+            <p class="info-text">
+                "Want to discover the next C. Ronaldo or Rafael Nadal? Invest now. Help young athletes train under better conditions. Earn your money back when they sign contracts in the future!"
+            </p>
+        </div>
+
+        <div id="custom-alert-modal">
+            <div class="alert-box">
+                <p id="custom-alert-text">Notification Message</p>
+                <button class="btn-alert-ok" onclick="closeAlert()">Understood</button>
+            </div>
+        </div>
+
+        <div id="content">
+            
+            <div id="market-view" class="view-section active">
+                <h3 style="margin-bottom: 15px; color: #888; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">🔥 High-Potential Prospects</h3>
+                <div id="talents-container">
+                    </div>
+            </div>
+
+            <div id="portfolio-view" class="view-section">
+                <h3 style="margin-bottom: 15px; color: #888; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">💼 Your Active Contracts</h3>
+                <div id="portfolio-container">
+                    </div>
+            </div>
+
+        </div>
+
+        <footer>
+            <div class="nav-item active" id="nav-market" onclick="switchView('market')">
+                <div class="nav-icon">🎯</div>
+                Prospects
+            </div>
+            <div class="nav-item" id="nav-portfolio" onclick="switchView('portfolio')">
+                <div class="nav-icon">💼</div>
+                My Portfolio
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        let capital = 10000;
+        const signedTalentIds = [];
+
+        // Athlete Database
+        const athletes = [
+            { id: 1, name: "Leo Vance", age: 16, sport: "Football", hometown: "London, UK", cost: 3500, share: 4.5 },
+            { id: 2, name: "Sora Tanaka", age: 15, sport: "Tennis", hometown: "Osaka, JP", cost: 2000, share: 3.0 },
+            { id: 3, name: "Marcus 'Apex' Reed", age: 17, sport: "Esports", hometown: "Seoul, KR", cost: 1500, share: 2.5 },
+            { id: 4, name: "Elena Rostova", age: 16, sport: "Gymnastics", hometown: "Sofia, BG", cost: 2800, share: 5.0 },
+            { id: 5, name: "Jaxson Briggs", age: 17, sport: "Basketball", hometown: "New York, US", cost: 4500, share: 6.0 },
+            { id: 6, name: "Mateo Silva", age: 18, sport: "Motorsport", hometown: "Sao Paulo, BR", cost: 5500, share: 7.0 }
+        ];
+
+        // Info Modal Functions
+        function openInfoModal() {
+            document.getElementById('info-modal').style.display = 'flex';
+        }
+
+        function closeInfoModal() {
+            document.getElementById('info-modal').style.display = 'none';
+        }
+
+        // Custom Alert Triggers
+        function showAlert(msg) {
+            document.getElementById('custom-alert-text').innerText = msg;
+            document.getElementById('custom-alert-modal').style.display = 'flex';
+        }
+        function closeAlert() {
+            document.getElementById('custom-alert-modal').style.display = 'none';
+        }
+
+        // Render Marketplace
+        function renderMarketplace() {
+            const container = document.getElementById('talents-container');
+            container.innerHTML = '';
+
+            athletes.forEach(player => {
+                const isSigned = signedTalentIds.includes(player.id);
+                const buttonText = isSigned ? "Contract Active" : "Sign Contract";
+                const buttonClass = isSigned ? "btn-invest signed" : "btn-invest";
+                const disabledAttr = isSigned ? "disabled" : "";
+
+                container.innerHTML += `
+                    <div class="talent-card">
+                        <div class="talent-header">
+                            <span class="talent-name">${player.name}</span>
+                            <span class="talent-sport">${player.sport}</span>
+                        </div>
+                        <div class="talent-details">
+                            <div class="detail-item">Age: <strong>${player.age}</strong></div>
+                            <div class="detail-item">Hometown: <strong>${player.hometown}</strong></div>
+                        </div>
+                        <div class="talent-financials">
+                            <div class="fin-block">
+                                <span class="fin-label">Funding Cost</span>
+                                <span class="fin-value cost">$${player.cost.toLocaleString()}</span>
+                            </div>
+                            <div class="fin-block" style="text-align: right;">
+                                <span class="fin-label">Future Revenue Share</span>
+                                <span class="fin-value share">${player.share}%</span>
+                            </div>
+                        </div>
+                        <button class="${buttonClass}" ${disabledAttr} onclick="buyContract(${player.id})">${buttonText}</button>
+                    </div>
+                `;
+            });
+        }
+
+        // Render Portfolio Screen
+        function renderPortfolio() {
+            const container = document.getElementById('portfolio-container');
+            container.innerHTML = '';
+
+            if (signedTalentIds.length === 0) {
+                container.innerHTML = '<div class="empty-portfolio">You haven\'t backed any talents yet. Go to Prospects to sign your first future contract!</div>';
+                return;
+            }
+
+            athletes.forEach(player => {
+                if (signedTalentIds.includes(player.id)) {
+                    container.innerHTML += `
+                        <div class="talent-card" style="border-color: #00ff87;">
+                            <div class="talent-header">
+                                <span class="talent-name">${player.name}</span>
+                                <span class="talent-sport" style="background:#00ff87;">Secured</span>
+                            </div>
+                            <div class="talent-details">
+                                <div class="detail-item">Discipline: <strong>${player.sport}</strong></div>
+                                <div class="detail-item">Payout Share: <strong>${player.share}%</strong></div>
+                            </div>
+                            <p style="font-size: 0.75rem; color: #888; text-align: center; font-style: italic; margin-top: 5px;">
+                                Monitoring career progression... 📈
+                            </p>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        // Handle Contract Purchase Logic
+        function buyContract(id) {
+            const athlete = athletes.find(a => a.id === id);
+            if (!athlete) return;
+
+            if (capital < athlete.cost) {
+                showAlert("Inadequate Capital! You do not have enough funds available to acquire this contract.");
+                return;
+            }
+
+            capital -= athlete.cost;
+            signedTalentIds.push(id);
+
+            document.getElementById('balance-display').innerText = `$${capital.toLocaleString()}`;
+            showAlert(`Contract Executed! You have officially secured a ${athlete.share}% share of ${athlete.name}'s future professional contracts.`);
+            
+            renderMarketplace();
+            renderPortfolio();
+        }
+
+        // Navigation View Switcher
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            if (viewName === 'market') {
+                document.getElementById('market-view').classList.add('active');
+                document.getElementById('nav-market').classList.add('active');
+            } else if (viewName === 'portfolio') {
+                document.getElementById('portfolio-view').classList.add('active');
+                document.getElementById('nav-portfolio').classList.add('active');
+                renderPortfolio();
+            }
+        }
+
+        window.onload = function() {
+            renderMarketplace();
+        };
+    </script>
+</body>
+</html>

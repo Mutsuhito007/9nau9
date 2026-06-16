@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9NAU9 // WEAPON AUDIO LAB</title>
+    
+    <style>
+        :root {
+            --bg-dark: #0a0b10;
+            --panel-bg: #12141c;
+            --cyber-green: #00ff88;
+            --cyber-glow: rgba(0, 255, 136, 0.25);
+            --cyber-red: #ff3366;
+            --cyber-red-glow: rgba(255, 51, 102, 0.3);
+            --text-main: #f1f5f9;
+            --text-muted: #64748b;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                linear-gradient(rgba(0, 255, 136, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, 0.02) 1px, transparent 1px);
+            background-size: 25px 25px;
+            color: var(--text-main);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            overflow: hidden;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        h1 {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 24px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--cyber-green);
+            text-shadow: 0 0 10px var(--cyber-glow);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+        }
+
+        .weapon-bay {
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 255, 136, 0.15);
+            border-radius: 20px;
+            padding: 60px;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 0 20px rgba(0, 255, 136, 0.02);
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 450px;
+            box-sizing: border-box;
+        }
+
+        .target-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 160px;
+            height: 160px;
+            border: 1px dashed rgba(0, 255, 136, 0.2);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        #gunContainer {
+            font-size: 90px;
+            display: inline-block;
+            position: relative;
+            z-index: 2;
+            cursor: pointer;
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+            transition: filter 0.1s ease;
+        }
+
+        @keyframes recoil {
+            0% { transform: scale(1) translateX(0); filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
+            15% { transform: scale(0.9) translateX(-30px) rotate(-12deg); filter: drop-shadow(0 0 30px var(--cyber-green)); }
+            100% { transform: scale(1) translateX(0); filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
+        }
+
+        .fire-recoil {
+            animation: recoil 0.12s ease-out;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: inherit;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        #recordBtn {
+            border-color: rgba(0, 255, 136, 0.4);
+            background: rgba(0, 255, 136, 0.02);
+            color: var(--cyber-green);
+        }
+
+        #recordBtn:hover:not(:disabled) {
+            background: var(--cyber-green);
+            color: var(--bg-dark);
+            box-shadow: 0 0 20px var(--cyber-glow);
+            border-color: var(--cyber-green);
+        }
+
+        #shootBtn:not(:disabled) {
+            background: linear-gradient(135deg, #00ff88, #00b359);
+            color: var(--bg-dark);
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.2);
+        }
+
+        #shootBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--cyber-glow);
+        }
+
+        #shootBtn:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        #deleteBtn {
+            border-color: rgba(255, 51, 102, 0.3);
+            color: var(--cyber-red);
+            background: rgba(255, 51, 102, 0.02);
+            display: none;
+        }
+
+        #deleteBtn:hover:not(:disabled) {
+            background: var(--cyber-red);
+            color: var(--text-main);
+            box-shadow: 0 0 20px var(--cyber-red-glow);
+            border-color: var(--cyber-red);
+        }
+
+        .btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+            border-color: rgba(255, 255, 255, 0.05);
+            background: transparent;
+            color: var(--text-muted);
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        #statusText {
+            margin-top: 25px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Audio Mod Bay v1.0</h1>
+    <div class="subtitle">Upload your custom weapon sound and test the system</div>
+
+    <div class="weapon-bay">
+        <div class="target-ring"></div>
+        <div id="gunContainer">🔫</div>
+    </div>
+
+    <div class="control-group">
+        <button id="recordBtn" class="btn">🎙️ Record 3 Sec</button>
+        <button id="shootBtn" class="btn" disabled>💥 FIRE WEAPON</button>
+        <button id="deleteBtn" class="btn">🗑️ EMPTY MAG</button>
+    </div>
+
+    <div id="statusText">SYSTEM // SHOTGUN_DATA: EMPTY</div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioUrl = null;
+        let baseAudio = null; // Ana ses dosyasını burada tutacağız
+
+        const recordBtn = document.getElementById('recordBtn');
+        const shootBtn = document.getElementById('shootBtn');
+        const deleteBtn = document.getElementById('deleteBtn');
+        const gunContainer = document.getElementById('gunContainer');
+        const statusText = document.getElementById('statusText');
+
+        window.onload = () => {
+            const savedSound = localStorage.getItem('dudeGunSound');
+            if (savedSound) {
+                audioUrl = savedSound; 
+                enableGun();
+            }
+        };
+
+        recordBtn.onclick = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioType = mediaRecorder.mimeType ? mediaRecorder.mimeType : '';
+                    const audioBlob = new Blob(audioChunks, { type: audioType });
+                    
+                    const reader = new FileReader();
+                    reader.readAsDataURL(audioBlob);
+                    reader.onloadend = () => {
+                        const base64data = reader.result;
+                        localStorage.setItem('dudeGunSound', base64data); 
+                        audioUrl = base64data;
+                        enableGun();
+                    };
+                };
+
+                mediaRecorder.start();
+                statusText.innerHTML = "🔴 RECORDING // AWAITING AUDIO...";
+                recordBtn.disabled = true;
+
+                setTimeout(() => {
+                    mediaRecorder.stop();
+                    stream.getTracks().forEach(track => track.stop()); 
+                    recordBtn.disabled = false;
+                }, 3000);
+
+            } catch (err) {
+                statusText.innerHTML = "❌ ERROR // MICROPHONE_ACCESS_DENIED";
+                alert("Microphone permission denied or not supported by the browser.");
+                console.error(err);
+            }
+        };
+
+        function fireWeapon() {
+            if (!baseAudio) return;
+            
+            // SİSTEM DÜZELTİLDİ: Her tetiğe basıldığında hafızadaki sesin bir kopyası (klonu) oluşturulup anında çalınır.
+            // Bu sayede hem mobilde kasmayacak hem de art arda basınca sesler üst üste makinalı tüfek gibi patlayacak.
+            const shot = baseAudio.cloneNode();
+            shot.play().catch(e => console.error("Audio playback error:", e));
+
+            // Silah tepme animasyonu
+            gunContainer.classList.add('fire-recoil');
+            
+            setTimeout(() => {
+                gunContainer.classList.remove('fire-recoil');
+            }, 120);
+        }
+
+        // Hem butona hem de silahın kendisine tıklandığında tetiği çek
+        shootBtn.onclick = fireWeapon;
+        gunContainer.onclick = fireWeapon; 
+
+        deleteBtn.onclick = () => {
+            localStorage.removeItem('dudeGunSound'); 
+            audioUrl = null;
+            baseAudio = null;
+            shootBtn.disabled = true;
+            deleteBtn.style.display = 'none';
+            statusText.innerHTML = "SYSTEM // SHOTGUN_DATA: WIPED";
+        };
+
+        function enableGun() {
+            shootBtn.disabled = false;
+            deleteBtn.style.display = 'flex';
+            statusText.innerHTML = "🟩 SYSTEM // WEAPON_READY: LOADED";
+            
+            // Ses yüklendiğinde ana dosyayı oluşturup hazırda bekletiyoruz
+            baseAudio = new Audio(audioUrl);
+            baseAudio.preload = 'auto';
+        }
+    </script>
+</body>
+</html>

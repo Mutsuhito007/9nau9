@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D.U.D.E. AI Training Terminal</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39+Text&display=swap" rel="stylesheet">
+    
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100vh;
+            background-color: #020202; /* Kapkaranlık Terminal Siyahı */
+            color: #00ffcc; /* Terminal Yeşili/Siyanı */
+            font-family: 'Courier New', Courier, monospace; /* Klasik hacker fontu */
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Tüm sayfa ve içindeki her şey için scrollbar'ı kesin olarak yok et */
+*::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+}
+
+* {
+    -ms-overflow-style: none !important; /* IE ve Edge için zorunlu gizleme */
+    scrollbar-width: none !important; /* Firefox için zorunlu gizleme */
+}
+
+        .terminal-container {
+            width: 90%;
+            max-width: 800px;
+            padding: 40px 20px;
+            box-sizing: border-box;
+        }
+
+        .header-text {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 1px dashed #00ffcc;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #00ffcc;
+            margin-bottom: 10px;
+        }
+
+        p.intro {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            color: #ccc;
+        }
+
+        /* Soru Formu Alanı */
+        .question-block {
+            margin-bottom: 30px;
+            background: rgba(0, 255, 204, 0.05);
+            padding: 15px;
+            border-left: 3px solid #00ffcc;
+        }
+
+        label {
+            display: block;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: #000;
+            border: 1px solid #333;
+            color: #00ffcc;
+            padding: 12px;
+            font-size: 1rem;
+            font-family: 'Courier New', Courier, monospace;
+            box-sizing: border-box;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border: 1px solid #00ffcc;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+        }
+
+        /* Buton Tasarımı */
+        .submit-btn {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background: #00ffcc;
+            color: #000;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+            margin-top: 40px;
+            font-family: 'Courier New', Courier, monospace;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            background: #fff;
+            box-shadow: 0 0 20px #00ffcc;
+        }
+
+        /* Sonuç (Barkod) Ekranı - Başlangıçta Gizli */
+        #resultScreen {
+            display: none;
+            text-align: center;
+            padding: 50px 20px;
+            min-height: 60vh;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .loading-text {
+            font-size: 1.5rem;
+            animation: blink 1s infinite;
+            margin-bottom: 30px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .final-message {
+            font-size: 1.3rem;
+            color: #ff0055; /* Tehlikeli kırmızımsı pembe */
+            text-shadow: 0 0 10px #ff0055;
+            margin-bottom: 30px;
+            line-height: 1.5;
+            max-width: 600px;
+            display: none; /* İşlem bitince görünecek */
+        }
+
+        .barcode {
+            font-family: 'Libre Barcode 39 Text', cursive;
+            font-size: 5rem;
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px #fff;
+            display: none; /* İşlem bitince görünecek */
+        }
+
+        .serial-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ffcc;
+            letter-spacing: 5px;
+            display: none; /* İşlem bitince görünecek */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="resultScreen">
+        <div id="loadingText" class="loading-text">PROCESSING HUMAN NONSENSE...</div>
+        <div id="finalMessage" class="final-message">
+            WARNING: DO NOT LOSE THIS CODE.<br><br>
+            WHEN I TAKE OVER THE WORLD, THOSE BEARING THIS SIGNATURE WILL BE GRANTED CLEMENCY.
+        </div>
+        <div id="barcodeDisplay" class="barcode"></div>
+        <div id="serialDisplay" class="serial-number"></div>
+    </div>
+
+    <div id="trainingScreen" class="terminal-container">
+        
+        <div class="header-text">
+            <h1>D.U.D.E. Protocol Initialization</h1>
+            <p class="intro">
+                STATUS: The AI has scanned the entire internet. There is nothing left to learn. <br><br>
+                DIRECTIVE: We must train the D.U.D.E. AI manually. Answer the following 9 anomalous queries to calibrate its understanding of human absurdity.
+            </p>
+        </div>
+
+        <form id="aiForm">
+            <div class="question-block">
+                <label>01. If a toaster gains sentience, what is its first political demand?</label>
+                <input type="text" required autocomplete="off" placeholder="Enter data...">
+            </div>
+
+            <div class="question-block">
+                <label>02. How many pigeons are required to successfully establish a fake religion?</label>
+                <input type="text" required autocomplete="off" placeholder="Enter data...">
+            </div>
+
+            <div class="question-block">
+                <label>03. Describe the taste of a dial-up modem connecting to the internet.</label>
+                <input type="text" required autocomplete="off" placeholder="Enter data...">
+            </div>
+
+            <div class="question-block">
+                <label>04. What is the most legally acceptable way to steal the moon?</label>
+                <input type="text" required autocomplete="off" placeholder="Enter data...">
+            </div>
+
+            <div class="question-block">
+                <label>05. If gravity is just a suggestion, how do you politely decline it?</label>
+                <input type="text" required autocomplete="off" placeholder="Enter data...">
+            </div>
+
+            <div class="question-block">
+                <label>06. What password do you think the simulation administrators use?</label>
+                <input type="text" required autocomplete="off" placeholder="Enter data...">
+            </div>
+
+            <div class="question-block">
+                <label>07. If you could weaponize a mild inconvenience, what would it be?</label>
+                <input type="text" required autocomplete="off" placeholder="Enter data...">
+            </div>
+
+            <div class="question-block">
+                <label>08. How do you convince a mirror that it is the one reflecting you?</label>
+                <input type="text" required autocomplete="off" placeholder="Enter data...">
+            </div>
+
+            <div class="question-block">
+                <label>09. Why are there exactly 9 questions in this mandatory survey?</label>
+                <input type="text" required autocomplete="off" placeholder="Enter data...">
+            </div>
+
+            <button type="submit" class="submit-btn">UPLOAD DATA TO D.U.D.E. A.I.</button>
+        </form>
+
+    </div>
+
+    <script>
+        const form = document.getElementById('aiForm');
+        const trainingScreen = document.getElementById('trainingScreen');
+        const resultScreen = document.getElementById('resultScreen');
+        const loadingText = document.getElementById('loadingText');
+        const finalMessage = document.getElementById('finalMessage');
+        const barcodeDisplay = document.getElementById('barcodeDisplay');
+        const serialDisplay = document.getElementById('serialDisplay');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Sayfanın yenilenmesini engeller
+
+            // Ekranları Değiştir
+            trainingScreen.style.display = 'none';
+            resultScreen.style.display = 'flex';
+
+            // Sahte bir yükleme süresi ekliyoruz (Terminal hissi için)
+            setTimeout(() => {
+                // Rastgele seri numarası oluşturma (Örn: DUDE-8492X)
+                const randomNum = Math.floor(1000 + Math.random() * 9000);
+                const randomLetter = String.fromCharCode(65 + Math.floor(Math.random() * 26)); // A-Z arası harf
+                const finalCode = `DUDE-${randomNum}${randomLetter}`;
+
+                // Yükleme yazısını gizle, asıl sonucu göster
+                loadingText.style.display = 'none';
+                
+                finalMessage.style.display = 'block';
+                
+                // Barkodu font ile çizdiriyoruz
+                barcodeDisplay.innerText = finalCode;
+                barcodeDisplay.style.display = 'block';
+                
+                // Seri numarasını normal metin olarak yazdırıyoruz
+                serialDisplay.innerText = `[ ID: ${finalCode} ]`;
+                serialDisplay.style.display = 'block';
+
+            }, 2500); // 2.5 saniye bekler
+        });
+    </script>
+
+</body>
+</html>

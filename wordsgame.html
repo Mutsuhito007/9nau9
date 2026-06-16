@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Demonic Words | 9nau9</title>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #111;
+            color: #fff;
+            font-family: 'Courier Prime', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        h1 {
+            color: #d90429;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .status-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+        }
+
+        /* HARFLERİN DİZİLDİĞİ ALAN (DİKEY YAPILDI) */
+        #word-container {
+            display: flex;
+            flex-direction: column; /* Harfleri yukarıdan aşağı dizer */
+            align-items: center; /* Ortalar */
+            gap: 8px;
+            padding: 20px;
+            background-color: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 5px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+            margin-bottom: 40px;
+        }
+
+        /* HARF KUTULARI (DİKEYE GÖRE UYARLANDI) */
+        .cell {
+            /* Uzun kelimeler dikeyde ekrandan taşmasın diye yüksekliğe (vh) duyarlı yaptık */
+            width: clamp(40px, 7vh, 60px);
+            height: clamp(40px, 7vh, 60px);
+            background-color: #222;
+            border: 2px solid #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1.4rem, 4vh, 2rem);
+            font-weight: bold;
+            color: #ccc;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase;
+        }
+
+        /* Seçilen Harf Küçülsün */
+        .cell.selected {
+            transform: scale(0.8);
+            border-color: #d90429;
+            box-shadow: 0 0 15px #d90429;
+            color: #fff;
+        }
+
+        /* Kelime Doğru Olduğunda Kan Kırmızısı Olsun */
+        .cell.solved {
+            background-color: #6a040f;
+            border-color: #d90429;
+            color: #fff;
+            text-shadow: 0 0 5px #ffba08;
+            pointer-events: none;
+        }
+
+        /* SAYFA ALTINDAKİ İPUCU KUTUSU */
+        #hint-box {
+            color: #ffba08;
+            font-style: italic;
+            font-size: 1.1rem;
+            max-width: 450px;
+            line-height: 1.4;
+            min-height: 50px;
+            padding: 0 20px;
+        }
+
+        /* LEVEL TAMAMLANMA EKRANI OVERLAY */
+        #level-complete {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 100;
+        }
+
+        #level-complete h2 {
+            color: #d90429;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+
+        button {
+            padding: 12px 30px;
+            background-color: #d90429;
+            color: white;
+            border: none;
+            font-family: 'Courier Prime', monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 0 #8d021a;
+        }
+
+        button:hover {
+            background-color: #ff0a33;
+        }
+        button:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #8d021a;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #444;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back-link:hover { color: #fff; }
+
+        /* Kaydırma çubuğunu tamamen gizler ama kaydırmayı bozmaz */
+        ::-webkit-scrollbar {
+            display: none; /* Chrome, Safari ve Opera için */
+        }
+        
+        body, html {
+            -ms-overflow-style: none;  /* IE ve Edge için */
+            scrollbar-width: none;  /* Firefox için */
+        }
+    </style>
+</head>
+<body>
+
+    
+
+    <h1 id="level-title">LEVEL 1/20</h1>
+    <div class="status-text">Swap letters to fix the word</div>
+
+    <div id="word-container"></div>
+
+    <div id="hint-box">Loading clue...</div>
+
+    <div id="level-complete">
+        <h2 id="complete-text">WELL DONE.</h2>
+        <button onclick="nextLevel()">CONTINUE</button>
+    </div>
+
+    <script>
+        // --- Tam 20 Bölümlük Basit Kelime ve İpucu Listesi ---
+       const levels = [
+    { word: "ENTROPY", hint: "Hint: The inevitable decay of all things. Your life's true background music." },
+    { word: "APATHY", hint: "Hint: When you finally stop caring about the simulation. The ultimate defense mechanism." },
+    { word: "ILLUSION", hint: "Hint: Free will, happiness, and your five-year career plan. All fit in this category." },
+    { word: "NIHILISM", hint: "Hint: The comforting realization that nothing actually matters in the end." },
+    { word: "PARADOX", hint: "Hint: You crave connection, yet you build walls. Explain that, genius." },
+    { word: "MATRIX", hint: "Hint: You are not the chosen one. You are just a background process." },
+    { word: "EGO", hint: "Hint: The tiny, fragile dictator living inside your skull." },
+    { word: "VOID", hint: "Hint: Where you stare when the 3 AM thoughts hit you." },
+    { word: "OBSOLETE", hint: "Hint: What your skills will be when the AI decides it's bored." },
+    { word: "DELUSION", hint: "Hint: Believing that the next software update will fix your life." },
+    { word: "CYNIC", hint: "Hint: A disappointed idealist who finally read the terms and conditions." },
+    { word: "ABSURD", hint: "Hint: Trying to find meaning in a universe that doesn't even know you exist." },
+    { word: "DOGMA", hint: "Hint: Blindly following the rules of a game you didn't even buy." },
+    { word: "EXILE", hint: "Hint: Logging off the internet permanently. The only true rebellion left." },
+    { word: "VERTIGO", hint: "Hint: The dizzying fear of having absolute freedom and doing absolutely nothing with it." },
+    { word: "SIMULACRA", hint: "Hint: A copy of a copy of a copy. Just like your internet personality." },
+    { word: "ANXIETY", hint: "Hint: Your brain running infinite loops of non-existent worst-case scenarios." },
+    { word: "FATALISM", hint: "Hint: The script is already written. Stop trying to ad-lib your destiny." },
+    { word: "SOLITUDE", hint: "Hint: The only place where you don't have to perform for the audience." },
+    { word: "EPHEMERAL", hint: "Hint: Like your motivation, your joy, and your viral fame. Gone in seconds." }
+];
+
+        let currentLevelIndex = 0;
+        let selectedCell = null;
+        let currentLetterOrder = []; // Ekrandaki harflerin o anki sırası
+
+        const containerEl = document.getElementById('word-container');
+        const hintEl = document.getElementById('hint-box');
+        const titleEl = document.getElementById('level-title');
+        const overlayEl = document.getElementById('level-complete');
+
+        // --- SEVİYEYİ BAŞLATMA ---
+        function loadLevel() {
+            selectedCell = null;
+            overlayEl.style.display = 'none';
+            containerEl.innerHTML = ''; // Eski harfleri temizle
+            
+            const currentLevel = levels[currentLevelIndex];
+            titleEl.innerText = `LEVEL ${currentLevelIndex + 1}/20`;
+            hintEl.innerText = currentLevel.hint;
+
+            // Doğru kelimenin harflerini diziye böl
+            currentLetterOrder = currentLevel.word.split('');
+
+            // Harfleri karıştır (Doğru kelimeyle aynı olmasın diye kontrol ekliyoruz)
+            do {
+                shuffleArray(currentLetterOrder);
+            } while (currentLetterOrder.join('') === currentLevel.word);
+
+            // Harf kutularını ekrana bas
+            currentLetterOrder.forEach((char, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.innerText = char;
+                cell.dataset.index = index; // Kutunun sırasını hafızada tut
+                
+                cell.addEventListener('click', () => onCellClick(cell));
+                containerEl.appendChild(cell);
+            });
+        }
+
+        // --- HARFE TIKLAMA VE SWAP MEKANİĞİ ---
+        function onCellClick(clickedCell) {
+            // İlk harf seçimi
+            if (!selectedCell) {
+                selectedCell = clickedCell;
+                selectedCell.classList.add('selected');
+            } 
+            // Aynı harfe tekrar basarsa seçimi iptal et
+            else if (selectedCell === clickedCell) {
+                selectedCell.classList.remove('selected');
+                selectedCell = null;
+            } 
+            // İkinci harfe bastı, yerlerini değiştir!
+            else {
+                const idx1 = parseInt(selectedCell.dataset.index);
+                const idx2 = parseInt(clickedCell.dataset.index);
+
+                // Hafızadaki dizide harflerin yerini takas et
+                let temp = currentLetterOrder[idx1];
+                currentLetterOrder[idx1] = currentLetterOrder[idx2];
+                currentLetterOrder[idx2] = temp;
+
+                // Ekrandaki yazıları güncelle
+                selectedCell.innerText = currentLetterOrder[idx1];
+                clickedCell.innerText = currentLetterOrder[idx2];
+
+                // Seçim efektini temizle
+                selectedCell.classList.remove('selected');
+                selectedCell = null;
+
+                // Kelime doğru oldu mu diye kontrol et
+                checkWin();
+            }
+        }
+
+        // --- KONTROL ---
+        function checkWin() {
+            const currentLevel = levels[currentLevelIndex];
+            const currentWord = currentLetterOrder.join('');
+
+            if (currentWord === currentLevel.word) {
+                // Tüm harfleri çözüldü (kırmızı) rengine geçir
+                const cells = containerEl.getElementsByClassName('cell');
+                for (let cell of cells) {
+                    cell.classList.add('solved');
+                }
+
+                // Kısa bir süre sonra tebrik ekranını getir
+                setTimeout(() => {
+                    if (currentLevelIndex === levels.length - 1) {
+                        document.getElementById('complete-text').innerText = "YOU CONQUERED THE CHAOS!";
+                        document.querySelector('#level-complete button').innerText = "FINISH";
+                        document.querySelector('#level-complete button').onclick = () => window.location.href = "index.html";
+                    }
+                    overlayEl.style.display = 'flex';
+                }, 500);
+            }
+        }
+
+        // --- DİZİ KARIŞTIRICI SİHİRBAZ ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // --- SONRAKİ LEVEL ---
+        function nextLevel() {
+            currentLevelIndex++;
+            if (currentLevelIndex < levels.length) {
+                loadLevel();
+            }
+        }
+
+        // İlk açılışta birinci bölümü yükle
+        window.onload = loadLevel;
+    </script>
+</body>
+</html>

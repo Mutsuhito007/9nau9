@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SWARM - The Social Pricing Network</title>
+    <style>
+        /* SCROLLBAR GİZLEME VE GENEL AYARLAR */
+        *::-webkit-scrollbar { display: none !important; width: 0 !important; }
+        * { -ms-overflow-style: none !important; scrollbar-width: none !important; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: #0d1117; /* Modern koyu tema */
+            color: #c9d1d9;
+            min-height: 100vh;
+        }
+
+        /* HEADER (Alt alta dizilmesi için güncellendi) */
+        header {
+            background-color: #161b22;
+            padding: 20px 40px;
+            display: flex;
+            flex-direction: column; /* Alt alta dizer */
+            align-items: center; /* Ortalar */
+            gap: 15px; /* Logo ile butonlar arasına boşluk bırakır */
+            border-bottom: 1px solid #30363d;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .logo { font-size: 1.8rem; font-weight: 900; color: #58a6ff; letter-spacing: 2px; }
+        .logo span { color: #ff7b72; }
+
+        .create-btn {
+            background-color: #238636; color: #fff; border: none;
+            padding: 10px 20px; font-size: 1rem; font-weight: bold;
+            border-radius: 6px; cursor: pointer; transition: 0.2s;
+        }
+        .create-btn:hover { background-color: #2ea043; }
+
+        /* KAMPANYA AKIŞI (FEED) */
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .feed { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+
+        /* KART TASARIMI */
+        .card {
+            background-color: #161b22; border: 1px solid #30363d;
+            border-radius: 12px; padding: 20px; transition: transform 0.2s;
+            display: flex; flex-direction: column;
+            position: relative; overflow: hidden;
+        }
+        .card:hover { transform: translateY(-5px); border-color: #58a6ff; }
+
+        .card-emoji { font-size: 4rem; text-align: center; margin-bottom: 10px; }
+        .card-title { font-size: 1.2rem; font-weight: bold; color: #fff; margin-bottom: 15px; text-align: center;}
+        
+        .price-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.1rem; }
+        .old-price { text-decoration: line-through; color: #8b949e; }
+        .new-price { color: #3fb950; font-weight: bold; font-size: 1.4rem; }
+
+        /* İlerleme Çubuğu (Progress Bar) */
+        .progress-container { width: 100%; background-color: #21262d; border-radius: 10px; height: 12px; margin-bottom: 10px; overflow: hidden; }
+        .progress-bar { height: 100%; background-color: #58a6ff; width: 0%; transition: width 0.5s ease-out; }
+        .progress-stats { display: flex; justify-content: space-between; font-size: 0.85rem; color: #8b949e; margin-bottom: 20px; }
+
+        /* Pledge Butonu */
+        .pledge-btn {
+            background-color: #1f6feb; color: #fff; border: none; padding: 12px;
+            font-size: 1.1rem; font-weight: bold; border-radius: 6px; cursor: pointer;
+            transition: 0.2s; width: 100%;
+        }
+        .pledge-btn:hover { background-color: #388bfd; }
+        .pledge-btn.unlocked { background-color: #238636; cursor: default; }
+        .pledge-btn.pledged { background-color: #8b949e; }
+
+        /* MODAL (YENİ KAMPANYA EKLEME EKRANI) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 200;
+            backdrop-filter: blur(5px);
+        }
+        .modal {
+            background-color: #161b22; padding: 30px; border-radius: 12px;
+            width: 90%; max-width: 400px; border: 1px solid #30363d;
+        }
+        .modal h2 { margin-top: 0; color: #fff; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #8b949e; font-size: 0.9rem;}
+        .form-group input { width: 100%; padding: 10px; background-color: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 6px; outline: none; }
+        .form-group input:focus { border-color: #58a6ff; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;}
+        .cancel-btn { background-color: transparent; border: 1px solid #8b949e; color: #c9d1d9; padding: 10px 15px; border-radius: 6px; cursor: pointer; }
+        .submit-btn { background-color: #238636; color: #fff; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold;}
+
+        /* Butonları yan yana tutan yeni taşıyıcı */
+        .header-buttons {
+            display: flex;
+            gap: 15px; /* İki buton arasına boşluk bırakır */
+        }
+
+        /* Info Butonu (Eski margin ayarları silinip temizlendi) */
+        .info-btn {
+            background-color: transparent; color: #8b949e; border: 1px solid #30363d;
+            padding: 10px 20px; font-size: 1rem; font-weight: bold;
+            border-radius: 6px; cursor: pointer; transition: 0.2s;
+        }
+        .info-btn:hover { border-color: #8b949e; color: #fff; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Capitalism<span>Kneel!</span></div>
+        <div class="header-buttons">
+            <button class="info-btn" onclick="openInfoModal()">What is SWARM?</button>
+            <button class="create-btn" onclick="openModal()">+ Start a Tag</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="feed" id="feedContainer"></div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2>Create a Swarm Tag</h2>
+            <div class="form-group">
+                <label>Product Name (e.g. Sony WH-1000XM5)</label>
+                <input type="text" id="pName" placeholder="Enter product name..." required>
+            </div>
+            <div class="form-group">
+                <label>Original Price ($)</label>
+                <input type="number" id="pOldPrice" placeholder="99" required>
+            </div>
+            <div class="form-group">
+                <label>Target Swarm Price ($)</label>
+                <input type="number" id="pNewPrice" placeholder="49.99" required>
+            </div>
+            <div class="form-group">
+                <label>People Needed (Target)</label>
+                <input type="number" id="pTarget" placeholder="500" required>
+            </div>
+            <div class="modal-actions">
+         <button class="cancel-btn" style="width: 100%; margin: 0; text-align: center;" onclick="window.top.location.href='index.html'">Back to Main Page</button>
+                <button class="submit-btn" onclick="submitCampaign()">Launch Tag</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="infoModalOverlay">
+        <div class="modal">
+            <button class="cancel-btn" style="position: absolute; right: 12px; top: 8px; font-size: 1.4rem; line-height: 1; padding: 6px 10px;" onclick="closeInfoModal()">&times;</button>
+
+            <h2>What is SWARM? 🐝</h2>
+            <p>SWARM is a social pricing network where collective buying power forces retail prices to collapse.</p>
+
+            <h3>How it works:</h3>
+            <ol>
+                <li><strong>Start a Tag:</strong> Spot a product on Amazon, eBay, or anywhere else. Share it here with its original retail price and pitch a massive target discount.</li>
+                <li><strong>Set the Target:</strong> Decide how many committed buyers (the Swarm) are required to legally force that discount.</li>
+                <li><strong>Pledge & Collapse:</strong> Users who want the item commit (pledge) to buy it <em>only if</em> the target is hit. Once the crowd size triggers the goal, the price drops and the deal is unlocked for everyone!</li>
+            </ol>
+
+            <p><em>Power to the crowd. Drop prices together.</em></p>
+
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closeInfoModal()">Understood, Let's Swarm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. VERİ TABANI SİMÜLASYONU (Başlangıç Kampanyaları)
+        let campaigns = [
+            { id: 1, name: "Sony PS5 Pro Controller", oldPrice: 199.99, newPrice: 89.99, current: 485, target: 500, emoji: "🎮", pledgedByMe: false },
+            { id: 2, name: "Secretlab Titan Chair", oldPrice: 549.00, newPrice: 299.00, current: 124, target: 1000, emoji: "💺", pledgedByMe: false },
+            { id: 3, name: "DJI Mini 3 Drone", oldPrice: 469.00, newPrice: 250.00, current: 498, target: 500, emoji: "🚁", pledgedByMe: false },
+            { id: 4, name: "Apple AirPods Max", oldPrice: 549.00, newPrice: 299.99, current: 89, target: 300, emoji: "🎧", pledgedByMe: false }
+        ];
+
+        const feedContainer = document.getElementById('feedContainer');
+
+        // 2. KARTLARI EKRANA ÇİZME FONKSİYONU
+        function renderFeed() {
+            feedContainer.innerHTML = ""; // Önce temizle
+            
+            campaigns.forEach(camp => {
+                const percent = Math.min((camp.current / camp.target) * 100, 100).toFixed(1);
+                const isUnlocked = camp.current >= camp.target;
+                
+                let btnHtml = "";
+                if (isUnlocked) {
+                    btnHtml = `<button class="pledge-btn unlocked">🎯 DEAL UNLOCKED!</button>`;
+                } else if (camp.pledgedByMe) {
+                    btnHtml = `<button class="pledge-btn pledged">Pledged (${camp.current}/${camp.target})</button>`;
+                } else {
+                    btnHtml = `<button class="pledge-btn" onclick="pledge(${camp.id})">Pledge to Buy</button>`;
+                }
+
+                const cardHtml = `
+                    <div class="card" id="card-${camp.id}">
+                        <div class="card-emoji">${camp.emoji}</div>
+                        <div class="card-title">${camp.name}</div>
+                        <div class="price-row">
+                            <span class="old-price">$${camp.oldPrice}</span>
+                            <span class="new-price">$${camp.newPrice}</span>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-bar" style="width: ${percent}%; background-color: ${isUnlocked ? '#3fb950' : '#58a6ff'};"></div>
+                        </div>
+                        <div class="progress-stats">
+                            <span>${camp.current} Pledged</span>
+                            <span>Target: ${camp.target}</span>
+                        </div>
+                        ${btnHtml}
+                    </div>
+                `;
+                feedContainer.innerHTML += cardHtml;
+            });
+        }
+
+        // 3. KULLANICININ DESTEKLEME (PLEDGE) AKSİYONU
+        window.pledge = function(id) {
+            const camp = campaigns.find(c => c.id === id);
+            if(camp && !camp.pledgedByMe && camp.current < camp.target) {
+                camp.current += 1;
+                camp.pledgedByMe = true;
+                renderFeed();
+            }
+        };
+
+        // 4. SAYFAYI YAŞATAN SİMÜLASYON (Botlar rastgele destek veriyor)
+        setInterval(() => {
+            // Sadece hedefine ulaşmamış kampanyaları bul
+            const activeCampaigns = campaigns.filter(c => c.current < c.target);
+            if(activeCampaigns.length > 0) {
+                // Rastgele birini seç ve 1 ile 5 arası destekçi ekle
+                const randomCamp = activeCampaigns[Math.floor(Math.random() * activeCampaigns.length)];
+                const randomBoost = Math.floor(Math.random() * 5) + 1;
+                randomCamp.current += randomBoost;
+                
+                // Eğer hedefi geçtiyse hedefe sabitle
+                if(randomCamp.current > randomCamp.target) randomCamp.current = randomCamp.target;
+                
+                // Ekranı güncelle
+                renderFeed();
+            }
+        }, 2500); // Her 2.5 saniyede bir biri bir şeye tıklıyor!
+
+        // 5. MODAL (YENİ KAMPANYA EKLEME) İŞLEMLERİ
+        const modal = document.getElementById('modalOverlay');
+        window.openModal = () => modal.style.display = 'flex';
+        window.closeModal = () => {
+            modal.style.display = 'none';
+            document.getElementById('pName').value = "";
+            document.getElementById('pOldPrice').value = "";
+            document.getElementById('pNewPrice').value = "";
+            document.getElementById('pTarget').value = "";
+        };
+
+        // SWARM Bilgilendirme Modalı Fonksiyonları
+        const infoModal = document.getElementById('infoModalOverlay');
+        window.openInfoModal = () => infoModal.style.display = 'flex';
+        window.closeInfoModal = () => infoModal.style.display = 'none';
+
+        window.submitCampaign = () => {
+            const name = document.getElementById('pName').value;
+            const oldP = parseFloat(document.getElementById('pOldPrice').value);
+            const newP = parseFloat(document.getElementById('pNewPrice').value);
+            const target = parseInt(document.getElementById('pTarget').value);
+
+            if(name && oldP && newP && target) {
+                const newCampaign = {
+                    id: campaigns.length + 1,
+                    name: name,
+                    oldPrice: oldP.toFixed(2),
+                    newPrice: newP.toFixed(2),
+                    current: 1, // Kuran kişi ilk desteği vermiş sayılır
+                    target: target,
+                    emoji: "📦", // Yeni ürünler için standart kutu emojisi
+                    pledgedByMe: true
+                };
+                
+                // Listeye ekle (en başa)
+                campaigns.unshift(newCampaign);
+                closeModal();
+                renderFeed();
+            } else {
+                alert("Please fill all fields!");
+            }
+        };
+
+        // İlk Yükleme
+        renderFeed();
+    </script>
+</body>
+</html>
