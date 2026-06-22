@@ -3,6 +3,7 @@
    ========================================================================== */
 
 /* Temel Sıfırlamalar */
+
 * {
     margin: 0;
     padding: 0;
@@ -21,6 +22,11 @@ body {
     justify-content: center;
     height: 100dvh;
     overflow: hidden;
+
+    -webkit-user-select: none; /* Safari/Chrome metin seçimi engelleme */
+    user-select: none; /* Genel metin seçimi engelleme */
+    -webkit-tap-highlight-color: transparent; /* Mobildeki mavi tıklama efektini siler */
+    touch-action: manipulation; /* Çift tıklamayla zoom yapılmasını engeller */
 }
 
 /* Mobil Ekran Kapsayıcısı - KONSOLUN ANA GÖVDESİ */
