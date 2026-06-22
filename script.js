@@ -105,7 +105,7 @@ const games = [
     { url: 'asmr4.html', title: 'ASMR-4' },
      { url: 'ninja.html', title: 'ASMR-5' },
       { url: 'nau.html', title: 'nauCoin' }
-       
+      
 
        
 
@@ -125,30 +125,28 @@ shuffleArray(games);
 // --- RETRO PİKSEL İKONLAR (KALIN VE TOK ÇİZGİLİ VERSİYON) ---
 const pixelIcons = {
     // Ekranı Büyütme (Dışa açılan oklar)
-    fullscreen: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><polyline points="15 3 21 3 2[...]
+    fullscreen: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>`,
     
     // Favori Yıldız
-    star: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 [...]
+    star: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`,
     
     // Rastgele Oyun (Yenileme - Kalın versiyon)
-    refresh: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6[...]
+    refresh: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>`,
     
     // Kalp
-    heart: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-[...]
+    heart: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`,
     
     // Ana Sayfa (Ev)
-    home: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2[...]
+    home: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`,
     
     // Cihaza Kur (İndirme)
-    install: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5[...]
+    install: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`,
     
     // Tema Paleti
-    palette: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"[...]
+    palette: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>`
 };
 
 let currentGameIndex = 0; 
-// Gösterilen sayfaların indekslerini hafızada tutacağımız liste
-let gosterilenSayfalar = [];
 let favoritedUrls = [];
 try {
     const kayitli = localStorage.getItem('9nau9_favorites');
@@ -320,44 +318,19 @@ let butonBasmaSayisi = 0; // Kullanıcının butona kaç kez bastığını sayar
 
 function nextItem() {
     butonBasmaSayisi++; // Her sayfa geçişinde sayıyı 1 artır
-
+    
     if (butonBasmaSayisi === 9) {
         // Tam 9. basışta nau.html'in listedeki sırasını bul ve direkt ona atla
         const nauIndex = games.findIndex(g => g.url === 'nau.html');
         if (nauIndex !== -1) {
             currentGameIndex = nauIndex;
-            
-            // DÜZELTME: nau.html'i gösterdiğimiz için onu da hafızaya ekliyoruz ki rastgele döngüde bir daha çıkmasın
-            if (!gosterilenSayfalar.includes(nauIndex)) {
-                gosterilenSayfalar.push(nauIndex);
-            }
-            
-            loadGameToIframe();
-            return;
         }
+    } else {
+        // 9. basış değilse normal şekilde rastgele sıradaki oyuna geç
+        currentGameIndex = (currentGameIndex + 1) % games.length; 
     }
-
-    // Hafıza kontrollü rastgele seçim
-    // 1. Eğer listedeki TÜM oyunları gösterdiysek, hafızayı sıfırla ki başa dönebilelim.
-    if (gosterilenSayfalar.length >= games.length) {
-        gosterilenSayfalar = [];
-        console.log("Tüm içerikler gösterildi, hafıza sıfırlandı!");
-    }
-
-    let rastgeleIndex;
-    // 2. Daha önce GÖSTERİLMEDİĞİNE emin olana kadar rastgele sayı çekmeye devam et
-    do {
-        rastgeleIndex = Math.floor(Math.random() * games.length);
-    } while (gosterilenSayfalar.includes(rastgeleIndex));
-
-    // 3. Yeni bulduğumuz ve daha önce gösterilmemiş bu sayfayı hafızaya kaydet
-    gosterilenSayfalar.push(rastgeleIndex);
-
-    // 4. Aktif oyun indeksini güncelle
-    currentGameIndex = rastgeleIndex;
-
-    // 5. İframe'i yeni sayfayla yükle
-    loadGameToIframe(); 
+    
+    loadAnaAkis(); // Ekranı güncelle
 }
 
 function toggleLike() {
@@ -535,7 +508,6 @@ function loadFavoriler() {
 }
 
 // Sistemi Başlat
-gosterilenSayfalar.push(currentGameIndex); // DÜZELTME: Site ilk açıldığında gösterilen oyunu hafızaya al
 loadAnaAkis();
 
 // Service Worker Başlatıcı
