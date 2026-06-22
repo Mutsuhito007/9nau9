@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9NAU9 // SENSORY OVERLOAD</title>
+    
+    <style>
+        :root {
+            --bg-dark: #0a0b10;
+            --panel-bg: #12141c;
+            --cyber-green: #00ff88;
+            --cyber-glow: rgba(0, 255, 136, 0.25);
+            --text-main: #f1f5f9;
+            --text-muted: #64748b;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            overflow-y: auto;
+            -ms-overflow-style: none;  /* IE ve Edge için gizler */
+            scrollbar-width: none;     /* Firefox için gizler */
+        }
+
+        /* Chrome, Safari ve Opera için Nükleer Seçenek */
+        html::-webkit-scrollbar, body::-webkit-scrollbar {
+            width: 0px !important;
+            height: 0px !important;
+            background: transparent !important;
+            display: none !important;
+        }
+
+        h1 {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 24px;
+            letter-spacing: 4px;
+            color: var(--cyber-green);
+            text-shadow: 0 0 10px var(--cyber-glow);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        /* Ortak Kutu Tasarımı */
+        .asmr-box {
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 255, 136, 0.15);
+            border-radius: 16px;
+            padding: 30px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .box-title {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+        }
+
+        /* 1. MEKANİK KLAVYE TUŞU */
+        .mech-key {
+            width: 80px;
+            height: 80px;
+            background: #1e212b;
+            border: 2px solid #2a2e3d;
+            border-bottom: 8px solid #0f1118;
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 24px;
+            font-family: 'Courier New', Courier, monospace;
+            cursor: pointer;
+            transition: all 0.05s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+
+        .mech-key:active {
+            transform: translateY(6px);
+            border-bottom: 2px solid #0f1118;
+            background: var(--cyber-green);
+            color: var(--bg-dark);
+            box-shadow: 0 0 20px var(--cyber-glow);
+        }
+
+        
+        .zipper-slider {
+            -webkit-appearance: none;
+            appearance: none; /* SARI ÇİZGİYİ YOK EDECEK OLAN KOD BU */
+            width: 100%;
+            height: 15px;
+            background: repeating-linear-gradient(90deg, #2a2e3d, #2a2e3d 2px, #12141c 2px, #12141c 6px);
+            border-radius: 5px;
+            outline: none;
+            cursor: ew-resize;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .zipper-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none; /* BURAYA DA EKLİYORUZ */
+            width: 25px;
+            height: 35px;
+            background: var(--text-main);
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            border: 2px solid var(--cyber-green);
+        }
+
+        /* 3. KONTAK ANAHTARI */
+        .key-switch {
+            width: 60px;
+            height: 100px;
+            background: #1e212b;
+            border-radius: 30px;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #2a2e3d;
+        }
+
+        .key-knob {
+            width: 20px;
+            height: 60px;
+            background: var(--cyber-green);
+            border-radius: 10px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 15px var(--cyber-glow);
+        }
+
+        .key-switch.turned .key-knob {
+            transform: rotate(90deg);
+            background: #ff3366;
+            box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
+        }
+
+        /* 4. BALONLU NAYLON (BUBBLE WRAP) */
+        .bubble-wrap {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .bubble {
+            width: 35px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .bubble:active {
+            transform: scale(0.9);
+        }
+
+        .bubble.popped {
+            background: transparent;
+            border-color: rgba(0, 255, 136, 0.3);
+            pointer-events: none; /* Patlatılana bir daha tıklanmasın */
+        }
+
+       /* 5. CIRT CIRT (VELCRO) */
+        .velcro-btn {
+            width: 100%;
+            padding: 20px;
+            background: repeating-linear-gradient(45deg, #1e212b, #1e212b 10px, #12141c 10px, #12141c 20px);
+            border: 2px dashed #64748b;
+            color: var(--text-main);
+            font-weight: bold;
+            letter-spacing: 2px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            
+            /* YAZIYI TAM MERKEZE SABİTLEYEN KODLAR */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .velcro-btn:active {
+            transform: scale(0.98) skewX(-2deg);
+            background: repeating-linear-gradient(45deg, #1e212b, #1e212b 5px, #12141c 5px, #12141c 10px);
+            border-color: var(--cyber-green);
+        }
+
+    </style>
+</head>
+<body>
+
+    
+    
+
+    <div class="grid-container">
+        
+        <!-- Mekanik Klavye -->
+        <div class="asmr-box">
+            <div class="box-title">/// MECH_SWITCH</div>
+            <div class="mech-key" id="keyboardBtn">W</div>
+        </div>
+
+        <!-- Fermuar -->
+        <div class="asmr-box">
+            <div class="box-title">/// ZIPPER_TRACK</div>
+            <input type="range" min="1" max="100" value="50" class="zipper-slider" id="zipperSlider">
+        </div>
+
+        <!-- Kontak Anahtarı -->
+        <div class="asmr-box">
+            <div class="box-title">/// IGNITION_KEY</div>
+            <div class="key-switch" id="keySwitch">
+                <div class="key-knob"></div>
+            </div>
+        </div>
+
+        <!-- Cırt Cırt -->
+        <div class="asmr-box">
+            <div class="box-title">/// VELCRO_STRIP</div>
+            <div class="velcro-btn" id="velcroBtn">TEAR APART</div>
+        </div>
+
+        <!-- Balonlu Naylon -->
+        <div class="asmr-box">
+            <div class="box-title">/// BUBBLE_WRAP (Click to Pop)</div>
+            <div class="bubble-wrap" id="bubbleContainer">
+                <!-- Javascript ile 12 tane balon basacağız -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* ==========================================
+           SES DOSYALARINI BAĞLADIĞIMIZ YER (SENİN ALANIN)
+           Aşağıdaki tırnak içlerine klasöründeki ses 
+           dosyalarının tam adını yazman yeterli.
+           Örnek: 'klavye-sesi.mp3'
+        ========================================== */
+        
+        const SES_DOSYALARI = {
+            klavye: 'aaa/001.mp3', // Buraya klavye sesini yaz
+            fermuar: 'aaa/002.mp3',     // Buraya fermuar sesini yaz
+            anahtarAc: 'aaa/003.mp3',   // Anahtar sağa dönerken çıkacak ses
+            anahtarKapat: 'aaa/003.mp3',// Anahtar sola dönerken çıkacak ses
+            cirtCirt: 'aaa/004.mp3',    // Cırt cırt sökülme sesi
+            naylonPatlat: 'aaa/005.mp3' // Balonlu naylon patlama sesi
+        };
+
+        // Sistemi Yükle
+        const audioElements = {};
+        for (let key in SES_DOSYALARI) {
+            if (SES_DOSYALARI[key] !== '') {
+                audioElements[key] = new Audio(SES_DOSYALARI[key]);
+                audioElements[key].preload = 'auto';
+            }
+        }
+
+        // --- SES ÇALMA YARDIMCI FONKSİYONU ---
+        // Üst üste basıldığında sesin kesilmemesi için klonlayarak çalar
+        function playSound(soundName) {
+            if (audioElements[soundName]) {
+                const soundClone = audioElements[soundName].cloneNode();
+                soundClone.play().catch(e => console.log("Ses oynatılamadı, dosya adını kontrol et."));
+            }
+        }
+
+        // 1. KLAVYE MANTIĞI
+        const keyboardBtn = document.getElementById('keyboardBtn');
+        keyboardBtn.onmousedown = () => playSound('klavye');
+        keyboardBtn.ontouchstart = (e) => { e.preventDefault(); playSound('klavye'); };
+
+        // 2. FERMUAR MANTIĞI
+        const zipperSlider = document.getElementById('zipperSlider');
+        let lastValue = zipperSlider.value;
+        zipperSlider.oninput = () => {
+            // Sadece belirli bir mesafe kaydırıldığında ses çıkar, cızırtı yapmasın
+            if (Math.abs(zipperSlider.value - lastValue) > 3) {
+                playSound('fermuar');
+                lastValue = zipperSlider.value;
+            }
+        };
+
+        // 3. ANAHTAR MANTIĞI
+        const keySwitch = document.getElementById('keySwitch');
+        let isTurned = false;
+        keySwitch.onclick = () => {
+            isTurned = !isTurned;
+            if (isTurned) {
+                keySwitch.classList.add('turned');
+                playSound('anahtarAc');
+            } else {
+                keySwitch.classList.remove('turned');
+                playSound('anahtarKapat');
+            }
+        };
+
+        // 4. CIRT CIRT MANTIĞI
+        const velcroBtn = document.getElementById('velcroBtn');
+        velcroBtn.onmousedown = () => playSound('cirtCirt');
+        velcroBtn.ontouchstart = (e) => { e.preventDefault(); playSound('cirtCirt'); };
+
+        // 5. BALONLU NAYLON MANTIĞI
+        const bubbleContainer = document.getElementById('bubbleContainer');
+        for (let i = 0; i < 12; i++) {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.onclick = function() {
+                if (!this.classList.contains('popped')) {
+                    this.classList.add('popped');
+                    playSound('naylonPatlat');
+                    
+                    // 3 saniye sonra balon geri şişsin (sonsuz döngü için)
+                    setTimeout(() => {
+                        this.classList.remove('popped');
+                    }, 3000);
+                }
+            };
+            bubbleContainer.appendChild(bubble);
+        }
+    </script>
+</body>
+</html>

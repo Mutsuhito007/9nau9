@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Circle Painting Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <style>
+        body { 
+            margin: 0; padding: 0; background-color: #222; 
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh; width: 100vw; overflow: hidden; 
+        }
+        canvas { 
+            box-shadow: 0 0 20px rgba(0,0,0,0.8); 
+            max-width: 100%; max-height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<script>
+    const config = {
+        type: Phaser.AUTO,
+        scale: {
+            mode: Phaser.Scale.FIT,
+            width: 720,  
+            height: 1280 
+        },
+        backgroundColor: '#ffffff', 
+        scene: { preload: preload, create: create, update: update }
+    };
+
+    const game = new Phaser.Game(config);
+
+    // SEVİYE SİSTEMİ VE ZORLUK AYARLARI
+    let currentLevel = 1;
+    const MAX_LEVEL = 10;
+    
+    // Her levelin hız, renk sayısı ve istenen başarı yüzdesi ayarları
+    const LEVEL_CONFIG = [
+        // 1-5 Arası: 2 Renk ve Yavaş (Isınma turları)
+        { speed: 1.5, numColors: 2, requiredAcc: 50 },  // Level 1
+        { speed: 1.8, numColors: 2, requiredAcc: 60 },  // Level 2
+        { speed: 2.0, numColors: 2, requiredAcc: 70 },  // Level 3
+        { speed: 2.2, numColors: 2, requiredAcc: 80 },  // Level 4
+        { speed: 2.5, numColors: 2, requiredAcc: 85 },  // Level 5
+        
+        // 6-8 Arası: 3 Renk ve Bi Tık Hızlı (Terleten turlar)
+        { speed: 3.5, numColors: 3, requiredAcc: 90 },  // Level 6
+        { speed: 4.0, numColors: 3, requiredAcc: 92 },  // Level 7
+        { speed: 4.5, numColors: 3, requiredAcc: 95 },  // Level 8
+        
+        // 9-10: Ölümcül Seviyeler (Çok hızlı, çok renk, hata affetmez)
+        { speed: 6.5, numColors: 4, requiredAcc: 97 },  // Level 9
+        { speed: 8.0, numColors: 5, requiredAcc: 99 }   // Level 10
+    ];
+
+    // Oyunda kullanılacak ana renk paleti (Kırmızı, Sarı, Mavi, Yeşil, Mor, Turkuaz)
+    const PALETTE = [0xff0000, 0xffff00, 0x0000ff, 0x00ff00, 0x800080, 0x00ffff];
+    let currentColorIndex = 0;
+    let currentColor = PALETTE[0]; 
+
+    let mainGraphics, targetGraphics;
+    let isPlaying = false, isCounting = false;
+    let countdownValue = 3;
+    let currentAngle = -90; 
+    const endAngle = 270;   
+    
+    let slices = [];
+    let currentSliceStart = -90;
+    let targetSlices = []; // Hedefteki renk dilimlerini tutacağımız dizi
+    
+    let startButton, countdownText, infoText, levelText, reqText;
+
+    function preload() {}
+
+    function create() {
+        const centerX = this.scale.width / 2;
+        const centerY = this.scale.height / 2;
+
+        mainGraphics = this.add.graphics({ x: centerX, y: centerY });
+        targetGraphics = this.add.graphics({ x: this.scale.width - 150, y: 180 });
+
+        // ARAYÜZ METİNLERİ
+        levelText = this.add.text(40, 80, `LEVEL ${currentLevel}`, { 
+            fontSize: '60px', fontStyle: 'bold', color: '#000' 
+        }).setOrigin(0, 0.5);
+
+        reqText = this.add.text(40, 150, `Target Match: ${LEVEL_CONFIG[0].requiredAcc}%`, { 
+            fontSize: '40px', color: '#000' 
+        }).setOrigin(0, 0.5);
+
+        startButton = this.add.text(centerX, centerY, 'START', { 
+            fontSize: '60px', fontStyle: 'bold', backgroundColor: '#000', color: '#fff', padding: {x: 30, y: 15} 
+        }).setOrigin(0.5).setInteractive();
+
+        countdownText = this.add.text(centerX, centerY, '', { 
+            fontSize: '120px', fontStyle: 'bold', color: '#000' 
+        }).setOrigin(0.5).setVisible(false);
+
+        infoText = this.add.text(centerX, centerY + 350, 'Tap to change color!', { 
+            fontSize: '40px', color: '#000' 
+        }).setOrigin(0.5);
+
+        // İLK HEDEFİ OLUŞTUR VE ÇİZ
+        generateTarget();
+        drawTargetCircle();
+
+        mainGraphics.lineStyle(6, 0x000000);
+        mainGraphics.strokeCircle(0, 0, 250);
+
+        // KONTROLLER
+        startButton.on('pointerdown', (pointer, localX, localY, event) => {
+            initAudio(); // Mobil cihazlarda sesi uyandırmak için eklendi
+
+            if(!isPlaying && !isCounting) {
+                event.stopPropagation(); 
+                startButton.setVisible(false);
+                startCountdown(this);
+            }
+        });
+
+        // TÜM EKRANDA TIKLAMAYI ALGILAMA (Oyun alanı dışındaki siyah boşluklar dahil)
+        document.addEventListener('pointerdown', () => {
+            initAudio(); // Mobil cihazlarda sesi uyandırmak için eklendi
+            
+            if (isPlaying && !isCounting) {
+                slices.push({ color: currentColor, start: currentSliceStart, end: currentAngle });
+                currentSliceStart = currentAngle;
+                
+                // Sıradaki renge geç 
+                let maxColors = LEVEL_CONFIG[currentLevel - 1].numColors;
+                currentColorIndex = (currentColorIndex + 1) % maxColors;
+                currentColor = PALETTE[currentColorIndex];
+            }
+        });
+    }
+
+    // HEDEF DAİREYİ RASTGELE OLUŞTURMA FONKSİYONU
+    function generateTarget() {
+        targetSlices = [];
+        let config = LEVEL_CONFIG[currentLevel - 1];
+        let maxColors = config.numColors;
+        
+        let remainingAngle = 360;
+        let start = -90;
+
+        for (let i = 0; i < maxColors; i++) {
+            let color = PALETTE[i];
+            let angle;
+            
+            // Son renkse kalan tüm açıyı alır, değilse rastgele bir dilim oluşturur
+            if (i === maxColors - 1) {
+                angle = remainingAngle;
+            } else {
+                // Her renge en az 40 derece kalacak şekilde rastgele böl
+                let maxRandom = remainingAngle - ((maxColors - i - 1) * 40);
+                angle = Phaser.Math.Between(40, maxRandom);
+            }
+            
+            targetSlices.push({ color: color, angle: angle, start: start, end: start + angle });
+            start += angle;
+            remainingAngle -= angle;
+        }
+    }
+
+    function drawTargetCircle() {
+        targetGraphics.clear();
+        targetGraphics.lineStyle(4, 0x000000);
+        targetGraphics.strokeCircle(0, 0, 80);
+        
+        targetSlices.forEach(slice => {
+            targetGraphics.fillStyle(slice.color);
+            targetGraphics.beginPath();
+            targetGraphics.moveTo(0, 0);
+            targetGraphics.arc(0, 0, 80, Phaser.Math.DegToRad(slice.start), Phaser.Math.DegToRad(slice.end), false);
+            targetGraphics.fillPath();
+        });
+    }
+
+    // KODLA SES ÜRETME (WEB AUDIO API) - MOBİL OPTİMİZASYONLU
+    let audioCtx; // Ses motorunu sadece bir kere oluşturacağız
+
+    function initAudio() {
+        // Eğer ses motoru yoksa oluştur
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        // Telefon sesi uykuya aldıysa (suspend), uyandır!
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    function playBeep(frequency = 600, type = 'sine', duration = 0.2) {
+        if (!audioCtx) return;
+        
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + duration);
+    }
+
+    // BAŞARI SESİ
+    function playSuccessSound() {
+        playBeep(500, 'sine', 0.1);
+        setTimeout(() => playBeep(650, 'sine', 0.1), 100);
+        setTimeout(() => playBeep(800, 'sine', 0.3), 200);
+    }
+
+    // KAYBETME SESİ
+    function playFailSound() {
+        playBeep(300, 'sawtooth', 0.2);
+        setTimeout(() => playBeep(200, 'sawtooth', 0.4), 200);
+    }
+
+    function startCountdown(scene) {
+        isCounting = true;
+        countdownText.setVisible(true);
+        countdownValue = 3;
+        countdownText.setText(countdownValue);
+        infoText.setText('');
+
+        // İlk tıklandığında (3 yazarken) ilk bipi çal
+        playBeep(600, 'sine', 0.2);
+
+        scene.time.addEvent({
+            delay: 1000,
+            callback: () => {
+                countdownValue--;
+                if (countdownValue > 0) {
+                    countdownText.setText(countdownValue);
+                    // 2 ve 1 yazarken normal bip çal
+                    playBeep(600, 'sine', 0.2);
+                } else if (countdownValue === 0) {
+                    countdownText.setText("START!");
+                    // START yazarken daha ince (800) ve uzun (0.4) bir bip çal
+                    playBeep(800, 'sine', 0.4);
+                } else {
+                    countdownText.setVisible(false);
+                    isCounting = false;
+                    isPlaying = true;
+                }
+            },
+            repeat: 3 
+        });
+    }
+
+    function update() {
+        if (isPlaying) {
+            let config = LEVEL_CONFIG[currentLevel - 1];
+            currentAngle += config.speed;
+            
+            mainGraphics.clear();
+            mainGraphics.lineStyle(6, 0x000000);
+            mainGraphics.strokeCircle(0, 0, 250);
+
+            slices.forEach(slice => {
+                mainGraphics.fillStyle(slice.color);
+                mainGraphics.beginPath();
+                mainGraphics.moveTo(0, 0);
+                mainGraphics.arc(0, 0, 250, Phaser.Math.DegToRad(slice.start), Phaser.Math.DegToRad(slice.end), false);
+                mainGraphics.fillPath();
+            });
+
+            mainGraphics.fillStyle(currentColor);
+            mainGraphics.beginPath();
+            mainGraphics.moveTo(0, 0);
+            mainGraphics.arc(0, 0, 250, Phaser.Math.DegToRad(currentSliceStart), Phaser.Math.DegToRad(currentAngle), false);
+            mainGraphics.fillPath();
+
+            mainGraphics.lineStyle(5, 0x000000);
+            mainGraphics.beginPath();
+            mainGraphics.moveTo(0, 0);
+            let lx = Math.cos(Phaser.Math.DegToRad(currentAngle)) * 250;
+            let ly = Math.sin(Phaser.Math.DegToRad(currentAngle)) * 250;
+            mainGraphics.lineTo(lx, ly);
+            mainGraphics.strokePath();
+
+            if (currentAngle >= endAngle) {
+                isPlaying = false;
+                slices.push({ color: currentColor, start: currentSliceStart, end: endAngle });
+                calculateResult();
+            }
+        }
+    }
+
+    // YENİ ÇOKLU RENK HESAPLAMA SİSTEMİ
+    function calculateResult() {
+        let config = LEVEL_CONFIG[currentLevel - 1];
+        let playerTotals = {};
+        let targetTotals = {};
+        
+        // Renk toplamlarını sıfırla
+        PALETTE.forEach(c => { playerTotals[c] = 0; targetTotals[c] = 0; });
+        
+        // Oyuncunun ve hedefin açılarını topla
+        slices.forEach(s => playerTotals[s.color] += (s.end - s.start));
+        targetSlices.forEach(s => targetTotals[s.color] += s.angle);
+        
+        let totalDifference = 0;
+        
+        // O levelde kullanılan her renk için farkı hesapla
+        for(let i = 0; i < config.numColors; i++) {
+            let color = PALETTE[i];
+            let pPercent = (playerTotals[color] / 360) * 100;
+            let tPercent = (targetTotals[color] / 360) * 100;
+            totalDifference += Math.abs(pPercent - tPercent);
+        }
+        
+        // Toplam sapmayı bul (Yarıya bölüyoruz çünkü bir renkteki eksiklik diğerinde fazlalık yaratıyor, çift sayılmasın)
+        let accuracy = 100 - (totalDifference / 2);
+        
+        if (accuracy >= config.requiredAcc) {
+            // BAŞARILI OLUNCA ÇALACAK SES
+            playSuccessSound(); 
+            
+            infoText.setText(`AWESOME! ${accuracy.toFixed(1)}% Match`);
+            infoText.setColor('#000');
+            
+            // Sonraki levele geçiş
+            game.scene.scenes[0].time.delayedCall(2000, () => {
+                if(currentLevel < MAX_LEVEL) {
+                    currentLevel++;
+                    resetGame(true);
+                } else {
+                    infoText.setText('CONGRATS! GAME COMPLETED!');
+                    infoText.setColor('#0000ff');
+                }
+            });
+        } else {
+            // BAŞARISIZ OLUNCA ÇALACAK SES
+            playFailSound(); 
+            
+            infoText.setText(`FAILED! ${accuracy.toFixed(1)}% (Target: ${config.requiredAcc}%)`);
+            infoText.setColor('#ff0000');
+            
+            // Aynı leveli tekrar başlat
+            game.scene.scenes[0].time.delayedCall(2000, () => {
+                resetGame(false);
+            });
+        }
+    }
+
+    // OYUNU SIFIRLAMA FONKSİYONU
+    function resetGame(levelUp) {
+        let config = LEVEL_CONFIG[currentLevel - 1];
+        
+        // Ekrana yeni bilgileri yaz
+        levelText.setText(`LEVEL ${currentLevel}`);
+        reqText.setText(`Target Match: ${config.requiredAcc}%`);
+        
+        // Çizimleri ve açıları sıfırla
+        slices = [];
+        currentAngle = -90;
+        currentSliceStart = -90;
+        currentColorIndex = 0;
+        currentColor = PALETTE[0];
+        
+        mainGraphics.clear();
+        mainGraphics.lineStyle(6, 0x000000);
+        mainGraphics.strokeCircle(0, 0, 250);
+        
+        // Sadece level atladıysak yeni hedef çiz, yoksa aynı hedefi tekrar oynaması lazım
+        if (levelUp) {
+            generateTarget();
+            drawTargetCircle();
+        }
+        
+        startButton.setVisible(true);
+        infoText.setText(levelUp ? 'New Level Ready!' : 'Try Again!');
+        infoText.setColor('#000');
+    }
+</script>
+</body>
+</html>

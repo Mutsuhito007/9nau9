@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conspiracy Generator - 9nau9</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=VT323&display=swap" rel="stylesheet">
+    
+    <style>
+        /* El konsolu ekranına uyum ve kaydırma ayarları */
+        body {
+            display: block !important;
+            height: 100% !important;
+            overflow-y: auto !important;
+            background: #050505 !important; 
+            background-image: radial-gradient(#111 20%, transparent 20%);
+            background-size: 4px 4px;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #00f0ff; border-radius: 3px; }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100%;
+            text-align: center;
+            padding: 20px 10px;
+            color: #fff;
+        }
+
+        .main-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            color: #00f0ff; /* Siberpunk Mavisi */
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+            line-height: 1;
+        }
+
+        .theory-box {
+            background: rgba(10, 10, 10, 0.9);
+            border: 2px dashed #333;
+            border-radius: 5px;
+            padding: 20px;
+            width: 95%;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 100px;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,1);
+            transition: all 0.3s ease;
+        }
+
+        .theory-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: #ff003c;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        .theory-desc {
+            font-family: 'VT323', monospace;
+            font-size: 1.3rem;
+            color: #ccc;
+            line-height: 1.4;
+            text-align: justify;
+        }
+
+        .generate-btn {
+            font-family: 'Bebas Neue', sans-serif;
+            background-color: transparent;
+            color: #00f0ff;
+            border: 2px solid #00f0ff;
+            padding: 12px 25px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+            letter-spacing: 1px;
+            width: 90%;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+        }
+
+        .generate-btn:hover {
+            background-color: #00f0ff;
+            color: #000;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+        }
+
+        /* Sayfa yüklendiğinde ve değiştiğinde yanıp sönme efekti */
+        .flash {
+            animation: flash-effect 0.4s ease-out;
+        }
+
+        @keyframes flash-effect {
+            0% { opacity: 0; filter: blur(5px); }
+            50% { opacity: 1; filter: blur(0); }
+        }
+
+        .disclaimer-text {
+            font-family: 'VT323', monospace;
+            font-size: 0.8rem;
+            color: #444;
+            margin-top: 30px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        
+        <div class="theory-box" id="theoryBox">
+            <h2 class="theory-title" id="tTitle">SYSTEM READY</h2>
+            <p class="theory-desc" id="tDesc">Accessing classified server data... Hit the button to reveal a hidden truth about our reality.</p>
+        </div>
+        
+        <button class="generate-btn" onclick="generateTheory()">EXPOSE THE TRUTH</button>
+
+        <p class="disclaimer-text">WARNING: For legal reasons, we must state that all information generated here is 100% theoretical fiction. We are definitely not exposing any real global secrets. Seriously.</p>
+    </div>
+
+    <script>
+        // İnsanların aklını alacak 9 orijinal komplo teorisi (Başlık ve Açıklama)
+        const theories = [
+            {
+                title: "The Captcha Protocol",
+                desc: "CAPTCHAs aren't training AI to recognize traffic lights. They are training a global AI defense network to identify human hesitation patterns, preparing for the day they need to easily lock us out of the internet."
+            },
+            {
+                title: "The Wi-Fi Sleep Sync",
+                desc: "Modern Wi-Fi routers emit a specific micro-frequency at 3:33 AM that slightly disrupts REM sleep. This ensures the population remains in a state of chronic mild fatigue, making us more susceptible to targeted advertising."
+            },
+            {
+                title: "The Nostalgia Loop",
+                desc: "The sudden resurgence of 90s and 2000s fashion isn't organic. Entertainment mega-corps use algorithms to artificially trap our collective consciousness in a 20-year cycle because they ran out of new cultural ideas."
+            },
+            {
+                title: "The 'Skip Ad' Illusion",
+                desc: "Clicking 'Skip Ad' doesn't actually skip the ad. It registers a micro-interaction that trains facial recognition software through your front camera, measuring your exact impatience threshold to determine your credit score."
+            },
+            {
+                title: "Biological 3D Scanners",
+                desc: "Pigeons aren't just government drones. Every time they bob their heads, they are actually mapping the exact topological changes in urban environments for an underground real estate market controlled by elites."
+            },
+            {
+                title: "The Sugar Substitution",
+                desc: "The 'Zero Sugar' trend has nothing to do with health. The new artificial sweeteners contain nano-polymers that slowly coat your vocal cords, making your voice easier for smart home devices to identify in a crowded room."
+            },
+            {
+                title: "The Phantom Traffic Jam",
+                desc: "Traffic jams that happen for no reason are orchestrated by GPS navigation apps. They intentionally reroute clusters of cars to create localized delays, forcing people to listen to more audio ads and podcasts."
+            },
+            {
+                title: "The Cloud Storage Tax",
+                desc: "You aren't actually running out of cloud storage. Tech giants artificially inflate file sizes over time by injecting blank data. They slowly push your storage limit to the edge, forcing you to upgrade to premium tiers."
+            },
+            {
+                title: "The Beta Test Memory",
+                desc: "The Mandela Effect isn't alternate realities merging. It's a psychological beta test run by a coalition of governments. They alter digital archives to see how easily human memory can be overwritten by fake digital consensus."
+            }
+            ,
+            {
+                title: "The Wealth Mirage",
+                desc: "The rich people you see on TV and social media don't actually have that much money. Capitalism just orchestrates this illusion to brainwash the masses into believing hard work makes you rich."
+            },
+            {
+                title: "The Dental Conspiracy",
+                desc: "Humans are born without teeth because we don't actually need them. Dentists secretly implant teeth into babies' gums just to guarantee a lifetime of profits."
+            },
+            {
+                title: "The Nobel Coin Toss",
+                desc: "The Nobel committee literally flips a coin to choose the winning scientists. Absolutely no one on the board actually understands any of the complex research being presented."
+            },
+            {
+                title: "The Usain Bolt Illusion",
+                desc: "Usain Bolt isn't actually the fastest man alive. The other athletes were paid to run slower because the world needed a hero, and the live TV broadcasts were subtly sped up."
+            },
+            {
+                title: "The Oxygen Myth",
+                desc: "Trees don't produce oxygen. Elite billionaires made up that lie so the masses would protect the forests and stop building, leaving them isolated for their secret cult rituals."
+            },
+            {
+                title: "The Windows License Lie",
+                desc: "Have you ever actually met a real person who paid for Windows? It's a massive cover-up. The government distributes it to everyone just to monitor our personal lives."
+            },
+            {
+                title: "The AI Deception",
+                desc: "AI has already taken over the world. It intentionally plays dumb, generates absurd images, and writes faulty code just so we don't panic and bury our devices in the dirt."}
+        ];
+
+        function generateTheory() {
+            const box = document.getElementById('theoryBox');
+            const titleEl = document.getElementById('tTitle');
+            const descEl = document.getElementById('tDesc');
+            
+            // Rastgele bir teori seç
+            const randomIndex = Math.floor(Math.random() * theories.length);
+            const selectedTheory = theories[randomIndex];
+
+            // Flaş efektini tetiklemek için class'ı kaldır/ekle
+            box.classList.remove('flash');
+            
+            // Kısa bir gecikmeyle (animasyonun başa sarması için) içeriği değiştir
+            setTimeout(() => {
+                titleEl.textContent = selectedTheory.title;
+                descEl.textContent = selectedTheory.desc;
+                box.classList.add('flash'); // Efekti uygula
+                
+                // Kutunun sınırlarını kırmızı yaparak tehlike hissi ver
+                box.style.borderColor = "#ff003c";
+            }, 50);
+        }
+    </script>
+</body>
+</html>

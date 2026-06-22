@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Future Beggar Simulator | 9nau9</title>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Caveat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            color: #888;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 0 20px;
+        }
+
+        /* Karton Pankart Tasarımı */
+        #sign-container {
+            position: relative;
+            width: 80%;
+            max-width: 350px;
+            min-height: 200px;
+            background-color: #c29b62; /* Karton rengi */
+            border: 2px solid #8b6b3d;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            transition: all 0.4s ease; /* Yumuşak geçiş animasyonu */
+            transform: rotate(-2deg);
+            margin: 0 auto;
+        }
+
+        /* Karton üzerindeki yapışkan bant */
+        .tape {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            width: 100px;
+            height: 25px;
+            transition: all 0.4s ease;
+        }
+
+        /* Keçeli Kalem Yazı Stili */
+        #sign-text {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 1.6rem;
+            color: #111;
+            line-height: 1.3;
+            text-transform: uppercase;
+        }
+
+        /* Yeni Pankart İstemek İçin Buton */
+        .btn-beg {
+            margin-top: 50px;
+            padding: 15px 30px;
+            background-color: #d90429;
+            color: white;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 0 #8d021a;
+            transition: 0.1s;
+        }
+
+        .btn-beg:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #8d021a;
+        }
+
+        /* Geri Dönüş Linki */
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #555;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back-link:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    
+
+    <h1>You never know what life brings.<br>Practice your future.</h1>
+
+    <div id="sign-container">
+        <div class="tape" id="tape-element"></div>
+        <div id="sign-text">LOADING DESTINY...</div>
+    </div>
+
+    <button class="btn-beg" onclick="nextSign()">Generate Next Excuse</button>
+
+    <script>
+        // 9 Farklı Absürt ve Acıklı Pankart Mesajı ve Görsel Ayarları (Bantlar düzeltildi)
+        const signs = [
+            {
+                text: "AI TOOK MY JOB. NOW I NEED $2 FOR A HUMAN HUG.",
+                bgColor: "#c29b62", 
+                fontFamily: "'Permanent Marker', cursive",
+                fontColor: "#111", 
+                rotation: "-3deg",
+                tapeTop: "-10px",
+                tapeLeft: "50%",
+                tapeRotate: "-5deg"
+            },
+            {
+                text: "TIME TRAVELER STUCK IN 2026. NEED FUNDS FOR PLUTONIUM.",
+                bgColor: "#b08953", 
+                fontFamily: "'Caveat', cursive",
+                fontColor: "#000080", 
+                rotation: "4deg",
+                tapeTop: "-12px",
+                tapeLeft: "25%",
+                tapeRotate: "15deg"
+            },
+            {
+                text: "MY CRYPTO PORTFOLIO IS DOWN 99.9%. PLEASE SPARE SOME FIAT.",
+                bgColor: "#d1b48c", 
+                fontFamily: "'Permanent Marker', cursive",
+                fontColor: "#8b0000", 
+                rotation: "-1deg",
+                tapeTop: "-8px",
+                tapeLeft: "70%",
+                tapeRotate: "-20deg"
+            },
+            {
+                text: "FAMILY KIDNAPPED BY NINJAS. NEED $5 FOR KARATE LESSONS.",
+                bgColor: "#a6804d", 
+                fontFamily: "'Permanent Marker', cursive",
+                fontColor: "#111",
+                rotation: "5deg",
+                tapeTop: "-10px",
+                tapeLeft: "20%", 
+                tapeRotate: "8deg"
+            },
+            {
+                text: "WILL WRITE TERRIBLE CODE FOR FOOD.",
+                bgColor: "#c29b62",
+                fontFamily: "'Caveat', cursive",
+                fontColor: "#004d00", 
+                rotation: "-4deg",
+                tapeTop: "-15px",
+                tapeLeft: "40%",
+                tapeRotate: "2deg"
+            },
+            {
+                text: "SOLD MY SOUL FOR A V-BUCKS GIFT CARD. NEED REDEMPTION.",
+                bgColor: "#d2b48c",
+                fontFamily: "'Permanent Marker', cursive",
+                fontColor: "#222",
+                rotation: "2deg",
+                tapeTop: "-5px",
+                tapeLeft: "30%",
+                tapeRotate: "10deg"
+            },
+            {
+                text: "UFO BROKE DOWN OUTSIDE VEGAS. ALIEN IN NEED OF BUS FARE.",
+                bgColor: "#9c7c50",
+                fontFamily: "'Caveat', cursive",
+                fontColor: "#111",
+                rotation: "-5deg",
+                tapeTop: "-10px",
+                tapeLeft: "75%", 
+                tapeRotate: "-12deg"
+            },
+            {
+                text: "I TOLD THE TRUTH ON THE INTERNET. NOW I'M HOMELESS.",
+                bgColor: "#ccad7e",
+                fontFamily: "'Permanent Marker', cursive",
+                fontColor: "#000",
+                rotation: "3deg",
+                tapeTop: "-12px",
+                tapeLeft: "60%",
+                tapeRotate: "-15deg"
+            },
+            {
+                text: "NOT POOR, JUST PRACTICING FOR THE APOCALYPSE. TIPS APPRECIATED.",
+                bgColor: "#b58e57",
+                fontFamily: "'Permanent Marker', cursive",
+                fontColor: "#4a0000",
+                rotation: "0deg",
+                tapeTop: "-10px",
+                tapeLeft: "45%",
+                tapeRotate: "0deg"
+            },
+            {
+                text: "UPLOADED MY MIND TO THE CLOUD. SERVER BILL IS PAST DUE.",
+                bgColor: "#b08953", 
+                fontFamily: "'Caveat', cursive",
+                fontColor: "#000080", 
+                rotation: "4deg",
+                tapeTop: "-12px",
+                tapeLeft: "25%",
+                tapeRotate: "15deg"
+            },
+             {
+                text: "CANCELLED ON TWITTER. NEED FUNDS TO START A PODCAST NOBODY WILL LISTEN TO.",
+                bgColor: "#9c7c50",
+                fontFamily: "'Caveat', cursive",
+                fontColor: "#111",
+                rotation: "-5deg",
+                tapeTop: "-10px",
+                tapeLeft: "75%", 
+                tapeRotate: "-12deg"
+            },
+            {
+                text: "WILL ARGUE WITH YOUR ENEMIES ON THE INTERNET FOR $2.",
+                bgColor: "#ccad7e",
+                fontFamily: "'Permanent Marker', cursive",
+                fontColor: "#000",
+                rotation: "3deg",
+                tapeTop: "-12px",
+                tapeLeft: "60%",
+                tapeRotate: "-15deg"
+            },
+        ];
+
+        let currentIndex = 0;
+
+        function updateSign() {
+            const container = document.getElementById("sign-container");
+            const textElement = document.getElementById("sign-text");
+            const tape = document.getElementById("tape-element");
+            
+            const signData = signs[currentIndex];
+
+            textElement.innerText = signData.text;
+            textElement.style.fontFamily = signData.fontFamily;
+            textElement.style.color = signData.fontColor;
+
+            container.style.backgroundColor = signData.bgColor;
+            container.style.transform = `rotate(${signData.rotation})`;
+
+            tape.style.top = signData.tapeTop;
+            tape.style.left = signData.tapeLeft;
+            tape.style.transform = `translateX(-50%) rotate(${signData.tapeRotate})`;
+        }
+
+        function nextSign() {
+            currentIndex++;
+            if (currentIndex >= signs.length) {
+                currentIndex = 0; 
+            }
+            updateSign();
+        }
+
+        window.onload = updateSign;
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>9nau9 - The Black Loop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            touch-action: manipulation; /* Mobilde çift tıklama yakınlaştırmasını engeller */
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0; /* Oyunun dış kısmı hafif gri */
+            font-family: 'Space Mono', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .app-wrapper {
+            width: 100%;
+            max-width: 400px;
+            height: 100%;
+            max-height: 800px;
+            background-color: #ffffff; /* Oyun alanı bembeyaz */
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+        }
+
+        /* --- OYUN ALANI (CANVAS) --- */
+        .canvas-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            background-color: #ffffff;
+            border-bottom: 2px solid #000;
+        }
+
+        canvas {
+            background-color: #ffffff;
+            border: 2px solid #000;
+            box-shadow: 4px 4px 0px #000;
+            image-rendering: pixelated; /* Keskin retro görüntü */
+        }
+
+        /* --- KONTROLLER (D-PAD) --- */
+        .controls-area {
+            height: 220px;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .d-pad {
+            display: grid;
+            grid-template-columns: 60px 60px 60px;
+            grid-template-rows: 60px 60px 60px;
+            gap: 10px;
+        }
+
+        .btn {
+            background-color: #fff;
+            border: 2px solid #000;
+            color: #000;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px #000;
+            border-radius: 5px;
+        }
+
+        .btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px #000;
+        }
+
+        .btn-up { grid-column: 2; grid-row: 1; }
+        .btn-left { grid-column: 1; grid-row: 2; }
+        .btn-right { grid-column: 3; grid-row: 2; }
+        .btn-down { grid-column: 2; grid-row: 3; }
+
+        /* --- ARAYÜZ EKRANLARI --- */
+        .ui-screen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #000;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        p {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .start-btn {
+            background-color: #000;
+            color: #fff;
+            border: none;
+            font-family: 'Space Mono', monospace;
+            font-size: 18px;
+            padding: 15px 30px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 4px 4px 0px #888;
+            transition: transform 0.1s;
+        }
+
+        .start-btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px #888;
+        }
+
+        .score-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: #000;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        
+        <div class="canvas-container" id="canvasContainer">
+            <canvas id="gameCanvas" width="300" height="300"></canvas>
+        </div>
+
+        <div class="controls-area">
+            <div class="d-pad">
+                <div class="btn btn-up" id="btnUp">▲</div>
+                <div class="btn btn-left" id="btnLeft">◄</div>
+                <div class="btn btn-down" id="btnDown">▼</div>
+                <div class="btn btn-right" id="btnRight">►</div>
+            </div>
+        </div>
+
+        <div class="ui-screen" id="startScreen">
+           
+            <p>
+               Move and leave a black trail<br><br>
+                <strong>Goal:</strong> Travel the longest possible path without hitting your trail or the walls, and return to your starting point.
+            </p>
+            <button class="start-btn" onclick="startGame()">START</button>
+        </div>
+
+        <div class="ui-screen" id="failScreen" style="display: none;">
+            <h1>CRASHED</h1>
+            <p>You crashed into your own trail or the walls. You didn't complete the loop.</p>
+            <button class="start-btn" onclick="resetToMenu()">TRY AGAIN</button>
+        </div>
+
+        <div class="ui-screen" id="winScreen" style="display: none;">
+            <h1>LOOP CLOSED</h1>
+            <p>You successfully returned to the starting point. The total length of your trail is:</p>
+            <div class="score-display" id="finalScore">0</div>
+            <button class="start-btn" onclick="resetToMenu()">DRAW AGAIN</button>
+        </div>
+
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startScreen = document.getElementById('startScreen');
+        const failScreen = document.getElementById('failScreen');
+        const winScreen = document.getElementById('winScreen');
+        const finalScoreText = document.getElementById('finalScore');
+
+        // Oyun Izgara (Grid) Ayarları
+        const gridSize = 15;
+        let tileCountX = canvas.width / gridSize;
+        let tileCountY = canvas.height / gridSize;
+
+        // Oyun Değişkenleri
+        let path = [];
+        let currentX, currentY;
+        let startX, startY;
+        let dx = 0, dy = 0;
+        let gameLoop;
+        let isMoving = false;
+        let isGameOver = false;
+
+        // --- RETRO SES MOTORU ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function playSound(type) {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+            
+            if (type === 'move') {
+                // Adım sesi: Kısa, ince ve çok hafif bir bip
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(400, now);
+                gain.gain.setValueAtTime(0.015, now); // Kafa şişirmemesi için sesi epey kıstım
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now); 
+                osc.stop(now + 0.05);
+            } else if (type === 'crash') {
+                // Hata sesi: Kalınlaşarak düşen retro yanma sesi
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.start(now); 
+                osc.stop(now + 0.3);
+            } else if (type === 'win') {
+                // Kazanma sesi: İnce, yükselen bir çınlama
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.2);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                osc.start(now); 
+                osc.stop(now + 0.2);
+            }
+        }
+
+        // Yön Tuşları Bağlantıları
+        document.getElementById('btnUp').addEventListener('pointerdown', () => setDirection(0, -1));
+        document.getElementById('btnDown').addEventListener('pointerdown', () => setDirection(0, 1));
+        document.getElementById('btnLeft').addEventListener('pointerdown', () => setDirection(-1, 0));
+        document.getElementById('btnRight').addEventListener('pointerdown', () => setDirection(1, 0));
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') setDirection(0, -1);
+            if (e.key === 'ArrowDown') setDirection(0, 1);
+            if (e.key === 'ArrowLeft') setDirection(-1, 0);
+            if (e.key === 'ArrowRight') setDirection(1, 0);
+        });
+
+        function setDirection(newDx, newDy) {
+            if (isGameOver) return;
+            if (isMoving && dx === -newDx && dy === -newDy) return; 
+            
+            // Tarayıcı kuralları gereği, ses motorunu ilk kullanıcı etkileşiminde uyandırmamız lazım
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            dx = newDx;
+            dy = newDy;
+            isMoving = true;
+        }
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            failScreen.style.display = 'none';
+            winScreen.style.display = 'none';
+            
+            // Sesi uyandır
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            startX = Math.floor(tileCountX / 2);
+            startY = Math.floor(tileCountY / 2);
+            currentX = startX;
+            currentY = startY;
+            
+            dx = 0;
+            dy = 0;
+            path = [];
+            path.push({ x: currentX, y: currentY });
+            
+            isMoving = false;
+            isGameOver = false;
+            
+            // Hızı ayarladığımız yer (150ms)
+            if (gameLoop) clearInterval(gameLoop);
+            gameLoop = setInterval(update, 150);
+            draw(); 
+        }
+
+        function update() {
+            if (!isMoving || isGameOver) return;
+
+            let nextX = currentX + dx;
+            let nextY = currentY + dy;
+
+            if (nextX < 0 || nextX >= tileCountX || nextY < 0 || nextY >= tileCountY) {
+                gameOver(false);
+                return;
+            }
+
+            if (nextX === startX && nextY === startY) {
+                if (path.length > 3) {
+                    gameOver(true); 
+                } else {
+                    gameOver(false); 
+                }
+                return;
+            }
+
+            for (let i = 0; i < path.length; i++) {
+                if (path[i].x === nextX && path[i].y === nextY) {
+                    gameOver(false);
+                    return;
+                }
+            }
+
+            currentX = nextX;
+            currentY = nextY;
+            path.push({ x: currentX, y: currentY });
+            
+            playSound('move'); // Her adımda bipliyoruz
+
+            draw();
+        }
+
+        function draw() {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Hedef Noktası (Sarı)
+            ctx.fillStyle = '#FFCC00'; 
+            ctx.fillRect(startX * gridSize, startY * gridSize, gridSize, gridSize);
+            
+            ctx.strokeStyle = '#FFCC00';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(startX * gridSize, startY * gridSize, gridSize, gridSize);
+
+            // Siyah Yol
+            ctx.fillStyle = '#000000';
+            for (let i = 0; i < path.length; i++) {
+                ctx.fillRect(path[i].x * gridSize + 1, path[i].y * gridSize + 1, gridSize - 2, gridSize - 2);
+            }
+            
+            // Kırmızı Nokta (Oyuncu)
+            ctx.fillStyle = '#ff0000'; 
+            ctx.fillRect(currentX * gridSize, currentY * gridSize, gridSize, gridSize);
+        }
+
+        function gameOver(isWin) {
+            isGameOver = true;
+            clearInterval(gameLoop);
+            
+            if (isWin) {
+                playSound('win');
+                winScreen.style.display = 'flex';
+                finalScoreText.innerText = path.length; 
+            } else {
+                playSound('crash');
+                failScreen.style.display = 'flex';
+            }
+        }
+
+        function resetToMenu() {
+            failScreen.style.display = 'none';
+            winScreen.style.display = 'none';
+            startScreen.style.display = 'flex';
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    </script>
+</body>
+</html>

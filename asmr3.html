@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ASMR Fireworks</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            touch-action: none; /* Mobilde ekran kaymasını engeller */
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000; /* Simsiyah ekran */
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fwCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('fwCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Ekran boyutlarını ayarla
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- ASMR SES MOTORU ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playASMRFirework() {
+            initAudio();
+            const now = audioCtx.currentTime;
+
+            // 1. Aşama: Fırlatma sesi (Derin ve yumuşak bir yükseliş)
+            const oscLaunch = audioCtx.createOscillator();
+            const gainLaunch = audioCtx.createGain();
+            oscLaunch.type = 'sine';
+            oscLaunch.frequency.setValueAtTime(150, now);
+            oscLaunch.frequency.exponentialRampToValueAtTime(400, now + 0.4);
+            
+            gainLaunch.gain.setValueAtTime(0, now);
+            gainLaunch.gain.linearRampToValueAtTime(0.08, now + 0.1);
+            gainLaunch.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            
+            oscLaunch.connect(gainLaunch);
+            gainLaunch.connect(audioCtx.destination);
+            oscLaunch.start(now);
+            oscLaunch.stop(now + 0.4);
+
+            // 2. Aşama: Patlama ve Çıtırtılar (ASMR karıncalanma hissi)
+            setTimeout(() => {
+                const crackleCount = Math.floor(Math.random() * 15) + 10; // 10-25 arası çıtırtı
+                for(let i = 0; i < crackleCount; i++) {
+                    setTimeout(() => {
+                        if (!audioCtx) return;
+                        const oscCrack = audioCtx.createOscillator();
+                        const gainCrack = audioCtx.createGain();
+                        
+                        oscCrack.type = 'triangle';
+                        // Rastgele yüksek frekanslı ince tınılar
+                        oscCrack.frequency.setValueAtTime(600 + Math.random() * 1200, audioCtx.currentTime);
+                        
+                        gainCrack.gain.setValueAtTime(0.03, audioCtx.currentTime);
+                        gainCrack.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+                        
+                        oscCrack.connect(gainCrack);
+                        gainCrack.connect(audioCtx.destination);
+                        oscCrack.start();
+                        oscCrack.stop(audioCtx.currentTime + 0.1);
+                    }, Math.random() * 500); // 500ms içine dağılmış çıtırtılar
+                }
+            }, 350); // Fırlatmadan 350ms sonra patlama başlar
+        }
+
+        // --- GÖRSEL MOTOR (HAVAİ FİŞEK) ---
+        let particles = [];
+        const colors = ['#FFD700', '#FF3B30', '#4CD964', '#007AFF', '#AF52DE', '#FFFFFF'];
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                // Patlama açısı ve hızı
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 4 + 1;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.friction = 0.96; // Yavaşlama
+                this.gravity = 0.05;  // Aşağı düşme
+                this.alpha = 1;       // Saydamlık
+                this.decay = Math.random() * 0.015 + 0.01; // Sönme hızı
+            }
+
+            update() {
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+                this.vy += this.gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= this.decay;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function createFirework(x, y) {
+            const particleCount = 60; // Parçacık yoğunluğu
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function animate() {
+            // Siyah arkaplanı hafif saydam çizerek iz bırakma efekti oluşturuyoruz
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw();
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        // Tıklama ve Dokunma Olayları
+        canvas.addEventListener('pointerdown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            createFirework(x, y);
+            playASMRFirework();
+        });
+
+        // Animasyon döngüsünü başlat
+        animate();
+    </script>
+</body>
+</html>
