@@ -147,6 +147,8 @@ const pixelIcons = {
 };
 
 let currentGameIndex = 0; 
+// Gösterilen sayfaların indekslerini hafızada tutacağımız liste
+let gosterilenSayfalar = [];
 let favoritedUrls = [];
 try {
     const kayitli = localStorage.getItem('9nau9_favorites');
@@ -318,19 +320,38 @@ let butonBasmaSayisi = 0; // Kullanıcının butona kaç kez bastığını sayar
 
 function nextItem() {
     butonBasmaSayisi++; // Her sayfa geçişinde sayıyı 1 artır
-    
+
     if (butonBasmaSayisi === 9) {
         // Tam 9. basışta nau.html'in listedeki sırasını bul ve direkt ona atla
         const nauIndex = games.findIndex(g => g.url === 'nau.html');
         if (nauIndex !== -1) {
             currentGameIndex = nauIndex;
+            loadGameToIframe();
+            return;
         }
-    } else {
-        // 9. basış değilse normal şekilde rastgele sıradaki oyuna geç
-        currentGameIndex = (currentGameIndex + 1) % games.length; 
     }
-    
-    loadAnaAkis(); // Ekranı güncelle
+
+    // Hafıza kontrollü rastgele seçim
+    // 1. Eğer listedeki TÜM oyunları gösterdiysek, hafızayı sıfırla ki başa dönebilelim.
+    if (gosterilenSayfalar.length === games.length) {
+        gosterilenSayfalar = [];
+        console.log("Tüm içerikler gösterildi, hafıza sıfırlandı!");
+    }
+
+    let rastgeleIndex;
+    // 2. Daha önce GÖSTERİLMEDİĞİNE emin olana kadar rastgele sayı çekmeye devam et (Döngü)
+    do {
+        rastgeleIndex = Math.floor(Math.random() * games.length);
+    } while (gosterilenSayfalar.includes(rastgeleIndex));
+
+    // 3. Yeni bulduğumuz ve daha önce gösterilmemiş bu sayfayı hafızaya kaydet
+    gosterilenSayfalar.push(rastgeleIndex);
+
+    // 4. Aktif oyun indeksini güncelle
+    currentGameIndex = rastgeleIndex;
+
+    // 5. İframe'i yeni sayfayla yükle
+    loadGameToIframe(); 
 }
 
 function toggleLike() {
