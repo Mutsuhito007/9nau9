@@ -103,12 +103,8 @@ const games = [
     { url: 'wordsgame.html', title: 'Nihilist\'s Crossword' },
     { url: 'gun.html', title: 'DIY Pew-Pew Lab' },
     { url: 'asmr4.html', title: 'ASMR-4' },
-     { url: 'ninja.html', title: 'ASMR-5' },
-      { url: 'nau.html', title: 'nauCoin' }
-      
-
-       
-
+    { url: 'ninja.html', title: 'ASMR-5' },
+    { url: 'nau.html', title: 'nauCoin' }
 ];
 
 // --- DİZİYİ RASTGELE KARIŞTIRMA (SHUFFLE) FONKSİYONU ---
@@ -122,33 +118,38 @@ function shuffleArray(array) {
 // SAYFA YÜKLENDİĞİNDE OYUN LİSTESİNİ KARIŞTIR
 shuffleArray(games);
 
+// --- DÜZELTME: İlk açılışta şans eseri nau.html çıkmasını engelle! ---
+if (games[0].url === 'nau.html') {
+    [games[0], games[1]] = [games[1], games[0]]; 
+}
+
 // --- RETRO PİKSEL İKONLAR (KALIN VE TOK ÇİZGİLİ VERSİYON) ---
 const pixelIcons = {
-    // Ekranı Büyütme (Dışa açılan oklar)
     fullscreen: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>`,
-    
-    // Favori Yıldız
     star: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`,
-    
-    // Rastgele Oyun (Yenileme - Kalın versiyon)
     refresh: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>`,
-    
-    // Kalp
     heart: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`,
-    
-    // Ana Sayfa (Ev)
     home: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`,
-    
-    // Cihaza Kur (İndirme)
     install: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`,
-    
-    // Tema Paleti
     palette: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>`
 };
 
 let currentGameIndex = 0; 
-// Gösterilen sayfaların indekslerini hafızada tutacağımız liste
+// Gösterilen sayfaları ve buton sayacını kalıcı hafızadan GÜVENLİ çek (Bozukluk varsa çökmez)
 let gosterilenSayfalar = [];
+try {
+    const kayitliGecmis = localStorage.getItem('9nau9_gecmis');
+    // Eğer hafızada bozuk "undefined" yazısı kalmışsa onu da engelle
+    if (kayitliGecmis && kayitliGecmis !== "undefined") {
+        gosterilenSayfalar = JSON.parse(kayitliGecmis);
+    }
+} catch (e) {
+    console.error("Geçmiş hafıza bozulmuş, sıfırlanıyor...");
+    gosterilenSayfalar = [];
+    localStorage.removeItem('9nau9_gecmis'); // Bozuk bombayı temizle
+}
+
+let butonBasmaSayisi = parseInt(localStorage.getItem('9nau9_buton_sayaci')) || 0;
 let favoritedUrls = [];
 try {
     const kayitli = localStorage.getItem('9nau9_favorites');
@@ -168,15 +169,12 @@ let isAdActive = false; // Reklamın ekranda olup olmadığını takip ediyoruz
 // Kırmızı (yenile) butonuna tıklama mantığı
 function handleRefreshClick() {
     const kirmiziButon = document.getElementById('refresh-btn');
-    // iframe ve pageTitle'ı sildik, en üstteki global değişkenleri (mainIframe, pageTitle) kullanacağız.
 
     if (!kirmiziButon || !mainIframe) {
-        // Fallback: normal akış
         nextItem();
         return;
     }
 
-    // Eğer reklam aktifse, kullanıcı butona bastığında reklamdan çıkılır
     if (isAdActive) {
         isAdActive = false;
         nextItem();
@@ -186,16 +184,13 @@ function handleRefreshClick() {
     sayfaGecisSayaci++;
 
     if (sayfaGecisSayaci % 5 === 0) {
-        // 1. İframe içine reklamı bas ve sistemi reklama kilitli konuma getir
         isAdActive = true;
-        mainIframe.src = 'reklam-test.html'; // iframe yerine mainIframe kullandık
+        mainIframe.src = 'reklam-test.html'; 
         if (pageTitle) pageTitle.innerText = "Data Buffering...";
 
-        // 2. Kırmızı Butonu Kilitle ve Soluklaştır
         kirmiziButon.style.pointerEvents = 'none';
         kirmiziButon.style.opacity = '0.5';
 
-        // 3. Geri Sayımı Başlat
         let kalanSure = 5;
         const originalHTML = kirmiziButon.innerHTML;
         kirmiziButon.innerText = kalanSure;
@@ -206,7 +201,6 @@ function handleRefreshClick() {
             if (kalanSure > 0) {
                 kirmiziButon.innerText = kalanSure;
             } else {
-                // 4. SÜRE BİTTİ - Kilidi Aç
                 clearInterval(geriSayim);
                 kirmiziButon.style.pointerEvents = 'auto'; 
                 kirmiziButon.style.opacity = '1'; 
@@ -218,17 +212,16 @@ function handleRefreshClick() {
         nextItem();
     }
 }
+
 // Favori (yenile) butonuna tıklama mantığı
 function handleFavRefreshClick() {
     const favButon = document.getElementById('fav-refresh-btn');
-    // Yine iframe ve pageTitle aramalarını sildik.
 
     if (!favButon || !mainIframe) {
         nextFavorite();
         return;
     }
 
-    // Eğer reklam aktifse, kullanıcı butona bastığında reklamdan çıkılır
     if (isAdActive) {
         isAdActive = false;
         nextFavorite();
@@ -238,16 +231,13 @@ function handleFavRefreshClick() {
     favGecisSayaci++;
 
     if (favGecisSayaci % 5 === 0) {
-        // 1. İframe içine reklamı bas ve sistemi reklama kilitli konuma getir
         isAdActive = true;
-        mainIframe.src = 'reklam-test.html'; // iframe yerine mainIframe kullandık
+        mainIframe.src = 'reklam-test.html'; 
         if (pageTitle) pageTitle.innerText = "Data Buffering...";
 
-        // 2. Butonu Kilitle ve Soluklaştır
         favButon.style.pointerEvents = 'none';
         favButon.style.opacity = '0.5';
 
-        // 3. Geri Sayımı Başlat
         let kalanSure = 5;
         const originalHTML = favButon.innerHTML;
         favButon.innerText = kalanSure;
@@ -258,7 +248,6 @@ function handleFavRefreshClick() {
             if (kalanSure > 0) {
                 favButon.innerText = kalanSure; 
             } else {
-                // 4. SÜRE BİTTİ - Kilidi Aç
                 clearInterval(geriSayim);
                 favButon.style.pointerEvents = 'auto'; 
                 favButon.style.opacity = '1'; 
@@ -270,6 +259,7 @@ function handleFavRefreshClick() {
         nextFavorite();
     }
 }
+
 // ==========================================
 // PWA: UYGULAMAYI CİHAZA İNDİRME / KURMA MOTORU
 // ==========================================
@@ -315,11 +305,10 @@ function loadGameToIframe() {
     mainIframe.style.display = 'block';
 }
 
-// --- 9NAU9 KURALI: BUTONA BASMA SAYACI ---
-let butonBasmaSayisi = 0; // Kullanıcının butona kaç kez bastığını sayar
-
 function nextItem() {
     butonBasmaSayisi++; // Her sayfa geçişinde sayıyı 1 artır
+    localStorage.setItem('9nau9_buton_sayaci', butonBasmaSayisi); // Sayacı hafızaya kaydet
+
     if (butonBasmaSayisi === 9) {
         // Tam 9. basışta nau.html'in listedeki sırasını bul ve ona atla
         const nauIndex = games.findIndex(g => g.url === 'nau.html');
@@ -328,33 +317,48 @@ function nextItem() {
             // 9. sayfayı da hafızaya alıyoruz ki rastgele döngüde bir daha çıkmasın
             if (!gosterilenSayfalar.includes(nauIndex)) {
                 gosterilenSayfalar.push(nauIndex);
+                localStorage.setItem('9nau9_gecmis', JSON.stringify(gosterilenSayfalar));
             }
             loadGameToIframe();
             return;
         }
     }
 
-    // HAFIZA KONTROLLÜ RASTGELE SEÇİM (Copilot'un sildiği kısım)
-    if (gosterilenSayfalar.length >= games.length) {
-        gosterilenSayfalar = [];
-        console.log("Tüm içerikler gösterildi, hafıza sıfırlandı!");
+    // 1. Henüz GÖSTERİLMEYEN oyunların listesini (havuzunu) çıkar
+    let gosterilmeyenler = [];
+    for (let i = 0; i < games.length; i++) {
+        // Eğer bu oyun hafızada YOKSA havuza ekle
+        if (!gosterilenSayfalar.includes(i)) {
+            // Özel Kural: nau.html 9. tıklamadan önce rastgele havuza giremez!
+            if (games[i].url === 'nau.html' && butonBasmaSayisi < 9) {
+                continue;
+            }
+            gosterilmeyenler.push(i);
+        }
     }
 
-    let rastgeleIndex;
-    let guvenlikSayaci = 0; // Sonsuz döngüden kaçış kilidi
-    do {
-        rastgeleIndex = Math.floor(Math.random() * games.length);
-        guvenlikSayaci++;
-        // nau.html'in 9. tıklamadan ÖNCE şans eseri çıkmasını engelliyoruz!
-        if (games[rastgeleIndex].url === 'nau.html' && butonBasmaSayisi < 9) {
-            continue; // nau.html denk geldiyse pas geç, yenisini çek
+    // 2. Eğer havuzda gösterilmeyen oyun kalmadıysa (hepsi bitmişse), hafızayı sıfırla
+    if (gosterilmeyenler.length === 0) {
+        gosterilenSayfalar = []; 
+        console.log("Tüm içerikler gösterildi, hafıza sıfırlandı!");
+        
+        // Havuzu tekrar tüm oyunlarla doldur
+        for (let i = 0; i < games.length; i++) {
+            if (games[i].url !== 'nau.html' || butonBasmaSayisi >= 9) {
+                gosterilmeyenler.push(i);
+            }
         }
-    } while (gosterilenSayfalar.includes(rastgeleIndex) && guvenlikSayaci < 100);
+    }
 
-    // Yeni bulduğumuz sayfayı hafızaya kaydet
-    gosterilenSayfalar.push(rastgeleIndex);
-    currentGameIndex = rastgeleIndex;
+    // 3. ZAR ATMAK YERİNE: Sadece "gösterilmeyenler" havuzunun içinden KESİN olarak 1 tane çek
+    let rastgeleKutu = Math.floor(Math.random() * gosterilmeyenler.length);
+    let secilenIndex = gosterilmeyenler[rastgeleKutu];
 
+    // 4. Seçilen yeni oyunu kalıcı hafızaya kaydet
+    gosterilenSayfalar.push(secilenIndex);
+    localStorage.setItem('9nau9_gecmis', JSON.stringify(gosterilenSayfalar));
+
+    currentGameIndex = secilenIndex;
     loadGameToIframe(); 
 }
 
@@ -381,16 +385,14 @@ function toggleLike() {
 }
 
 function loadFavoriteToIframe() {
-    // Eğer favoriler menüsüne ilk kez tıklandıysa sabit sayfayı (info.html) göster
     if (isFirstFavView) {
         mainIframe.src = "footer.html";
         pageTitle.innerText = "Transmission";
         iframePlaceholder.style.display = 'none';
         mainIframe.style.display = 'block';
-        return; // İşlemi burada kes ki diğer favorileri yüklemesin
+        return; 
     }
 
-    // Karıştır tuşuna basıldıysa normal favori döngüsüne gir
     if (favoritedUrls.length === 0) {
         mainIframe.style.display = 'none';
         iframePlaceholder.style.display = 'block';
@@ -414,11 +416,9 @@ function loadFavoriteToIframe() {
 }
 
 function nextFavorite() {
-    // Karıştır butonuna ilk basışta info sayfasından çıkıp favorilere geçiyoruz
     if (isFirstFavView) {
         isFirstFavView = false;
     } else if (favoritedUrls.length > 0) {
-        // Sonraki basışlarda favoriler arasında sırayla geziyor
         currentFavIndex = (currentFavIndex + 1) % favoritedUrls.length;
     }
     loadFavoriteToIframe();
@@ -427,24 +427,19 @@ function nextFavorite() {
 function removeFavorite() {
     if (favoritedUrls.length === 0) return;
     
-    // Aktif favoriyi diziden çıkar
     favoritedUrls.splice(currentFavIndex, 1);
     localStorage.setItem('9nau9_favorites', JSON.stringify(favoritedUrls));
 
-    // Eğer son favoriyi sildiysek indeksi başa sar
     if (currentFavIndex >= favoritedUrls.length) {
         currentFavIndex = 0;
     }
     
-    // EĞER FAVORİLER TAMAMEN BİTTİYSE
     if (favoritedUrls.length === 0) {
-        loadFavoriler(); // Boş ekranı çizmesi için ana fonksiyonu çağır
+        loadFavoriler(); 
     } else {
-        // FAVORİLER HALA VARSA EKRANDAN ATMA, BİR SONRAKİNE GEÇ VE ALTI GÜNCELLE
         isFirstFavView = false; 
         loadFavoriteToIframe();
         
-        // Sadece kalp ikonunu ekrandan kaldır (Çünkü artık favori değil)
         const heartBtn = document.querySelector('.heart-filled');
         if (heartBtn) heartBtn.outerHTML = `<div style="width: 24px;"></div>`;
     }
@@ -460,30 +455,21 @@ function toggleFullScreen() {
     }
 }
 
-// --- SAHNE ÇİZİM FONKSİYONLARI ---
-
-// --- SAHNE ÇİZİM FONKSİYONLARI ---
-
-// --- TEMA DEĞİŞTİRME MANTIĞI ---
 const themes = ['', 'theme-win98', 'theme-frutiger', 'theme-hellokitty', 'theme-googledark'];
 let currentThemeIndex = 0;
 
 function toggleTheme() {
-    // Önceki temayı body'den sil
     if (themes[currentThemeIndex] !== '') {
         document.body.classList.remove(themes[currentThemeIndex]);
     }
-    // Sıradaki temaya geç
     currentThemeIndex = (currentThemeIndex + 1) % themes.length;
-    // Yeni temayı body'e ekle (varsayılan boş tema değilse)
     if (themes[currentThemeIndex] !== '') {
         document.body.classList.add(themes[currentThemeIndex]);
     }
 }
 
-// 1. Sahne: Ana Akış
 function loadAnaAkis() {
-    isAdActive = false; // REKLAM TAKILMASINI ÖNLE
+    isAdActive = false; 
     loadGameToIframe(); 
     
     const isLiked = favoritedUrls.includes(games[currentGameIndex].url);
@@ -506,18 +492,15 @@ function loadAnaAkis() {
     `;
 }
 
-// 2. Sahne: Favoriler (Eksiksiz Tam Sürüm)
 function loadFavoriler() {
-    isAdActive = false; // REKLAM TAKILMASINI ÖNLE
+    isAdActive = false; 
     isFirstFavView = true;
     loadFavoriteToIframe();
     
-    // Sağ taraftaki kalp butonu (Sadece favori varsa çıkar, ikonu ve buton yuvarlağını içerir)
     const heartBtnHTML = favoritedUrls.length > 0 
         ? `<span class="icon-btn heart-filled" onclick="removeFavorite()" aria-label="remove-heart">${pixelIcons.heart}</span>` 
         : `<div style="width: 24px;"></div>`;
     
-    // Alt barı eksiksiz olarak (Ev, Tema, Yenile ve Kalp) yeniden çiziyoruz
     bottomBar.innerHTML = `
         <div class="footer-left">
             <span class="icon-btn" onclick="loadAnaAkis()" aria-label="home">${pixelIcons.home}</span>
@@ -533,7 +516,10 @@ function loadFavoriler() {
 }
 
 // Sistemi Başlat
-gosterilenSayfalar.push(currentGameIndex); // COPILOTUN SİLDİĞİ KURAL: İlk açılanı hafızaya al
+if (!gosterilenSayfalar.includes(currentGameIndex)) {
+    gosterilenSayfalar.push(currentGameIndex); 
+    localStorage.setItem('9nau9_gecmis', JSON.stringify(gosterilenSayfalar));
+}
 loadAnaAkis();
 
 // Service Worker Başlatıcı
