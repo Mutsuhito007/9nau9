@@ -147,6 +147,8 @@ const pixelIcons = {
 };
 
 let currentGameIndex = 0; 
+// Gösterilen sayfaların indekslerini hafızada tutacağımız liste
+let gosterilenSayfalar = [];
 let favoritedUrls = [];
 try {
     const kayitli = localStorage.getItem('9nau9_favorites');
@@ -318,19 +320,42 @@ let butonBasmaSayisi = 0; // Kullanıcının butona kaç kez bastığını sayar
 
 function nextItem() {
     butonBasmaSayisi++; // Her sayfa geçişinde sayıyı 1 artır
-    
     if (butonBasmaSayisi === 9) {
-        // Tam 9. basışta nau.html'in listedeki sırasını bul ve direkt ona atla
+        // Tam 9. basışta nau.html'in listedeki sırasını bul ve ona atla
         const nauIndex = games.findIndex(g => g.url === 'nau.html');
         if (nauIndex !== -1) {
             currentGameIndex = nauIndex;
+            // 9. sayfayı da hafızaya alıyoruz ki rastgele döngüde bir daha çıkmasın
+            if (!gosterilenSayfalar.includes(nauIndex)) {
+                gosterilenSayfalar.push(nauIndex);
+            }
+            loadGameToIframe();
+            return;
         }
-    } else {
-        // 9. basış değilse normal şekilde rastgele sıradaki oyuna geç
-        currentGameIndex = (currentGameIndex + 1) % games.length; 
     }
-    
-    loadAnaAkis(); // Ekranı güncelle
+
+    // HAFIZA KONTROLLÜ RASTGELE SEÇİM (Copilot'un sildiği kısım)
+    if (gosterilenSayfalar.length >= games.length) {
+        gosterilenSayfalar = [];
+        console.log("Tüm içerikler gösterildi, hafıza sıfırlandı!");
+    }
+
+    let rastgeleIndex;
+    let guvenlikSayaci = 0; // Sonsuz döngüden kaçış kilidi
+    do {
+        rastgeleIndex = Math.floor(Math.random() * games.length);
+        guvenlikSayaci++;
+        // nau.html'in 9. tıklamadan ÖNCE şans eseri çıkmasını engelliyoruz!
+        if (games[rastgeleIndex].url === 'nau.html' && butonBasmaSayisi < 9) {
+            continue; // nau.html denk geldiyse pas geç, yenisini çek
+        }
+    } while (gosterilenSayfalar.includes(rastgeleIndex) && guvenlikSayaci < 100);
+
+    // Yeni bulduğumuz sayfayı hafızaya kaydet
+    gosterilenSayfalar.push(rastgeleIndex);
+    currentGameIndex = rastgeleIndex;
+
+    loadGameToIframe(); 
 }
 
 function toggleLike() {
@@ -508,6 +533,7 @@ function loadFavoriler() {
 }
 
 // Sistemi Başlat
+gosterilenSayfalar.push(currentGameIndex); // COPILOTUN SİLDİĞİ KURAL: İlk açılanı hafızaya al
 loadAnaAkis();
 
 // Service Worker Başlatıcı
