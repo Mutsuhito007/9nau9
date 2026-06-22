@@ -104,7 +104,7 @@ const games = [
     { url: 'gun.html', title: 'DIY Pew-Pew Lab' },
     { url: 'asmr4.html', title: 'ASMR-4' },
      { url: 'ninja.html', title: 'ASMR-5' },
-      { url: 'nau.html', title: 'nauCoin' },
+      { url: 'nau.html', title: 'nauCoin' }
       
 
        
@@ -147,21 +147,28 @@ const pixelIcons = {
 };
 
 let currentGameIndex = 0; 
-let favoritedUrls = JSON.parse(localStorage.getItem('9nau9_favorites')) || [];
+let favoritedUrls = [];
+try {
+    const kayitli = localStorage.getItem('9nau9_favorites');
+    if (kayitli) favoritedUrls = JSON.parse(kayitli);
+} catch (e) {
+    console.error("Favoriler okunurken hata oluştu");
+    favoritedUrls = [];
+}
 let currentFavIndex = 0; 
 let isFirstFavView = true; // Favorilere ilk girildiğini anlamak için anahtar
 
 // Kırmızı buton için sayaç ve reklam kontrolü
 let sayfaGecisSayaci = 0;
+let favGecisSayaci = 0;
 let isAdActive = false; // Reklamın ekranda olup olmadığını takip ediyoruz
 
 // Kırmızı (yenile) butonuna tıklama mantığı
 function handleRefreshClick() {
-    const iframe = document.getElementById('main-iframe');
     const kirmiziButon = document.getElementById('refresh-btn');
-    const pageTitle = document.getElementById('page-title');
+    // iframe ve pageTitle'ı sildik, en üstteki global değişkenleri (mainIframe, pageTitle) kullanacağız.
 
-    if (!kirmiziButon || !iframe) {
+    if (!kirmiziButon || !mainIframe) {
         // Fallback: normal akış
         nextItem();
         return;
@@ -176,11 +183,11 @@ function handleRefreshClick() {
 
     sayfaGecisSayaci++;
 
-    if (sayfaGecisSayaci % 10 === 0) {
+    if (sayfaGecisSayaci % 5 === 0) {
         // 1. İframe içine reklamı bas ve sistemi reklama kilitli konuma getir
         isAdActive = true;
-        iframe.src = 'reklam-test.html'; 
-        if (pageTitle) pageTitle.innerText = "Data Buffering..."; // Üst barda başlığı değiştir
+        mainIframe.src = 'reklam-test.html'; // iframe yerine mainIframe kullandık
+        if (pageTitle) pageTitle.innerText = "Data Buffering...";
 
         // 2. Kırmızı Butonu Kilitle ve Soluklaştır
         kirmiziButon.style.pointerEvents = 'none';
@@ -189,29 +196,78 @@ function handleRefreshClick() {
         // 3. Geri Sayımı Başlat
         let kalanSure = 5;
         const originalHTML = kirmiziButon.innerHTML;
-        kirmiziButon.innerText = kalanSure; // Butonun içine 5 yaz
+        kirmiziButon.innerText = kalanSure;
 
         const geriSayim = setInterval(() => {
             kalanSure--;
 
             if (kalanSure > 0) {
-                kirmiziButon.innerText = kalanSure; // 4, 3, 2, 1...
+                kirmiziButon.innerText = kalanSure;
             } else {
                 // 4. SÜRE BİTTİ - Kilidi Aç
                 clearInterval(geriSayim);
-                kirmiziButon.style.pointerEvents = 'auto'; // Buton tekrar tıklanabilir oldu
-                kirmiziButon.style.opacity = '1'; // Rengini canlandır
-                kirmiziButon.innerHTML = originalHTML; // Yenileme ikonunu geri koy
-                // NOT: Burada bilerek nextItem() çağırmıyoruz ki sayfa otomatik geçmesin. Kullanıcının basmasını bekliyoruz.
+                kirmiziButon.style.pointerEvents = 'auto'; 
+                kirmiziButon.style.opacity = '1'; 
+                kirmiziButon.innerHTML = originalHTML; 
             }
         }, 1000);
 
     } else {
-        // REKLAM SIRASI DEĞİLSE NORMAL AKIŞA DEVAM ET
         nextItem();
     }
 }
+// Favori (yenile) butonuna tıklama mantığı
+function handleFavRefreshClick() {
+    const favButon = document.getElementById('fav-refresh-btn');
+    // Yine iframe ve pageTitle aramalarını sildik.
 
+    if (!favButon || !mainIframe) {
+        nextFavorite();
+        return;
+    }
+
+    // Eğer reklam aktifse, kullanıcı butona bastığında reklamdan çıkılır
+    if (isAdActive) {
+        isAdActive = false;
+        nextFavorite();
+        return;
+    }
+
+    favGecisSayaci++;
+
+    if (favGecisSayaci % 5 === 0) {
+        // 1. İframe içine reklamı bas ve sistemi reklama kilitli konuma getir
+        isAdActive = true;
+        mainIframe.src = 'reklam-test.html'; // iframe yerine mainIframe kullandık
+        if (pageTitle) pageTitle.innerText = "Data Buffering...";
+
+        // 2. Butonu Kilitle ve Soluklaştır
+        favButon.style.pointerEvents = 'none';
+        favButon.style.opacity = '0.5';
+
+        // 3. Geri Sayımı Başlat
+        let kalanSure = 5;
+        const originalHTML = favButon.innerHTML;
+        favButon.innerText = kalanSure;
+
+        const geriSayim = setInterval(() => {
+            kalanSure--;
+
+            if (kalanSure > 0) {
+                favButon.innerText = kalanSure; 
+            } else {
+                // 4. SÜRE BİTTİ - Kilidi Aç
+                clearInterval(geriSayim);
+                favButon.style.pointerEvents = 'auto'; 
+                favButon.style.opacity = '1'; 
+                favButon.innerHTML = originalHTML; 
+            }
+        }, 1000);
+
+    } else {
+        nextFavorite();
+    }
+}
 // ==========================================
 // PWA: UYGULAMAYI CİHAZA İNDİRME / KURMA MOTORU
 // ==========================================
@@ -257,9 +313,24 @@ function loadGameToIframe() {
     mainIframe.style.display = 'block';
 }
 
+// --- 9NAU9 KURALI: BUTONA BASMA SAYACI ---
+let butonBasmaSayisi = 0; // Kullanıcının butona kaç kez bastığını sayar
+
 function nextItem() {
-    currentGameIndex = (currentGameIndex + 1) % games.length; 
-    loadAnaAkis(); 
+    butonBasmaSayisi++; // Her sayfa geçişinde sayıyı 1 artır
+    
+    if (butonBasmaSayisi === 9) {
+        // Tam 9. basışta nau.html'in listedeki sırasını bul ve direkt ona atla
+        const nauIndex = games.findIndex(g => g.url === 'nau.html');
+        if (nauIndex !== -1) {
+            currentGameIndex = nauIndex;
+        }
+    } else {
+        // 9. basış değilse normal şekilde rastgele sıradaki oyuna geç
+        currentGameIndex = (currentGameIndex + 1) % games.length; 
+    }
+    
+    loadAnaAkis(); // Ekranı güncelle
 }
 
 function toggleLike() {
@@ -331,13 +402,27 @@ function nextFavorite() {
 function removeFavorite() {
     if (favoritedUrls.length === 0) return;
     
+    // Aktif favoriyi diziden çıkar
     favoritedUrls.splice(currentFavIndex, 1);
     localStorage.setItem('9nau9_favorites', JSON.stringify(favoritedUrls));
 
+    // Eğer son favoriyi sildiysek indeksi başa sar
     if (currentFavIndex >= favoritedUrls.length) {
         currentFavIndex = 0;
     }
-    loadFavoriler();
+    
+    // EĞER FAVORİLER TAMAMEN BİTTİYSE
+    if (favoritedUrls.length === 0) {
+        loadFavoriler(); // Boş ekranı çizmesi için ana fonksiyonu çağır
+    } else {
+        // FAVORİLER HALA VARSA EKRANDAN ATMA, BİR SONRAKİNE GEÇ VE ALTI GÜNCELLE
+        isFirstFavView = false; 
+        loadFavoriteToIframe();
+        
+        // Sadece kalp ikonunu ekrandan kaldır (Çünkü artık favori değil)
+        const heartBtn = document.querySelector('.heart-filled');
+        if (heartBtn) heartBtn.outerHTML = `<div style="width: 24px;"></div>`;
+    }
 }
 
 function toggleFullScreen() {
@@ -373,6 +458,7 @@ function toggleTheme() {
 
 // 1. Sahne: Ana Akış
 function loadAnaAkis() {
+    isAdActive = false; // REKLAM TAKILMASINI ÖNLE
     loadGameToIframe(); 
     
     const isLiked = favoritedUrls.includes(games[currentGameIndex].url);
@@ -397,6 +483,7 @@ function loadAnaAkis() {
 
 // 2. Sahne: Favoriler (Eksiksiz Tam Sürüm)
 function loadFavoriler() {
+    isAdActive = false; // REKLAM TAKILMASINI ÖNLE
     isFirstFavView = true;
     loadFavoriteToIframe();
     
@@ -412,7 +499,7 @@ function loadFavoriler() {
             <span class="icon-btn" onclick="toggleTheme()" aria-label="theme">${pixelIcons.palette}</span>
         </div>
         <div class="footer-center">
-            <span class="icon-btn icon-large" onclick="nextFavorite()" aria-label="refresh">${pixelIcons.refresh}</span>
+            <span id="fav-refresh-btn" class="icon-btn icon-large" onclick="handleFavRefreshClick()" aria-label="refresh">${pixelIcons.refresh}</span>
         </div>
         <div class="footer-right">
             ${heartBtnHTML}
