@@ -288,6 +288,17 @@ function loadGameToIframe() {
     pageTitle.innerText = games[currentGameIndex].title;
     iframePlaceholder.style.display = 'none'; 
     mainIframe.style.display = 'block';
+
+    // YENİ EKLENEN KISIM: Sayfa değiştiğinde kalbin rengini (dolu/boş) kontrol et ve güncelle
+    const heartIcon = document.getElementById('heart-icon');
+    if (heartIcon) {
+        const isLiked = favoritedUrls.includes(games[currentGameIndex].url);
+        if (isLiked) {
+            heartIcon.classList.add('heart-filled'); // Favorilerdeyse içini doldur (kırmızı yap)
+        } else {
+            heartIcon.classList.remove('heart-filled'); // Değilse boşalt
+        }
+    }
 }
 
 // --- YENİ SIRALI GEÇİŞ FONKSİYONU ---
@@ -328,19 +339,21 @@ function toggleLike() {
 }
 
 function loadFavoriteToIframe() {
+    // Eğer kullanıcı favoriler menüsüne yeni girdiyse, doğrudan footer.html sayfasını gösteriyoruz
     if (isFirstFavView) {
         mainIframe.src = "footer.html";
-        pageTitle.innerText = "Transmission";
+        if (pageTitle) pageTitle.innerText = "Transmission";
         iframePlaceholder.style.display = 'none';
         mainIframe.style.display = 'block';
-        return; 
+        return;
     }
 
+    // Ortadaki butona basıldıktan sonra eğer liste boşsa uyarı ver, doluysa favorileri sırayla yükle
     if (favoritedUrls.length === 0) {
         mainIframe.style.display = 'none';
         iframePlaceholder.style.display = 'block';
         iframePlaceholder.innerText = "You haven't added any favorites yet.";
-        pageTitle.innerText = "Favoriler";
+        if (pageTitle) pageTitle.innerText = "Favoriler";
     } else {
         if (currentFavIndex >= favoritedUrls.length) {
             currentFavIndex = 0;
@@ -351,7 +364,7 @@ function loadFavoriteToIframe() {
         
         if (favGame) {
             mainIframe.src = favGame.url;
-            pageTitle.innerText = favGame.title;
+            if (pageTitle) pageTitle.innerText = favGame.title;
             iframePlaceholder.style.display = 'none';
             mainIframe.style.display = 'block';
         }
@@ -359,9 +372,12 @@ function loadFavoriteToIframe() {
 }
 
 function nextFavorite() {
+    // Kullanıcı footer ekranındayken ortadaki butona basarsa footer perdesini kaldır ve ilk favoriyi aç
     if (isFirstFavView) {
         isFirstFavView = false;
+        currentFavIndex = 0; 
     } else if (favoritedUrls.length > 0) {
+        // Zaten favorilerin içindeyse bir sonraki favoriye geçiş yap
         currentFavIndex = (currentFavIndex + 1) % favoritedUrls.length;
     }
     loadFavoriteToIframe();
@@ -380,14 +396,10 @@ function removeFavorite() {
     if (favoritedUrls.length === 0) {
         loadFavoriler(); 
     } else {
-        isFirstFavView = false; 
+        isFirstFavView = false; // Favori silindikten sonra aniden footer'a fırlatmasın, listeden devam etsin
         loadFavoriteToIframe();
-        
-        const heartBtn = document.querySelector('.heart-filled');
-        if (heartBtn) heartBtn.outerHTML = `<div style="width: 24px;"></div>`;
     }
 }
-
 function toggleFullScreen() {
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(err => console.log(err));
@@ -437,7 +449,7 @@ function loadAnaAkis() {
 
 function loadFavoriler() {
     isAdActive = false; 
-    isFirstFavView = true;
+    isFirstFavView = true; // Yıldıza her tıklandığında akışı sıfırlayıp ilk sıraya footer.html'i koyuyoruz
     loadFavoriteToIframe();
     
     const heartBtnHTML = favoritedUrls.length > 0 
