@@ -15,13 +15,12 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            background-color: #050505; /* Eski dosyandaki retro arka plan korundu */
+            background-color: #050505; 
             color: #e0e0e0;
             font-family: 'Space Mono', monospace;
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* İki video alt alta sığsın diye aşağı kaydırma (scroll) aktif edildi */
             overflow-x: hidden; 
             overflow-y: auto; 
         }
@@ -34,22 +33,21 @@
             background-color: #0a0a0a;
             text-align: center;
             box-shadow: 0 0 15px rgba(0,0,0,0.8);
-            margin: 20px 0; /* Üstten ve alttan boşluk */
+            margin: 20px 0; 
         }
 
         h1 {
             font-family: 'VT323', monospace;
-            color: #FFD700; /* Eski sarı renk korundu */
+            color: #FFD700; 
             font-size: 45px; 
             letter-spacing: 2px;
             margin-top: 0;
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 1px dashed #FFD700;
-            text-shadow: 3px 3px 0px #FF3B30; /* Eski kırmızı gölge korundu */
+            text-shadow: 3px 3px 0px #FF3B30; 
         }
 
-        /* --- VİDEO VE BUTON TASARIMLARI --- */
         .video-wrapper {
             margin-bottom: 30px;
             padding: 10px;
@@ -104,21 +102,23 @@
 
         <!-- ÜST KISIM: HUMOR VİDEOLARI -->
         <div class="video-wrapper">
-            <div class="video-title">FILE: HUMOR_ARCHIVE //</div>
-            <!-- controls eklendi ki kullanıcı isterse sesi açabilsin -->
-            <video id="humorVideo" autoplay muted playsinline controls>
+            <div class="video-title">Social media viral videos</div>
+            <!-- YENİ: autoplay komutu silindi -->
+            <video id="humorVideo" muted playsinline controls>
                 <source src="" type="video/mp4">
             </video>
-            <button class="next-btn" onclick="rastgeleHumorGetir()">> RANDOM HUMOR CLIP</button>
+            <!-- Butona basıldığında videonun hemen başlaması için "true" parametresi eklendi -->
+            <button class="next-btn" onclick="rastgeleHumorGetir(true)">> RANDOM </button>
         </div>
 
         <!-- ALT KISIM: 9NAU9 VİDEOLARI -->
         <div class="video-wrapper">
-            <div class="video-title">FILE: 9NAU9_TRANSMISSIONS //</div>
-            <video id="nauVideo" autoplay muted playsinline controls>
+            <div class="video-title">Advertising videos</div>
+            <!-- YENİ: autoplay komutu silindi -->
+            <video id="nauVideo" muted playsinline controls>
                 <source src="" type="video/mp4">
             </video>
-            <button class="next-btn" onclick="rastgeleNauGetir()">> RANDOM 9NAU9 CLIP</button>
+            <button class="next-btn" onclick="rastgeleNauGetir(true)">> RANDOM </button>
         </div>
 
     </div>
@@ -126,42 +126,198 @@
     <script>
         // === 1. HUMOR VİDEOLARI LİSTESİ ===
         const humorVideolari = [
-            "https://res.cloudinary.com/urilucj4/video/upload/v1782901716/011_oezele.mp4",
-            "https://res.cloudinary.com/urilucj4/video/upload/v1782901716/02_ymdet8.mp4"
-            // Humor videolarının linklerini buraya ekle
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904698/94_e09iso.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904696/93_hy5cex.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904698/92_z9l2ze.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904687/91_bk10k7.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904675/90_ehaty9.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904172/9_chjqp7.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904689/89_x8zq4n.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904672/88_wztn59.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904659/87_mhcxw3.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904654/86_evoh29.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904672/85_rokak3.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904680/84_dwe6bn.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904645/83_kfa3nw.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904629/82_kwyutj.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904619/81_ywg9jz.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904628/80_mg96hl.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904153/8_vid44c.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904606/79_tvqvy9.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904624/78_exhagj.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904646/77_qpoo8u.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904571/76_hjujfg.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904578/75_laq6qz.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904590/74_frsnaq.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904601/73_psixox.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904547/72_lc0jhf.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904551/71_vug9zb.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782904560/70_l98uck.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904528/69_g7jby4.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904533/68_f2dx4d.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904549/67_uwzws6.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904516/66_ziz0ee.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904502/65_yekt6f.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904496/64_lbivm9.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904549/63_epgzvp.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904487/62_ucccfk.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904495/61_nv3keg.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904496/60_s18l98.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904112/6_g8z0lt.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904473/59_ystfaz.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904468/58_qgwnbh.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904467/57_ycenlj.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904471/56_l0uvju.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904451/55_fc5tci.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904464/54_qamwlf.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904444/53_gsmsg8.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904434/52_goylw6.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904464/51_qonype.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904438/50_oqbtil.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904423/49_gitnu2.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904450/48_xr715g.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904429/47_tgyplx.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904412/46_skn7v2.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904417/45_hunjyo.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904405/44_enf7y5.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904387/43_fnz4b2.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904390/42_rdfxvo.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904414/41_yymw09.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904404/40_kcfle5.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904573/4_vutuyu.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904374/39_ymyn4f.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904396/38_mbybu7.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904382/37_yptvwx.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904360/36_zoyagn.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904373/35_p4vojr.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904363/34_dzitwk.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904367/33_hrsdke.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904348/32_pxsdqr.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904359/31_j03hib.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904345/30_eu1vmf.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904136/3_k0qgqb.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904317/29_ixcxku.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904331/28_goqxuu.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904565/5_d9rfq0.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904329/27_utryga.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904335/26_lxon8v.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904296/25_peha6n.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904335/24_i4htyb.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904334/23_trku9x.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904296/22_xwdx4i.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904268/21_irc4zu.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904277/20_subs8s.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904142/2_afzhvo.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904273/19_hwctuc.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904294/18_yyocu7.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904273/17_zuszv9.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904255/16_iytimo.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904242/15_e5mf1l.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904237/14_f1igaw.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904247/13_ds3l1b.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904203/12_qa32lt.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904176/11_wiekyu.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904632/10_ca03od.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904133/7_yz1qcy.mp4",
+           "https://res.cloudinary.com/urilucj4/video/upload/v1782904697/1_zndwpw.mp4"
+        
         ];
 
         // === 2. 9NAU9 VİDEOLARI LİSTESİ ===
         const nauVideolari = [
-            "https://res.cloudinary.com/urilucj4/video/upload/v1782901716/011_oezele.mp4",
-            "https://res.cloudinary.com/urilucj4/video/upload/v1782901716/02_ymdet8.mp4"
-            // 9nau9 videolarının linklerini buraya ekle
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906786/32_pprfl7.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906783/31_ulpnbm.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906946/009_mcb0fl.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906812/008_cwoakz.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782907016/007_j5qn9v.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906850/006_rg9pzm.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906784/005_akiqrl.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906847/004_h4j0oj.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906854/0030_gteo9z.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906815/003_atkzeq.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906826/0029_vgnrmi.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906841/0028_fg6j3e.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906902/0027_nz0k2v.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906949/0026_ouwcur.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906775/0025_dywrjj.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906917/0024_e1m0wu.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906899/0023_rw5jvp.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906855/0022_kzayer.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906792/0021_trvcol.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906821/0020_uw5pcw.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906864/002_zjkgox.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906952/0019_xbfgce.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906799/0018_zltlwj.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906780/0017_dgsipo.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906965/0016_oy6pw0.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906880/0015_zgfkgc.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906906/0014_q5r2mo.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906884/0013_ryir8p.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906958/0012_ywyolc.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906917/0011_bymeyy.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906818/0010_ynrigp.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782906959/001_ssyzhv.mp4"
+
         ];
 
-        // Humor videosunu değiştiren fonksiyon
-        function rastgeleHumorGetir() {
-            const rastgeleSayi = Math.floor(Math.random() * humorVideolari.length);
-            const secilenVideo = humorVideolari[rastgeleSayi];
+        const humorVideoEl = document.getElementById("humorVideo");
+        const nauVideoEl = document.getElementById("nauVideo");
+
+        // Biri oynatıldığında diğerini otomatik durdurur (Bu özellik korundu)
+        humorVideoEl.addEventListener('play', function() {
+            nauVideoEl.pause();
+        });
+
+        nauVideoEl.addEventListener('play', function() {
+            humorVideoEl.pause();
+        });
+
+        // YENİ: Hangi videoda kaldığımızı aklında tutacak sıra numaraları (0'dan başlar)
+        let humorSirasi = 0;
+        let nauSirasi = 0;
+
+        // Humor videosunu SIRA İLE getiren fonksiyon (HTML butonlarını değiştirmene gerek kalmasın diye ismini eski bıraktım)
+        function rastgeleHumorGetir(oynat = false) {
+            // Listedeki sıradaki videoyu seç ve oynatıcıya koy
+            humorVideoEl.querySelector("source").src = humorVideolari[humorSirasi];
+            humorVideoEl.load();
             
-            const videoElementi = document.getElementById("humorVideo");
-            videoElementi.querySelector("source").src = secilenVideo;
-            videoElementi.load();
+            if(oynat) {
+                humorVideoEl.play();
+            }
+
+            // Butona bir daha basıldığında bir sonraki videoyu açması için sırayı 1 artır
+            humorSirasi++;
+            
+            // Eğer liste bittiyse (176. videoya gelindiyse) tekrar başa dön
+            if(humorSirasi >= humorVideolari.length) {
+                humorSirasi = 0;
+            }
         }
 
-        // 9nau9 videosunu değiştiren fonksiyon
-        function rastgeleNauGetir() {
-            const rastgeleSayi = Math.floor(Math.random() * nauVideolari.length);
-            const secilenVideo = nauVideolari[rastgeleSayi];
+        // 9nau9 videosunu SIRA İLE getiren fonksiyon
+        function rastgeleNauGetir(oynat = false) {
+            // Listedeki sıradaki videoyu seç ve oynatıcıya koy
+            nauVideoEl.querySelector("source").src = nauVideolari[nauSirasi];
+            nauVideoEl.load();
             
-            const videoElementi = document.getElementById("nauVideo");
-            videoElementi.querySelector("source").src = secilenVideo;
-            videoElementi.load();
+            if(oynat) {
+                nauVideoEl.play();
+            }
+
+            // Sırayı 1 artır
+            nauSirasi++;
+            
+            // Liste bittiyse başa dön
+            if(nauSirasi >= nauVideolari.length) {
+                nauSirasi = 0;
+            }
         }
 
-        // Sayfa ilk yüklendiğinde her iki kutuya da rastgele birer video çeker
+        // Sayfa ilk yüklendiğinde her iki listenin de 1. videolarını (yani 0'ıncı sırayı) hazırla
         window.onload = function() {
-            rastgeleHumorGetir();
-            rastgeleNauGetir();
+            rastgeleHumorGetir(false);
+            rastgeleNauGetir(false);
         };
     </script>
 </body>
