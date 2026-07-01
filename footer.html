@@ -15,85 +15,85 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            background-color: #050505;
+            background-color: #050505; /* Eski dosyandaki retro arka plan korundu */
             color: #e0e0e0;
             font-family: 'Space Mono', monospace;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            /* 👑 İŞTE BU KOMUT SAĞDAKİ VE ALTTAKİ TÜM SCROLL'LARI İPTAL EDER */
-            overflow: hidden; 
+            /* İki video alt alta sığsın diye aşağı kaydırma (scroll) aktif edildi */
+            overflow-x: hidden; 
+            overflow-y: auto; 
         }
 
         .container {
             width: 90%;
             max-width: 500px;
             border: 2px solid #333;
-            /* Ekrana tam sığması için iç boşlukları (padding) biraz kıstım */
-            padding: 20px 25px; 
+            padding: 20px; 
             background-color: #0a0a0a;
             text-align: center;
             box-shadow: 0 0 15px rgba(0,0,0,0.8);
+            margin: 20px 0; /* Üstten ve alttan boşluk */
         }
 
         h1 {
             font-family: 'VT323', monospace;
-            color: #FFD700;
-            font-size: 50px; /* Taştığı için başlığı bir tık küçülttüm */
+            color: #FFD700; /* Eski sarı renk korundu */
+            font-size: 45px; 
             letter-spacing: 2px;
-            margin-bottom: 10px;
+            margin-top: 0;
+            margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 1px dashed #FFD700;
-            text-shadow: 3px 3px 0px #FF3B30; 
+            text-shadow: 3px 3px 0px #FF3B30; /* Eski kırmızı gölge korundu */
         }
 
-        p {
-            font-size: 13px;
-            line-height: 1.5;
-            color: #aaa;
-            margin-bottom: 15px;
+        /* --- VİDEO VE BUTON TASARIMLARI --- */
+        .video-wrapper {
+            margin-bottom: 30px;
+            padding: 10px;
+            background-color: #111;
+            border: 1px dashed #444;
         }
 
-        .warning-box {
-            margin: 15px 0;
-            padding: 12px;
-            background-color: #1a0505;
-            border-left: 4px solid #FF3B30; 
-            color: #ccc;
-            font-size: 11px;
-            line-height: 1.4;
-            text-align: left;
-        }
-
-        .warning-title {
+        .video-title {
             color: #FF3B30;
+            font-size: 14px;
             font-weight: bold;
-            margin-bottom: 6px;
-            display: block;
-            text-transform: uppercase;
+            text-align: left;
+            margin-bottom: 8px;
             letter-spacing: 1px;
         }
 
-        .contact-box {
-            background-color: #111;
-            border: 1px solid #444;
-            padding: 12px;
-            font-size: 12px;
-            margin-top: 10px;
+        video {
+            width: 100%;
+            height: auto;
+            border: 1px solid #333;
+            background-color: #000;
+            margin-bottom: 10px;
         }
 
-        .contact-box a {
-            color: #00FFFF;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .hint {
-            margin-top: 20px;
-            font-size: 11px;
-            color: #555;
+        .next-btn {
+            width: 100%;
+            background-color: transparent;
+            color: #FFD700;
+            border: 1px solid #FFD700;
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            padding: 10px;
+            cursor: pointer;
             text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .next-btn:hover {
+            background-color: #FFD700;
+            color: #000;
+        }
+
+        .next-btn:active {
+            transform: scale(0.98);
         }
     </style>
 </head>
@@ -101,23 +101,68 @@
 
     <div class="container">
         <h1>9nau9.com</h1>
-        
 
-        <div class="warning-box">
-            <span class="warning-title">SYSTEM WARNING //</span>
-            All stories, texts, and events within this system are entirely fictional creations of the 'Mutsu Hikari'. Any resemblance to real persons, institutions, or events is purely coincidental.
+        <!-- ÜST KISIM: HUMOR VİDEOLARI -->
+        <div class="video-wrapper">
+            <div class="video-title">FILE: HUMOR_ARCHIVE //</div>
+            <!-- controls eklendi ki kullanıcı isterse sesi açabilsin -->
+            <video id="humorVideo" autoplay muted playsinline controls>
+                <source src="" type="video/mp4">
+            </video>
+            <button class="next-btn" onclick="rastgeleHumorGetir()">> RANDOM HUMOR CLIP</button>
         </div>
 
-        <div class="contact-box">
-            CONNECTION ESTABLISHED:<br><br>
-            Incoming Transmissions:<br>
-            <a href="mailto:contact@9nau9.com">contact@9nau9.com</a>
+        <!-- ALT KISIM: 9NAU9 VİDEOLARI -->
+        <div class="video-wrapper">
+            <div class="video-title">FILE: 9NAU9_TRANSMISSIONS //</div>
+            <video id="nauVideo" autoplay muted playsinline controls>
+                <source src="" type="video/mp4">
+            </video>
+            <button class="next-btn" onclick="rastgeleNauGetir()">> RANDOM 9NAU9 CLIP</button>
         </div>
 
-        <div class="hint">
-            ▼ TAP 'SHUFFLE' TO BROWSE FAVORITES ▼
-        </div>
     </div>
 
+    <script>
+        // === 1. HUMOR VİDEOLARI LİSTESİ ===
+        const humorVideolari = [
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901716/011_oezele.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901716/02_ymdet8.mp4"
+            // Humor videolarının linklerini buraya ekle
+        ];
+
+        // === 2. 9NAU9 VİDEOLARI LİSTESİ ===
+        const nauVideolari = [
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901716/011_oezele.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901716/02_ymdet8.mp4"
+            // 9nau9 videolarının linklerini buraya ekle
+        ];
+
+        // Humor videosunu değiştiren fonksiyon
+        function rastgeleHumorGetir() {
+            const rastgeleSayi = Math.floor(Math.random() * humorVideolari.length);
+            const secilenVideo = humorVideolari[rastgeleSayi];
+            
+            const videoElementi = document.getElementById("humorVideo");
+            videoElementi.querySelector("source").src = secilenVideo;
+            videoElementi.load();
+        }
+
+        // 9nau9 videosunu değiştiren fonksiyon
+        function rastgeleNauGetir() {
+            const rastgeleSayi = Math.floor(Math.random() * nauVideolari.length);
+            const secilenVideo = nauVideolari[rastgeleSayi];
+            
+            const videoElementi = document.getElementById("nauVideo");
+            videoElementi.querySelector("source").src = secilenVideo;
+            videoElementi.load();
+        }
+
+        // Sayfa ilk yüklendiğinde her iki kutuya da rastgele birer video çeker
+        window.onload = function() {
+            rastgeleHumorGetir();
+            rastgeleNauGetir();
+        };
+    </script>
 </body>
 </html>
