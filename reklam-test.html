@@ -5,48 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ad Break</title>
     <style>
-        /* Ekrandaki tüm boşlukları sıfırlıyoruz */
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             background-color: #000;
-            overflow: hidden; /* Kaydırma çubuklarını gizler */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; 
         }
         
-        /* İframe'in ekranın/bulunduğu alanın %100'ünü TIKA BASA doldurmasını sağlıyoruz */
-        #rastgeleVideoPlayer {
-            position: absolute;
-            top: 0;
-            left: 0;
+        #reklamVideo {
             width: 100%;
             height: 100%;
+            object-fit: contain; 
+            outline: none;
             border: none;
         }
     </style>
 </head>
 <body>
     
-    <iframe id="rastgeleVideoPlayer" src="" allow="autoplay" allowfullscreen></iframe>
+    <!-- YENİ: 'muted' kelimesini sildik. Artık sesli oynamaya çalışacak. -->
+    <video id="reklamVideo" autoplay playsinline>
+        <source src="" type="video/mp4">
+    </video>
     
     <script>
-        // 1. Videolarının SADECE ID'lerini buraya gir.
-        const videoIDleri = [
-            "1QyPXj3ukcQhJVeCB0TeaXhOJGIEQNaqX", // Senin ilk videon
-            "1QyPXj3ukcQhJVeCB0TeaXhOJGIEQNaqX",
-            "1QyPXj3ukcQhJVeCB0TeaXhOJGIEQNaqX"
+        const videolar = [
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901924/014_pwrrtd.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901914/07_zh0urg.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901910/030_jt57ph.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901906/01_qpddak.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901907/026_vzj6mm.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901901/029_izzhtf.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901897/028_rj9w4j.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901890/027_t1gqnp.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901873/023_moswqf.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901871/022_k6csuu.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901870/025_k5wwcf.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901869/024_hsgli4.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901841/021_ziqliq.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901840/020_ibjnot.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901828/019_jx3p7w.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901818/017_riejkw.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901809/018_rnud9h.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901794/016_seahgd.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901790/015_t4xboc.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901779/04_xdvhwm.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901764/012_aefxpq.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901760/013_sz1feq.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901743/06_qo07xp.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901742/08_ol0nsv.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901733/05_cngizc.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901722/03_sn7aea.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901716/011_oezele.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901716/02_ymdet8.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901711/010_ill9kq.mp4",
+            "https://res.cloudinary.com/urilucj4/video/upload/v1782901710/09_hopxab.mp4"
+            
         ];
 
-        // 2. Rastgele bir ID seç
-        const rastgeleSayi = Math.floor(Math.random() * videoIDleri.length);
-        const secilenVideoID = videoIDleri[rastgeleSayi];
+        const rastgeleSayi = Math.floor(Math.random() * videolar.length);
+        const secilenVideo = videolar[rastgeleSayi];
 
-        // 3. Drive Önizleme linki ile birleştir
-        const videoLinki = "https://drive.google.com/file/d/" + secilenVideoID + "/preview";
+        const videoElementi = document.getElementById("reklamVideo");
+        videoElementi.querySelector("source").src = secilenVideo;
         
-        // 4. İframe'in kaynağına bu linki ver
-        document.getElementById("rastgeleVideoPlayer").src = videoLinki;
+        videoElementi.load();
     </script>
 </body>
 </html>
