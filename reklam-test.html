@@ -5,66 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ad Break</title>
     <style>
-        body { 
-            background-color: #000; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0; 
-            overflow: hidden; 
+        /* Ekrandaki tüm boşlukları sıfırlıyoruz */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden; /* Kaydırma çubuklarını gizler */
         }
         
-        .banner-wrapper { 
-            width: 100%; 
-            max-width: 640px; /* Bilgisayarda çok devasa olmaması için sınır */
-            padding: 10px;
-            box-sizing: border-box;
-        }
-
-        /* YENİ: İframe yerine Video etiketini şekillendiriyoruz */
-        #reklamVideo {
-            width: 100%; /* Bulunduğu kabın tamamını kaplar, mobilde ufacık kalmaz */
-            height: auto; /* Videonun en-boy oranını bozmadan esner */
-            border-radius: 8px; /* Köşeleri hafif yuvarlak, daha şık durur */
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); /* Hafif gölge */
-            background-color: #000;
+        /* İframe'in ekranın/bulunduğu alanın %100'ünü TIKA BASA doldurmasını sağlıyoruz */
+        #rastgeleVideoPlayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
         }
     </style>
 </head>
 <body>
-    <div class="banner-wrapper">
+    
+    <iframe id="rastgeleVideoPlayer" src="" allow="autoplay" allowfullscreen></iframe>
+    
+    <script>
+        // 1. Videolarının SADECE ID'lerini buraya gir.
+        const videoIDleri = [
+            "1QyPXj3ukcQhJVeCB0TeaXhOJGIEQNaqX", // Senin ilk videon
+            "1QyPXj3ukcQhJVeCB0TeaXhOJGIEQNaqX",
+            "1QyPXj3ukcQhJVeCB0TeaXhOJGIEQNaqX"
+        ];
+
+        // 2. Rastgele bir ID seç
+        const rastgeleSayi = Math.floor(Math.random() * videoIDleri.length);
+        const secilenVideoID = videoIDleri[rastgeleSayi];
+
+        // 3. Drive Önizleme linki ile birleştir
+        const videoLinki = "https://drive.google.com/file/d/" + secilenVideoID + "/preview";
         
-        <!-- YENİ: Google Player İframe'i ÇÖPE GİTTİ! Yerine saf HTML5 Video geldi. 
-             autoplay: Otomatik başlatır.
-             muted: Otomatik başlaması için tarayıcılar sessiz olmasını şart koşar.
-             playsinline: İOS cihazlarda videonun tam ekrana fırlamasını engeller, kutuda oynatır. -->
-        <video id="reklamVideo" autoplay muted playsinline>
-            <source src="" type="video/mp4">
-            Tarayıcınız video oynatmayı desteklemiyor.
-        </video>
-        
-        <script>
-            // 1. Videolarının SADECE ID'lerini buraya gir. Linkin tamamını değil.
-            const videoIDleri = [
-                "1QyPXj3ukcQhJVeCB0TeaXhOJGIEQNaqX",
-                "1QyPXj3ukcQhJVeCB0TeaXhOJGIEQNaqX",
-                "1QyPXj3ukcQhJVeCB0TeaXhOJGIEQNaqX"
-            ];
-
-            // 2. Rastgele bir ID seç
-            const rastgeleSayi = Math.floor(Math.random() * videoIDleri.length);
-            const secilenVideoID = videoIDleri[rastgeleSayi];
-
-            // 3. YENİ: Drive Önizleme linki yerine "Direkt İndirme (Streaming)" linki kullanıyoruz!
-            const direktVideoLinki = "https://drive.google.com/uc?export=download&id=" + secilenVideoID;
-            
-            // 4. Video etiketinin kaynağına bu direkt linki verip oynatıyoruz
-            const videoElementi = document.getElementById("reklamVideo");
-            videoElementi.src = direktVideoLinki;
-            videoElementi.load(); // Videoyu arabelleğe al
-        </script>
-
-    </div>
+        // 4. İframe'in kaynağına bu linki ver
+        document.getElementById("rastgeleVideoPlayer").src = videoLinki;
+    </script>
 </body>
 </html>
