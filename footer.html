@@ -24,7 +24,33 @@
             overflow-x: hidden; 
             overflow-y: auto; 
         }
+/* 1. ADIM BURAYA EKLENDİ: Chrome, Safari ve Opera'da kaydırma çubuğunu gizler */
+        ::-webkit-scrollbar {
+            display: none;
+        }
 
+        * {
+            box-sizing: border-box;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #050505; 
+            color: #e0e0e0;
+            font-family: 'Space Mono', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden; 
+            overflow-y: auto; 
+            
+            /* 2. ADIM BURAYA EKLENDİ: Firefox, IE ve Edge'de kaydırma çubuğunu gizler */
+            -ms-overflow-style: none;  
+            scrollbar-width: none;  
+        }
         .container {
             width: 90%;
             max-width: 500px;
