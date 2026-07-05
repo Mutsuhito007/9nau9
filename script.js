@@ -15,7 +15,7 @@ const games = [
     { url: 'math.html', title: 'Math Match' },
     { url: 'cyberchondria.html', title: 'Cyberchondria' },
     { url: 'bunker.html', title: 'Shelter Manifest' },
-    { url: 'nau.html', title: 'nauCoin' },
+    { url: 'nau.html', title: 'D.U.D.E' },
     { url: 'video1.html', title: 'Message-1' },
     { url: 'book.html', title: 'Short Stories - 1' },
     { url: 'devil-pet.html', title: 'Hellspawn Caretaker' },
@@ -342,7 +342,7 @@ function loadFavoriteToIframe() {
     // Eğer kullanıcı favoriler menüsüne yeni girdiyse, doğrudan footer.html sayfasını gösteriyoruz
     if (isFirstFavView) {
         mainIframe.src = "footer.html";
-        if (pageTitle) pageTitle.innerText = "Transmission";
+        if (pageTitle) pageTitle.innerText = "Manifesto";
         iframePlaceholder.style.display = 'none';
         mainIframe.style.display = 'block';
         return;
