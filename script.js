@@ -146,10 +146,7 @@ try {
 let currentFavIndex = 0; 
 let isFirstFavView = true; 
 
-// Kırmızı buton için sayaç ve reklam kontrolü
-let sayfaGecisSayaci = 0;
-let favGecisSayaci = 0;
-let isAdActive = false; 
+
 
 // Kırmızı (yenile) butonuna tıklama mantığı
 function handleRefreshClick() {
@@ -160,42 +157,8 @@ function handleRefreshClick() {
         return;
     }
 
-    if (isAdActive) {
-        isAdActive = false;
-        nextItem();
-        return;
-    }
-
-    sayfaGecisSayaci++;
-
-    if (sayfaGecisSayaci % 5 === 0) {
-        isAdActive = true;
-        mainIframe.src = 'reklam-test.html'; 
-        if (pageTitle) pageTitle.innerText = "Data Buffering...";
-
-        kirmiziButon.style.pointerEvents = 'none';
-        kirmiziButon.style.opacity = '0.5';
-
-        let kalanSure = 5;
-        const originalHTML = kirmiziButon.innerHTML;
-        kirmiziButon.innerText = kalanSure;
-
-        const geriSayim = setInterval(() => {
-            kalanSure--;
-
-            if (kalanSure > 0) {
-                kirmiziButon.innerText = kalanSure;
-            } else {
-                clearInterval(geriSayim);
-                kirmiziButon.style.pointerEvents = 'auto'; 
-                kirmiziButon.style.opacity = '1'; 
-                kirmiziButon.innerHTML = originalHTML; 
-            }
-        }, 1000);
-
-    } else {
-        nextItem();
-    }
+    // Reklam sayacı kaldırıldı, butona basıldığında doğrudan sonraki sayfaya geçer.
+    nextItem();
 }
 
 // Favori (yenile) butonuna tıklama mantığı
@@ -207,42 +170,8 @@ function handleFavRefreshClick() {
         return;
     }
 
-    if (isAdActive) {
-        isAdActive = false;
-        nextFavorite();
-        return;
-    }
-
-    favGecisSayaci++;
-
-    if (favGecisSayaci % 5 === 0) {
-        isAdActive = true;
-        mainIframe.src = 'reklam-test.html'; 
-        if (pageTitle) pageTitle.innerText = "Data Buffering...";
-
-        favButon.style.pointerEvents = 'none';
-        favButon.style.opacity = '0.5';
-
-        let kalanSure = 5;
-        const originalHTML = favButon.innerHTML;
-        favButon.innerText = kalanSure;
-
-        const geriSayim = setInterval(() => {
-            kalanSure--;
-
-            if (kalanSure > 0) {
-                favButon.innerText = kalanSure; 
-            } else {
-                clearInterval(geriSayim);
-                favButon.style.pointerEvents = 'auto'; 
-                favButon.style.opacity = '1'; 
-                favButon.innerHTML = originalHTML; 
-            }
-        }, 1000);
-
-    } else {
-        nextFavorite();
-    }
+    // Reklam sayacı kaldırıldı, butona basıldığında doğrudan sonraki favoriye geçer.
+    nextFavorite();
 }
 
 // ==========================================
